@@ -18,4 +18,6 @@ build-images:
   script:
     - docker login -u $NEXUS_USER -p $NEXUS_PASSWORD gdi-berlin-docker.terrestris.de
     - ./mvnw -B install jib:build
+    - cd mde-services
+    - mvn -B jib:build
     - docker push gdi-berlin-docker.terrestris.de/gdi-berlin/mde-backend
