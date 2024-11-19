@@ -1,4 +1,4 @@
-image: terrestris/gitlab-runner-image:node20-bullseye-jdk21
+image: terrestris/gitlab-runner-image:node20-bullseye-jdk21-1
 services:
   - docker:dind
 
