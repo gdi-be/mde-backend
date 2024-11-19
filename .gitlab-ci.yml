@@ -1,4 +1,6 @@
-image: eclipse-temurin:21
+image: terrestris/gitlab-runner-image:node20-bullseye-jdk21
+services:
+  - docker:dind
 
 stages:
   - build
