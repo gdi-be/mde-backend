@@ -1,3 +1,5 @@
+image: eclipse-temurin:21
+
 stages:
   - build
 
