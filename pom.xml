@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.3.5</version>
+  </parent>
+
+  <groupId>de.terrestris.mde</groupId>
+  <artifactId>mde-backend</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>mde-backend</name>
+  <description>Backend for metadata editor</description>
+  <packaging>pom</packaging>
+
+  <scm>
+    <url>https://code.terrestris.de/gdi-berlin/mde/mde-backend</url>
+    <connection>scm:git:git@code.terrestris.de:gdi-berlin/mde/mde-backend.git</connection>
+    <developerConnection>scm:git:git@code.terrestris.de:gdi-berlin/mde/mde-backend.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+
+  <properties>
+    <java.version>21</java.version>
+  </properties>
+
+  <repositories>
+    <repository>
+      <id>nexus.terrestris.de</id>
+      <url>https://nexus.terrestris.de/repository/public/</url>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>nexus.terrestris.de-plugins</id>
+      <url>https://nexus.terrestris.de/repository/public/</url>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <distributionManagement>
+    <repository>
+      <id>nexus.terrestris.de-releases-berlin</id>
+      <name>Nexus Release Repository</name>
+      <url>https://nexus.terrestris.de/repository/gdi-berlin-maven/</url>
+    </repository>
+    <snapshotRepository>
+      <id>nexus.terrestris.de-snapshots-berlin</id>
+      <name>SHOGun Snapshot Repository</name>
+      <url>https://nexus.terrestris.de/repository/gdi-berlin-maven/</url>
+    </snapshotRepository>
+  </distributionManagement>
+
+  <modules>
+    <module>mde-services</module>
+    <module>mde-importer</module>
+  </modules>
+
+</project>

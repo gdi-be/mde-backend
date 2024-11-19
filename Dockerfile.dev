@@ -1,0 +1,5 @@
+FROM maven:3-eclipse-temurin-21
+
+WORKDIR /app/
+
+ENTRYPOINT ["mvn", "spring-boot:run", "-Dspring-boot.run.jvmArguments=-Xdebug -Dserver.servlet.session.cookie.path=/ -Dserver.servlet.context-path=/ -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:4711 -Dcom.sun.management.jmxremote.port=3336 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Djava.security.egd=file:/dev/./urandom -Xmx1g"]
