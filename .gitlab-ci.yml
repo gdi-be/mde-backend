@@ -20,4 +20,3 @@ build-images:
     - ./mvnw -B install
     - cd mde-services
     - mvn -B jib:build
-    - docker push gdi-berlin-docker.terrestris.de/gdi-berlin/mde-backend
