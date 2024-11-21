@@ -14,4 +14,24 @@
   <name>mde-importer</name>
   <description>Importer for metadata editor</description>
 
+  <dependencies>
+    <dependency>
+      <groupId>de.terrestris.mde</groupId>
+      <artifactId>mde-services</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>info.picocli</groupId>
+      <artifactId>picocli</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>de.terrestris</groupId>
+      <artifactId>terrestris-utils</artifactId>
+    </dependency>
+  </dependencies>
+
 </project>

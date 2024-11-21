@@ -48,21 +48,7 @@ public class JsonIsoMetadata {
 
   private List<String> serviceIds;
 
-  private String title;
-
-  private String shortDescription;
-
-  private String contentDescription;
-
-  private String technicalDescription;
-
-  private List<ServiceDescription> serviceDescriptions;
-
-  private LegendImage legendImage;
-
-  private List<Source> dataBases;
-
-  private List<Source> publications;
+  private List<Service> services;
 
   private List<String> keywords;
 
