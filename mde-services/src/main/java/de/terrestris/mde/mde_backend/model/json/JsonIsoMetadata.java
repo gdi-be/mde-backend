@@ -44,6 +44,8 @@ public class JsonIsoMetadata {
 
   private InspireTheme inspireTheme;
 
+  private String fileIdentifier;
+
   private DataIdentificator dataIdentificator;
 
   private List<String> serviceIds;
@@ -52,9 +54,13 @@ public class JsonIsoMetadata {
 
   private List<String> keywords;
 
+  private Instant dateTime;
+
   private Instant created;
 
   private Instant published;
+
+  private Instant modified;
 
   private Instant validFrom;
 

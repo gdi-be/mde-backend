@@ -26,6 +26,7 @@ public class Importer implements Callable<Boolean> {
   @Override
   public Boolean call() throws Exception {
     var ctx = new AnnotationConfigApplicationContext(
+      "de.terrestris.mde.mde_backend.config",
       "de.terrestris.mde.mde_backend",
       "de.terrestris.mde.mde_importer.importer"
     );
