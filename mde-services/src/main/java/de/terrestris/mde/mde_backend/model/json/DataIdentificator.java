@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@JsonDeserialize(as = JsonIsoMetadata.class)
+@JsonDeserialize(as = DataIdentificator.class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor(force = true)
 @AllArgsConstructor

@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Data
-@JsonDeserialize(as = JsonTechnicalMetadata.class)
+@JsonDeserialize(as = DatabaseInfo.class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
