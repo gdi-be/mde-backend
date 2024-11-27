@@ -23,6 +23,10 @@ public class Contact {
 
   private String email;
 
+  private CI_OnLineFunctionCode code;
+
   private String url;
+
+  private CI_RoleCode roleCode;
 
 }
