@@ -5,23 +5,11 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Type;
 
-import java.math.BigInteger;
-
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "technical_metadata")
 @Data
-public class TechnicalMetadata {
-
-  @Column(unique = true, nullable = false)
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Id
-  private BigInteger id;
-
-  @Column
-  private String title;
-
-  @Column
-  private String metadataId;
+public class TechnicalMetadata extends BaseMetadata {
 
   @Column
   @Type(JsonBinaryType.class)

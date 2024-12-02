@@ -4,27 +4,17 @@ import de.terrestris.mde.mde_backend.model.json.JsonClientMetadata;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
 
-import java.math.BigInteger;
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "client_metadata")
 @Data
-public class ClientMetadata {
-
-  @Column(unique = true, nullable = false)
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Id
-  private BigInteger id;
-
-  @Column
-  private String title;
-
-  @Column
-  private String metadataId;
+public class ClientMetadata extends BaseMetadata {
 
   @Column
   @Type(JsonBinaryType.class)

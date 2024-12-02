@@ -83,6 +83,21 @@
       <groupId>io.hypersistence</groupId>
       <artifactId>hypersistence-utils-hibernate-63</artifactId>
     </dependency>
+
+    <!-- Swagger -->
+    <dependency>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+      <version>2.5.0</version>
+    </dependency>
+
+    <!-- Keycloak -->
+    <dependency>
+      <groupId>org.keycloak</groupId>
+      <artifactId>keycloak-admin-client</artifactId>
+      <version>26.0.3</version>
+    </dependency>
+
   </dependencies>
 
   <build>
