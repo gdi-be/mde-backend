@@ -28,10 +28,12 @@ public class Importer implements Callable<Boolean> {
     var ctx = new AnnotationConfigApplicationContext(
       "de.terrestris.mde.mde_backend.config",
       "de.terrestris.mde.mde_backend",
+      "de.terrestris.mde.mde_importer.config",
       "de.terrestris.mde.mde_importer.importer"
     );
     ctx.start();
     var service = ctx.getBean(ImportService.class);
+    ctx.close();
     return service.importMetadata(directory);
   }
 
