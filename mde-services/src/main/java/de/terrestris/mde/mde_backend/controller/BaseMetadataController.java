@@ -75,6 +75,7 @@ public abstract class BaseMetadataController<T extends BaseMetadataService<?, S>
         } catch (
                 AccessDeniedException ade) {
             log.warn("Access to entity of type {} is denied", getGenericClassName());
+            log.trace("Stack trace:", ade);
 
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
@@ -137,6 +138,7 @@ public abstract class BaseMetadataController<T extends BaseMetadataService<?, S>
         } catch (AccessDeniedException ade) {
             log.warn("Access to entity of type {} with ID {} is denied",
                     getGenericClassName(), entityId);
+                log.trace("Stack trace:", ade);
 
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
@@ -181,6 +183,7 @@ public abstract class BaseMetadataController<T extends BaseMetadataService<?, S>
             return persistedEntity;
         } catch (AccessDeniedException ade) {
             log.warn("Creating entity of type {} is denied", getGenericClassName());
+            log.trace("Stack trace:", ade);
 
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
@@ -249,6 +252,7 @@ public abstract class BaseMetadataController<T extends BaseMetadataService<?, S>
         } catch (AccessDeniedException ade) {
             log.warn("Updating entity of type {} with ID {} is denied",
                     getGenericClassName(), entityId);
+                log.trace("Stack trace:", ade);
 
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
@@ -309,6 +313,7 @@ public abstract class BaseMetadataController<T extends BaseMetadataService<?, S>
         } catch (AccessDeniedException ade) {
             log.warn("Updating values of type {} with ID {} is denied",
                     getGenericClassName(), entityId);
+                log.trace("Stack trace:", ade);
 
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
@@ -322,6 +327,7 @@ public abstract class BaseMetadataController<T extends BaseMetadataService<?, S>
         } catch (NumberFormatException nfe) {
             log.error("Can't parse 'id' field ({}) from values ({}). It has to be an Integer.: {}",
                     patch, entityId, nfe.getMessage());
+            log.trace("Stack trace:", nfe);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         } catch (ResponseStatusException rse) {
             throw rse;
@@ -403,6 +409,7 @@ public abstract class BaseMetadataController<T extends BaseMetadataService<?, S>
         } catch (AccessDeniedException ade) {
             log.warn("Deleting entity of type {} with ID {} is denied",
                     getGenericClassName(), entityId);
+            log.trace("Stack trace:", ade);
 
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
