@@ -21,6 +21,7 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
 
+// TODO: permission handling
 @Log4j2
 public abstract class BaseMetadataService<T extends BaseRepository<S, BigInteger> & JpaSpecificationExecutor<S>, S extends BaseMetadata> {
 
@@ -31,7 +32,6 @@ public abstract class BaseMetadataService<T extends BaseRepository<S, BigInteger
     @Lazy
     ObjectMapper objectMapper;
 
-//    @PostFilter("hasRole('ROLE_ADMIN') or hasPermission(filterObject, 'READ')")
     @Transactional(readOnly = true)
     public List<S> findAll() {
         return (List<S>) repository.findAll();
@@ -41,58 +41,42 @@ public abstract class BaseMetadataService<T extends BaseRepository<S, BigInteger
     // the currently logged-in user if it's not available already.
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public Page<S> findAll(Pageable pageable) {
-        // TODO: permission handling
 
         return repository.findAll(pageable);
     }
 
-//    @PostFilter("hasRole('ROLE_ADMIN') or hasPermission(filterObject, 'READ')")
     @Transactional(readOnly = true)
     public List<S> findAllBy(Specification specification) {
         return (List<S>) repository.findAll(specification);
     }
 
-//    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Transactional(readOnly = true)
     public Page<S> findAllBy(Specification specification, Pageable pageable) {
         return (Page<S>) repository.findAll(specification, pageable);
     }
 
-//    @PostAuthorize("hasRole('ROLE_ADMIN') or hasPermission(returnObject.orElse(null), 'READ')")
     @Transactional(readOnly = true)
     public Optional<S> findOne(BigInteger id) {
         return repository.findById(id);
     }
 
-//    @PostFilter("hasRole('ROLE_ADMIN') or hasPermission(filterObject, 'READ')")
     @Transactional(readOnly = true)
     public List<S> findAllById(List<BigInteger> id) {
         return (List<S>) repository.findAllById(id);
     }
 
-//    @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'CREATE')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public S create(S entity) {
         S persistedEntity = repository.save(entity);
-
-        // TODO: permission handling
-
         return persistedEntity;
     }
 
-//    @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public S update(BigInteger id, S entity) throws IOException {
         Optional<S> persistedEntityOpt = repository.findById(id);
-
-//        // Ensure the created timestamp will not be overridden.
-//        S persistedEntity = persistedEntityOpt.orElseThrow();
-//        entity.setCreated(persistedEntity.getCreated());
-
         return repository.save(entity);
     }
 
-//    @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public S updatePartial(S entity, JsonMergePatch patch) throws IOException, JsonPatchException {
         JsonNode entityNode = objectMapper.valueToTree(entity);
@@ -101,12 +85,8 @@ public abstract class BaseMetadataService<T extends BaseRepository<S, BigInteger
         return repository.save(updatedEntity);
     }
 
-    // @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'DELETE')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void delete(S entity) {
-
-        // TODO: permission handling
-
         repository.delete(entity);
     }
 }

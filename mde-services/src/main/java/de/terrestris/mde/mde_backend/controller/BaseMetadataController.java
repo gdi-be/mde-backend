@@ -356,18 +356,16 @@ public abstract class BaseMetadataController<T extends BaseMetadataService<?, S>
     @Operation(
             summary = "Delete entity by its ID",
             description = "TODO"
-//        security = { @SecurityRequirement(name = "bearer-key") }
-//        content = { @Content(mediaType = "application/json", schema = @Schema(implementation = Class<S>)) }
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "204",
                     description = "No content: The entity was successfully deleted"
             ),
-//        @ApiResponse(
-//            responseCode = "400",
-//            description = "Bad Request: "
-//        ),
+            @ApiResponse(
+                responseCode = "400",
+                description = "Bad Request: "
+            ),
             @ApiResponse(
                     responseCode = "401",
                     description = "Unauthorized: You need to provide a bearer token"
