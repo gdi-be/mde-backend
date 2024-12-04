@@ -1,5 +1,6 @@
 package de.terrestris.mde.mde_backend.jpa;
 
+import de.terrestris.mde.mde_backend.model.BaseMetadata;
 import jakarta.persistence.QueryHint;
 import org.hibernate.jpa.AvailableHints;
 import org.springframework.data.domain.Page;
@@ -11,6 +12,7 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.lang.NonNull;
 
 import java.util.List;
+import java.util.Optional;
 
 @NoRepositoryBean
 public interface BaseRepository<T, ID> extends
@@ -39,4 +41,5 @@ public interface BaseRepository<T, ID> extends
     @NonNull
     Iterable<T> findAllById(@NonNull Iterable<ID> ids);
 
+    <S extends BaseMetadata> Optional<S> findByMetadataId(String metadataId);
 }

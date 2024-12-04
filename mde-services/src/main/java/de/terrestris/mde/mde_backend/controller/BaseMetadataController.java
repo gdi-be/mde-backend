@@ -167,6 +167,70 @@ public abstract class BaseMetadataController<T extends BaseMetadataService<?, S>
             );
         }
     }
+
+    @GetMapping("/m/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(security = { @SecurityRequirement(name = "bearer-key") })
+    public S findOneByMetadataId(@PathVariable("id") String metadataId) {
+        log.trace("Requested to return entity of type {} with metadataId {}",
+                getGenericClassName(), metadataId);
+
+        try {
+            Optional<S> entity = service.findOneByMetadataId(metadataId);
+
+            if (entity.isPresent()) {
+                S persistedEntity = entity.get();
+
+                log.trace("Successfully got entity of type {} with metadataId {}",
+                        getGenericClassName(), metadataId);
+
+                return persistedEntity;
+            } else {
+                log.error("Could not find entity of type {} with metadataId {}",
+                        getGenericClassName(), metadataId);
+
+                throw new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        messageSource.getMessage(
+                                "BaseController.NOT_FOUND",
+                                null,
+                                LocaleContextHolder.getLocale()
+                        )
+                );
+            }
+        } catch (AccessDeniedException ade) {
+            log.warn("Access to entity of type {} with metadataId {} is denied",
+                    getGenericClassName(), metadataId);
+            log.trace("Stack trace:", ade);
+
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    messageSource.getMessage(
+                            "BaseController.NOT_FOUND",
+                            null,
+                            LocaleContextHolder.getLocale()
+                    ),
+                    ade
+            );
+        } catch (ResponseStatusException rse) {
+            throw rse;
+        } catch (Exception e) {
+            log.error("Error while requesting entity of type {} with metadataId {}: \n {}",
+                    getGenericClassName(), metadataId, e.getMessage());
+            log.trace("Full stack trace: ", e);
+
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    messageSource.getMessage(
+                            "BaseController.INTERNAL_SERVER_ERROR",
+                            null,
+                            LocaleContextHolder.getLocale()
+                    ),
+                    e
+            );
+        }
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(security = { @SecurityRequirement(name = "bearer-key") })

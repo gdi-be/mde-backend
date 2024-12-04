@@ -67,6 +67,12 @@ public abstract class BaseMetadataService<T extends BaseRepository<S, BigInteger
         return repository.findById(id);
     }
 
+    @PostAuthorize("hasRole('ROLE_ADMIN') or hasPermission(returnObject.orElse(null), 'READ')")
+    @Transactional(readOnly = true)
+    public Optional<S> findOneByMetadataId(String metadataId) {
+        return repository.findByMetadataId(metadataId);
+    }
+
     @PostFilter("hasRole('ROLE_ADMIN') or hasPermission(filterObject, 'READ')")
     @Transactional(readOnly = true)
     public List<S> findAllById(List<BigInteger> id) {
