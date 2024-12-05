@@ -44,23 +44,19 @@ public abstract class BaseMetadataController<T extends BaseMetadataService<?, S>
             security = { @SecurityRequirement(name = "bearer-key") }
     )
     @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Ok: The entity was successfully created"
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "Unauthorized: You need to provide a bearer token",
-                    content = @Content
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "Not found: The provided ID does not exist (or you don't have the permission to delete it)"
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Internal Server Error: Something internal went wrong while deleting the entity"
-            )
+        @ApiResponse(
+            responseCode = "200",
+            description = "Ok: The entities where successfully returned"
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized: You need to provide a bearer token",
+            content = @Content
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal Server Error: Something internal went wrong while getting the entities"
+        )
     })
     public Page<S> findAll(@PageableDefault(Integer.MAX_VALUE) @ParameterObject Pageable pageable) {
         log.trace("Requested to return all entities of type {}", getGenericClassName());
@@ -72,20 +68,6 @@ public abstract class BaseMetadataController<T extends BaseMetadataService<?, S>
                     getGenericClassName(), persistedEntities.getTotalElements());
 
             return persistedEntities;
-        } catch (
-                AccessDeniedException ade) {
-            log.warn("Access to entity of type {} is denied", getGenericClassName());
-            log.trace("Stack trace:", ade);
-
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    messageSource.getMessage(
-                            "BaseController.NOT_FOUND",
-                            null,
-                            LocaleContextHolder.getLocale()
-                    ),
-                    ade
-            );
         } catch (ResponseStatusException rse) {
             throw rse;
         } catch (Exception e) {
@@ -108,6 +90,25 @@ public abstract class BaseMetadataController<T extends BaseMetadataService<?, S>
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @Operation(security = { @SecurityRequirement(name = "bearer-key") })
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Ok: The entity was successfully returned"
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized: You need to provide a bearer token",
+            content = @Content
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Not found: The provided ID does not exist (or you don't have the permission to read it)"
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal Server Error: Something internal went wrong while getting the entity"
+        )
+    })
     public S findOne(@PathVariable("id") BigInteger entityId) {
         log.trace("Requested to return entity of type {} with ID {}",
                 getGenericClassName(), entityId);
@@ -138,7 +139,7 @@ public abstract class BaseMetadataController<T extends BaseMetadataService<?, S>
         } catch (AccessDeniedException ade) {
             log.warn("Access to entity of type {} with ID {} is denied",
                     getGenericClassName(), entityId);
-                log.trace("Stack trace:", ade);
+                log.trace("Full Stack trace:", ade);
 
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
@@ -171,6 +172,25 @@ public abstract class BaseMetadataController<T extends BaseMetadataService<?, S>
     @GetMapping("/m/{id}")
     @ResponseStatus(HttpStatus.OK)
     @Operation(security = { @SecurityRequirement(name = "bearer-key") })
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Ok: The entity was successfully returned"
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized: You need to provide a bearer token",
+            content = @Content
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Not found: The provided ID does not exist (or you don't have the permission to read it)"
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal Server Error: Something internal went wrong while getting the entity"
+        )
+    })
     public S findOneByMetadataId(@PathVariable("id") String metadataId) {
         log.trace("Requested to return entity of type {} with metadataId {}",
                 getGenericClassName(), metadataId);
@@ -201,7 +221,7 @@ public abstract class BaseMetadataController<T extends BaseMetadataService<?, S>
         } catch (AccessDeniedException ade) {
             log.warn("Access to entity of type {} with metadataId {} is denied",
                     getGenericClassName(), metadataId);
-            log.trace("Stack trace:", ade);
+            log.trace("Full Stack trace:", ade);
 
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
@@ -234,6 +254,25 @@ public abstract class BaseMetadataController<T extends BaseMetadataService<?, S>
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(security = { @SecurityRequirement(name = "bearer-key") })
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Ok: The entity was successfully created"
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized: You need to provide a bearer token",
+            content = @Content
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "You don't have the permission to create this type of entity"
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal Server Error: Something internal went wrong while creating the entity"
+        )
+    })
     public S add(@RequestBody S entity) {
         log.trace("Requested to create a new entity of type {} ({})",
                 getGenericClassName(), entity);
@@ -247,7 +286,7 @@ public abstract class BaseMetadataController<T extends BaseMetadataService<?, S>
             return persistedEntity;
         } catch (AccessDeniedException ade) {
             log.warn("Creating entity of type {} is denied", getGenericClassName());
-            log.trace("Stack trace:", ade);
+            log.trace("Full Stack trace:", ade);
 
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
@@ -279,6 +318,25 @@ public abstract class BaseMetadataController<T extends BaseMetadataService<?, S>
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @Operation(security = { @SecurityRequirement(name = "bearer-key") })
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Ok: The entity was successfully updated"
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized: You need to provide a bearer token",
+            content = @Content
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "You don't have the permission to update this entity"
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal Server Error: Something internal went wrong while updating the entity"
+        )
+    })
     public S update(@RequestBody S entity, @PathVariable("id") BigInteger entityId) {
         log.trace("Requested to update entity of type {} with ID {} ({})",
                 getGenericClassName(), entityId, entity);
@@ -316,7 +374,7 @@ public abstract class BaseMetadataController<T extends BaseMetadataService<?, S>
         } catch (AccessDeniedException ade) {
             log.warn("Updating entity of type {} with ID {} is denied",
                     getGenericClassName(), entityId);
-                log.trace("Stack trace:", ade);
+            log.trace("FullStack trace:", ade);
 
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
@@ -349,6 +407,25 @@ public abstract class BaseMetadataController<T extends BaseMetadataService<?, S>
     @PatchMapping(value = "/{id}")
     @ResponseStatus(HttpStatus.OK)
     @Operation(security = { @SecurityRequirement(name = "bearer-key") })
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Ok: The entity was successfully updated"
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized: You need to provide a bearer token",
+            content = @Content
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "You don't have the permission to update this entity"
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal Server Error: Something internal went wrong while updating the entity"
+        )
+    })
     public S updatePartial(@RequestBody JsonMergePatch patch, @PathVariable("id") BigInteger entityId) {
         log.trace("Requested to partially update entity of type {} with ID {} ({})", getGenericClassName(), entityId, patch);
 
@@ -413,35 +490,31 @@ public abstract class BaseMetadataController<T extends BaseMetadataService<?, S>
     }
 
     @DeleteMapping(
-            value = "/{id}",
-            produces = { "application/json" }
+        value = "/{id}",
+        produces = { "application/json" }
     )
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(
-            summary = "Delete entity by its ID",
-            description = "TODO"
+        summary = "Delete entity by its ID",
+        description = "TODO"
     )
     @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "204",
-                    description = "No content: The entity was successfully deleted"
-            ),
-            @ApiResponse(
-                responseCode = "400",
-                description = "Bad Request: "
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "Unauthorized: You need to provide a bearer token"
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "Not found: The provided ID does not exist (or you don't have the permission to delete it)"
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Internal Server Error: Something internal went wrong while deleting the entity"
-            )
+        @ApiResponse(
+            responseCode = "204",
+            description = "No content: The entity was successfully deleted"
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized: You need to provide a bearer token"
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Not found: The provided ID does not exist (or you don't have the permission to delete it)"
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal Server Error: Something internal went wrong while deleting the entity"
+        )
     })
     public void delete(@Parameter(description = "id of the entity to delete") @PathVariable("id") BigInteger entityId) {
         log.trace("Requested to delete entity of type {} with ID {}",
