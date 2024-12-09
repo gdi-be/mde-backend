@@ -1,5 +1,6 @@
 package de.terrestris.mde.mde_backend.model.json;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
@@ -8,6 +9,8 @@ import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.List;
+
+import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
 
 @Data
 @JsonDeserialize(as = JsonIsoMetadata.class)
@@ -18,7 +21,8 @@ public class JsonIsoMetadata {
 
   public enum MetadataProfile {
     ISO,
-    INSPIRE
+    INSPIRE_HARMONISED,
+    INSPIRE_IDENTIFIED
   }
 
   public enum InspireTheme {
@@ -48,23 +52,35 @@ public class JsonIsoMetadata {
 
   private DataIdentificator dataIdentificator;
 
-  private List<String> serviceIds;
+  private String title;
+
+  private String description;
 
   private List<Service> services;
 
-  private List<String> keywords;
+  private List<Keyword> keywords;
 
+  private String highValueDataCategory;
+
+  @JsonFormat(shape = STRING)
   private Instant dateTime;
 
+  @JsonFormat(shape = STRING)
   private Instant created;
 
+  @JsonFormat(shape = STRING)
   private Instant published;
 
+  @JsonFormat(shape = STRING)
   private Instant modified;
 
+  @JsonFormat(shape = STRING)
   private Instant validFrom;
 
-  private List<Source> preview;
+  @JsonFormat(shape = STRING)
+  private Instant validTo;
+
+  private List<Source> previews;
 
   private String url; // rufUrl in import data
 
@@ -72,12 +88,18 @@ public class JsonIsoMetadata {
 
   private List<Contact> contacts;
 
-  private int scale;
+  private Integer scale;
+
+  private Double resolution;
 
   private PreviewMap previewMap;
 
   private PreviewMap previewMapInternal;
 
   private Extent extent;
+
+  private MD_MaintenanceFrequencyCode maintenanceFrequency;
+
+  private List<ContentDescription> contentDescriptions;
 
 }

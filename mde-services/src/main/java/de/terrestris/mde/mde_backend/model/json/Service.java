@@ -1,5 +1,6 @@
 package de.terrestris.mde.mde_backend.model.json;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
@@ -8,6 +9,8 @@ import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.List;
+
+import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
 
 @Data
 @JsonDeserialize(as = Service.class)
@@ -47,10 +50,13 @@ public class Service {
 
   private List<Source> publications;
 
+  @JsonFormat(shape = STRING)
   private Instant created;
 
+  @JsonFormat(shape = STRING)
   private Instant updated;
 
+  @JsonFormat(shape = STRING)
   private Instant published;
 
   private List<Source> previews;

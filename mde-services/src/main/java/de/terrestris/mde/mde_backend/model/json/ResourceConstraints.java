@@ -9,20 +9,12 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Data
-@JsonDeserialize(as = JsonClientMetadata.class)
+@JsonDeserialize(as = ResourceConstraints.class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
-public class JsonClientMetadata {
+public class ResourceConstraints {
 
-  private String comment;
-
-  private String privacy;
-
-  private boolean highValueDataset;
-
-  private Extent initialExtent;
-
-  private List<ColumnInfo> columns;
+  private List<Constraint> constraints;
 
 }

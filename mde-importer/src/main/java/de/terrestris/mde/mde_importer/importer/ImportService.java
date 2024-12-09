@@ -1,7 +1,11 @@
 package de.terrestris.mde.mde_importer.importer;
 
+import de.terrestris.mde.mde_backend.jpa.ClientMetadataRepository;
 import de.terrestris.mde.mde_backend.jpa.IsoMetadataRepository;
+import de.terrestris.mde.mde_backend.jpa.TechnicalMetadataRepository;
+import de.terrestris.mde.mde_backend.model.ClientMetadata;
 import de.terrestris.mde.mde_backend.model.IsoMetadata;
+import de.terrestris.mde.mde_backend.model.TechnicalMetadata;
 import de.terrestris.mde.mde_backend.model.json.*;
 import de.terrestris.mde.mde_backend.model.json.Service.ServiceType;
 import lombok.extern.log4j.Log4j2;
@@ -27,6 +31,8 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata.MetadataProfile.INSPIRE_IDENTIFIED;
+import static de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata.MetadataProfile.ISO;
 import static de.terrestris.utils.xml.XmlUtils.nextElement;
 import static de.terrestris.utils.xml.XmlUtils.skipToElement;
 
@@ -44,6 +50,12 @@ public class ImportService {
 
   @Autowired
   private IsoMetadataRepository isoMetadataRepository;
+
+  @Autowired
+  private ClientMetadataRepository clientMetadataRepository;
+
+  @Autowired
+  private TechnicalMetadataRepository technicalMetadataRepository;
 
   private final Map<String, List<Path>> servicesMap = new HashMap<>();
 
@@ -128,42 +140,167 @@ public class ImportService {
     var metadata = new IsoMetadata();
     ArrayList<JsonIsoMetadata> data = new ArrayList<>();
     var json = new JsonIsoMetadata();
+    var client = new ClientMetadata();
+    var technical = new TechnicalMetadata();
+    technical.setData(new ArrayList<>());
+    technical.getData().add(new JsonTechnicalMetadata());
+    client.setData(new ArrayList<>());
+    client.getData().add(new JsonClientMetadata());
     data.add(json);
     metadata.setData(data);
     json.setContacts(new ArrayList<>());
     skipToElement(reader, "Metadaten");
     var type = reader.getAttributeValue(null, "metadatenTyp");
-    json.setMetadataProfile(JsonIsoMetadata.MetadataProfile.valueOf(type));
+    if (type.equals("ISO")) {
+      json.setMetadataProfile(ISO);
+    }
+    if (type.equals("INSPIRE")) {
+      json.setMetadataProfile(INSPIRE_IDENTIFIED);
+    }
     skipToElement(reader, "Titel");
     metadata.setTitle(reader.getElementText());
+    client.setTitle(metadata.getTitle());
+    technical.setTitle(metadata.getTitle());
+    json.setTitle(metadata.getTitle());
     skipToElement(reader, "fileIdentifier");
     skipToElement(reader, "CharacterString");
     json.setFileIdentifier(reader.getElementText());
     skipToElement(reader, "contact");
-    parseContact(reader, json);
+    parseContact(reader, json, "contact");
     skipToElement(reader, "dateStamp");
     skipToElement(reader, "DateTime");
     // TODO or use local time zone?
     json.setDateTime(Instant.parse(reader.getElementText() + "Z"));
-    extractIdentificationInfo(reader, metadata, json);
-    List<Path> list = servicesMap.get(metadata.getMetadataId());
+    extractIdentificationInfo(reader, metadata, json, client, technical);
+    var list = servicesMap.get(metadata.getMetadataId());
     if (list != null) {
       list.forEach(file -> addService(file, json));
     }
     isoMetadataRepository.save(metadata);
+    clientMetadataRepository.save(client);
+    technicalMetadataRepository.save(technical);
   }
 
-  private static void extractIdentificationInfo(XMLStreamReader reader, IsoMetadata metadata, JsonIsoMetadata json) throws XMLStreamException, ParseException {
+  private static void extractIdentificationInfo(XMLStreamReader reader, IsoMetadata metadata, JsonIsoMetadata json, ClientMetadata client, TechnicalMetadata technical) throws XMLStreamException, ParseException {
     skipToElement(reader, "MD_DataIdentification");
     metadata.setMetadataId(reader.getAttributeValue(null, "uuid"));
+    client.setMetadataId(metadata.getMetadataId());
+    technical.setMetadataId(metadata.getMetadataId());
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("MD_DataIdentification"))) {
       reader.next();
       if (!reader.isStartElement()) {
         continue;
       }
+      if (reader.getLocalName().equals("abstract")) {
+        skipToElement(reader, "CharacterString");
+        json.setDescription(reader.getElementText());
+      }
+      if (reader.getLocalName().equals("pointOfContact")) {
+        parseContact(reader, json, "pointOfContact");
+      }
+      if (reader.getLocalName().equals("graphicOverview")) {
+        skipToElement(reader, "CharacterString");
+        if (json.getPreviews() == null) {
+          json.setPreviews(new ArrayList<>());
+        }
+        var source = new Source(null, reader.getElementText());
+        json.getPreviews().add(source);
+      }
+      if (reader.getLocalName().equals("keyword")) {
+        do {
+          reader.next();
+        } while (!reader.isStartElement());
+        if (json.getKeywords() == null) {
+          json.setKeywords(new ArrayList<>());
+        }
+        var keyword = new Keyword();
+        if (reader.getLocalName().equals("CharacterString")) {
+          keyword.setKeyword(reader.getElementText());
+        } else {
+          keyword.setNamespace(reader.getAttributeValue(XLINK, "href"));
+          keyword.setKeyword(reader.getElementText());
+        }
+        json.getKeywords().add(keyword);
+      }
+      if (reader.getLocalName().equals("resourceMaintenance")) {
+        skipToElement(reader, "MD_MaintenanceFrequencyCode");
+        json.setMaintenanceFrequency(MD_MaintenanceFrequencyCode.valueOf(reader.getAttributeValue(null, "codeListValue")));
+      }
+      if (reader.getLocalName().equals("spatialResolution")) {
+        while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("spatialResolution"))) {
+          reader.next();
+          if (!reader.isStartElement()) {
+            continue;
+          }
+          if (reader.getLocalName().equals("Distance")) {
+            json.setResolution(Double.parseDouble(reader.getElementText()));
+          }
+          if (reader.getLocalName().equals("denominator")) {
+            skipToElement(reader, "Integer");
+            json.setScale(Integer.parseInt(reader.getElementText()));
+          }
+        }
+      }
+      if (reader.getLocalName().equals("graphicOverview")) {
+        if (json.getPreviews() == null) {
+          json.setPreviews(new ArrayList<>());
+        }
+        skipToElement(reader, "CharacterString");
+        json.getPreviews().add(new Source("url", reader.getElementText()));
+      }
+      if (reader.getLocalName().equals("transferOptions")) {
+        if (json.getContentDescriptions() == null) {
+          json.setContentDescriptions(new ArrayList<>());
+        }
+        while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("transferOptions"))) {
+          reader.next();
+          if (!reader.isStartElement()) {
+            continue;
+          }
+          if (reader.getLocalName().equals("CI_OnlineResource")) {
+            skipToElement(reader, "URL");
+            String url = reader.getElementText();
+            skipToElement(reader, "CharacterString");
+            String text = reader.getElementText();
+            json.getContentDescriptions().add(new ContentDescription(url, text));
+          }
+        }
+      }
+      if (reader.getLocalName().equals("resourceConstraints")) {
+        ResourceConstraints resourceConstraints = new ResourceConstraints();
+        resourceConstraints.setConstraints(new ArrayList<>());
+        while (!(reader.isEndElement() && reader.getLocalName().equals("resourceConstraints"))) {
+          reader.next();
+          if (!reader.isStartElement()) {
+            continue;
+          }
+          switch (reader.getLocalName()) {
+            case "accessConstraints":
+            case "otherConstraints":
+            case "useConstraints":
+              do {
+                reader.next();
+              } while (!reader.isStartElement());
+              Constraint constraint = new Constraint();
+              resourceConstraints.getConstraints().add(constraint);
+              switch (reader.getLocalName()) {
+                case "MD_RestrictionCode":
+                  constraint.setRestrictionCode(MD_RestrictionCode.valueOf(reader.getAttributeValue(null, "codeListValue")));
+                  break;
+                case "Anchor":
+                  constraint.setUrl(reader.getAttributeValue(XLINK, "href"));
+                  constraint.setText(reader.getElementText());
+                  break;
+                case "CharacterString":
+                  constraint.setText(reader.getElementText());
+                  break;
+              }
+          }
+        }
+      }
       if (reader.getLocalName().equals("date")) {
         skipToElement(reader, "Date");
-        Instant date = FORMAT.parse(reader.getElementText()).toInstant();
+        var date = FORMAT.parse(reader.getElementText()).toInstant();
         skipToElement(reader, "CI_DateTypeCode");
         switch (reader.getAttributeValue(null, "codeListValue")) {
           case "creation":
@@ -180,9 +317,9 @@ public class ImportService {
     }
   }
 
-  private static void parseContact(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException {
-    Contact contact = new Contact();
-    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("contact"))) {
+  private static void parseContact(XMLStreamReader reader, JsonIsoMetadata json, String elementName) throws XMLStreamException {
+    var contact = new Contact();
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals(elementName))) {
       reader.next();
       if (!reader.isStartElement()) {
         continue;
@@ -217,7 +354,7 @@ public class ImportService {
   private void addService(Path file, JsonIsoMetadata json) {
     log.info("Adding service from {}", file.toString());
     try {
-      Service service = new Service();
+      var service = new Service();
       if (json.getServices() == null) {
         json.setServices(new ArrayList<>());
       }
@@ -227,7 +364,7 @@ public class ImportService {
       service.setPublications(new ArrayList<>());
       service.setPreviews(new ArrayList<>());
 
-      XMLStreamReader reader = FACTORY.createXMLStreamReader(Files.newInputStream(file));
+      var reader = FACTORY.createXMLStreamReader(Files.newInputStream(file));
       nextElement(reader);
       while (reader.hasNext() && !reader.getLocalName().equals("IsoMetadata") && !reader.getLocalName().equals("IsoMetadataWMTS")) {
         extractMetadataFields(reader, service);

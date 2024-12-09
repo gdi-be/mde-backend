@@ -21,4 +21,6 @@ public class JsonTechnicalMetadata {
 
   private List<Category> categories;
 
+  private String deliveredCrs;
+
 }

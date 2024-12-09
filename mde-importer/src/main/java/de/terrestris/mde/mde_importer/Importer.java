@@ -33,7 +33,6 @@ public class Importer implements Callable<Boolean> {
     );
     ctx.start();
     var service = ctx.getBean(ImportService.class);
-    ctx.close();
     return service.importMetadata(directory);
   }
 

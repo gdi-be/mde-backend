@@ -6,23 +6,15 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
-@JsonDeserialize(as = JsonClientMetadata.class)
+@JsonDeserialize(as = Keyword.class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
-public class JsonClientMetadata {
+public class Keyword {
 
-  private String comment;
+  private String namespace;
 
-  private String privacy;
-
-  private boolean highValueDataset;
-
-  private Extent initialExtent;
-
-  private List<ColumnInfo> columns;
+  private String keyword;
 
 }
