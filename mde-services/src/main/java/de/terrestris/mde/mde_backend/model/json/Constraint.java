@@ -6,23 +6,17 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
-@JsonDeserialize(as = JsonClientMetadata.class)
+@JsonDeserialize(as = Constraint.class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
-public class JsonClientMetadata {
+public class Constraint {
 
-  private String comment;
+  private String url;
 
-  private String privacy;
+  private String text;
 
-  private boolean highValueDataset;
-
-  private Extent initialExtent;
-
-  private List<ColumnInfo> columns;
+  private MD_RestrictionCode restrictionCode;
 
 }

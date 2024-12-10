@@ -38,7 +38,7 @@ public abstract class BaseMetadataService<T extends BaseRepository<S, BigInteger
     @PostFilter("hasRole('ROLE_ADMIN') or hasPermission(filterObject, 'READ')")
     @Transactional(readOnly = true)
     public List<S> findAll() {
-        return (List<S>) repository.findAll();
+        return repository.findAll();
     }
 
     // It's intentional to not have this method annotated with readOnly = true since getUserBySession might create
@@ -51,14 +51,14 @@ public abstract class BaseMetadataService<T extends BaseRepository<S, BigInteger
 
     @PostFilter("hasRole('ROLE_ADMIN') or hasPermission(filterObject, 'READ')")
     @Transactional(readOnly = true)
-    public List<S> findAllBy(Specification specification) {
-        return (List<S>) repository.findAll(specification);
+    public List<S> findAllBy(Specification<S> specification) {
+        return repository.findAll(specification);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Transactional(readOnly = true)
-    public Page<S> findAllBy(Specification specification, Pageable pageable) {
-        return (Page<S>) repository.findAll(specification, pageable);
+    public Page<S> findAllBy(Specification<S> specification, Pageable pageable) {
+        return repository.findAll(specification, pageable);
     }
 
     @PostAuthorize("hasRole('ROLE_ADMIN') or hasPermission(returnObject.orElse(null), 'READ')")
@@ -82,8 +82,7 @@ public abstract class BaseMetadataService<T extends BaseRepository<S, BigInteger
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'CREATE')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public S create(S entity) {
-        S persistedEntity = repository.save(entity);
-        return persistedEntity;
+      return repository.save(entity);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")

@@ -19,7 +19,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 
 @Configuration
@@ -34,8 +33,7 @@ public class WebSecurityConfig {
         return claims -> {
             var realmAccess = Optional.ofNullable((Map<String, Object>) claims.get("realm_access"));
             var roles = realmAccess.flatMap(map -> Optional.ofNullable((List<String>) map.get("roles")));
-            return roles.map(List::stream)
-                    .orElse(Stream.empty())
+            return roles.stream().flatMap(Collection::stream)
                     .map(SimpleGrantedAuthority::new)
                     .map(GrantedAuthority.class::cast)
                     .toList();
@@ -61,9 +59,7 @@ public class WebSecurityConfig {
 
         http.sessionManagement(sessions -> {
             sessions.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        }).csrf(csrf -> {
-            csrf.disable();
-        });
+        }).csrf(AbstractHttpConfigurer::disable);
 
         // TODO: Reenable CSRF
         http.csrf(AbstractHttpConfigurer::disable)
