@@ -1,5 +1,6 @@
 package de.terrestris.mde.mde_backend.model;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
@@ -8,8 +9,6 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
-
-import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @DynamicUpdate
@@ -22,11 +21,16 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString(callSuper = true)
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.PROPERTY,
+    property = "@type"
+)
 public class IsoMetadata extends BaseMetadata {
 
   @Column
   @Type(JsonBinaryType.class)
   @ToString.Exclude
-  private List<JsonIsoMetadata> data;
+  private JsonIsoMetadata data;
 
 }

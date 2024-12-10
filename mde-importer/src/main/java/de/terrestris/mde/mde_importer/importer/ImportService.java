@@ -138,16 +138,12 @@ public class ImportService {
 
   private void parseDatasetMetadata(XMLStreamReader reader) throws XMLStreamException, ParseException {
     var metadata = new IsoMetadata();
-    ArrayList<JsonIsoMetadata> data = new ArrayList<>();
     var json = new JsonIsoMetadata();
     var client = new ClientMetadata();
     var technical = new TechnicalMetadata();
-    technical.setData(new ArrayList<>());
-    technical.getData().add(new JsonTechnicalMetadata());
-    client.setData(new ArrayList<>());
-    client.getData().add(new JsonClientMetadata());
-    data.add(json);
-    metadata.setData(data);
+    technical.setData(new JsonTechnicalMetadata());
+    client.setData(new JsonClientMetadata());
+    metadata.setData(json);
     json.setContacts(new ArrayList<>());
     skipToElement(reader, "Metadaten");
     var type = reader.getAttributeValue(null, "metadatenTyp");
