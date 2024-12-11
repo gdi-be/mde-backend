@@ -23,4 +23,6 @@ public class JsonTechnicalMetadata {
 
   private String deliveredCrs;
 
+  private List<String> descriptions;
+
 }

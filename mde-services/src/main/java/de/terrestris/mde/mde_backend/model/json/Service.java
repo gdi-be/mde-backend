@@ -61,4 +61,6 @@ public class Service {
 
   private List<Source> previews;
 
+  private List<ColumnInfo> columns;
+
 }

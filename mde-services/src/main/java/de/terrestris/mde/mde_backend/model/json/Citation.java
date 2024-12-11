@@ -1,28 +1,28 @@
 package de.terrestris.mde.mde_backend.model.json;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.time.Instant;
+
+import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
 
 @Data
-@JsonDeserialize(as = JsonClientMetadata.class)
+@JsonDeserialize(as = Citation.class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
-public class JsonClientMetadata {
+public class Citation {
 
-  private String comment;
+  private String title;
 
-  private String privacy;
+  @JsonFormat(shape = STRING)
+  private Instant date;
 
-  private boolean highValueDataset;
-
-  private Extent initialExtent;
-
-  private List<Layer> layers;
+  private String url;
 
 }

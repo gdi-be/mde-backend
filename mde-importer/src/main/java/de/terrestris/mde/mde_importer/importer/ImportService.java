@@ -7,6 +7,8 @@ import de.terrestris.mde.mde_backend.model.ClientMetadata;
 import de.terrestris.mde.mde_backend.model.IsoMetadata;
 import de.terrestris.mde.mde_backend.model.TechnicalMetadata;
 import de.terrestris.mde.mde_backend.model.json.*;
+import de.terrestris.mde.mde_backend.model.json.ColumnInfo.ColumnType;
+import de.terrestris.mde.mde_backend.model.json.ColumnInfo.FilterType;
 import de.terrestris.mde.mde_backend.model.json.Service.ServiceType;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,8 +33,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import static de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata.MetadataProfile.INSPIRE_IDENTIFIED;
-import static de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata.MetadataProfile.ISO;
+import static de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata.MetadataProfile.*;
 import static de.terrestris.utils.xml.XmlUtils.nextElement;
 import static de.terrestris.utils.xml.XmlUtils.skipToElement;
 
@@ -138,16 +139,12 @@ public class ImportService {
 
   private void parseDatasetMetadata(XMLStreamReader reader) throws XMLStreamException, ParseException {
     var metadata = new IsoMetadata();
-    ArrayList<JsonIsoMetadata> data = new ArrayList<>();
     var json = new JsonIsoMetadata();
     var client = new ClientMetadata();
     var technical = new TechnicalMetadata();
-    technical.setData(new ArrayList<>());
-    technical.getData().add(new JsonTechnicalMetadata());
-    client.setData(new ArrayList<>());
-    client.getData().add(new JsonClientMetadata());
-    data.add(json);
-    metadata.setData(data);
+    technical.setData(new JsonTechnicalMetadata());
+    client.setData(new JsonClientMetadata());
+    metadata.setData(json);
     json.setContacts(new ArrayList<>());
     skipToElement(reader, "Metadaten");
     var type = reader.getAttributeValue(null, "metadatenTyp");
@@ -169,36 +166,36 @@ public class ImportService {
     parseContact(reader, json, "contact");
     skipToElement(reader, "dateStamp");
     skipToElement(reader, "DateTime");
-    // TODO or use local time zone?
     json.setDateTime(Instant.parse(reader.getElementText() + "Z"));
-    extractIdentificationInfo(reader, metadata, json, client, technical);
+    extractFromIso(reader, metadata, json, client, technical);
     var list = servicesMap.get(metadata.getMetadataId());
     if (list != null) {
-      list.forEach(file -> addService(file, json));
+      list.forEach(file -> addService(file, json, client.getData(), technical.getData()));
     }
     isoMetadataRepository.save(metadata);
     clientMetadataRepository.save(client);
     technicalMetadataRepository.save(technical);
   }
 
-  private static void extractIdentificationInfo(XMLStreamReader reader, IsoMetadata metadata, JsonIsoMetadata json, ClientMetadata client, TechnicalMetadata technical) throws XMLStreamException, ParseException {
+  private static void extractFromIso(XMLStreamReader reader, IsoMetadata metadata, JsonIsoMetadata json, ClientMetadata client, TechnicalMetadata technical) throws XMLStreamException, ParseException {
+    json.setResourceConstraints(new ArrayList<>());
     skipToElement(reader, "MD_DataIdentification");
     metadata.setMetadataId(reader.getAttributeValue(null, "uuid"));
     client.setMetadataId(metadata.getMetadataId());
     technical.setMetadataId(metadata.getMetadataId());
-    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("MD_DataIdentification"))) {
+    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("MD_Metadata"))) {
       reader.next();
       if (!reader.isStartElement()) {
         continue;
       }
-      if (reader.getLocalName().equals("abstract")) {
+      if (reader.isStartElement() && reader.getLocalName().equals("abstract")) {
         skipToElement(reader, "CharacterString");
         json.setDescription(reader.getElementText());
       }
-      if (reader.getLocalName().equals("pointOfContact")) {
+      if (reader.isStartElement() && reader.getLocalName().equals("pointOfContact")) {
         parseContact(reader, json, "pointOfContact");
       }
-      if (reader.getLocalName().equals("graphicOverview")) {
+      if (reader.isStartElement() && reader.getLocalName().equals("graphicOverview")) {
         skipToElement(reader, "CharacterString");
         if (json.getPreviews() == null) {
           json.setPreviews(new ArrayList<>());
@@ -206,114 +203,218 @@ public class ImportService {
         var source = new Source(null, reader.getElementText());
         json.getPreviews().add(source);
       }
-      if (reader.getLocalName().equals("keyword")) {
-        do {
-          reader.next();
-        } while (!reader.isStartElement());
-        if (json.getKeywords() == null) {
-          json.setKeywords(new ArrayList<>());
-        }
-        var keyword = new Keyword();
-        if (reader.getLocalName().equals("CharacterString")) {
-          keyword.setKeyword(reader.getElementText());
-        } else {
-          keyword.setNamespace(reader.getAttributeValue(XLINK, "href"));
-          keyword.setKeyword(reader.getElementText());
-        }
-        json.getKeywords().add(keyword);
-      }
-      if (reader.getLocalName().equals("resourceMaintenance")) {
+      extractConformanceResult(reader, json);
+      extractKeyword(reader, json);
+      if (reader.isStartElement() && reader.getLocalName().equals("resourceMaintenance")) {
         skipToElement(reader, "MD_MaintenanceFrequencyCode");
         json.setMaintenanceFrequency(MD_MaintenanceFrequencyCode.valueOf(reader.getAttributeValue(null, "codeListValue")));
       }
-      if (reader.getLocalName().equals("spatialResolution")) {
-        while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("spatialResolution"))) {
-          reader.next();
-          if (!reader.isStartElement()) {
-            continue;
-          }
-          if (reader.getLocalName().equals("Distance")) {
-            json.setResolution(Double.parseDouble(reader.getElementText()));
-          }
-          if (reader.getLocalName().equals("denominator")) {
-            skipToElement(reader, "Integer");
-            json.setScale(Integer.parseInt(reader.getElementText()));
-          }
-        }
-      }
-      if (reader.getLocalName().equals("graphicOverview")) {
-        if (json.getPreviews() == null) {
-          json.setPreviews(new ArrayList<>());
-        }
+      extractSpatialResolution(reader, json);
+      extractGraphicOverview(reader, json);
+      extractCitation(reader, json);
+      extractTransferOptions(reader, json);
+      extractResourceConstraints(reader, json);
+      extractDistributionFormat(reader, json);
+      if (reader.isStartElement() && reader.getLocalName().equals("statement")) {
         skipToElement(reader, "CharacterString");
-        json.getPreviews().add(new Source("url", reader.getElementText()));
+        json.setLineage(reader.getElementText());
       }
-      if (reader.getLocalName().equals("transferOptions")) {
-        if (json.getContentDescriptions() == null) {
-          json.setContentDescriptions(new ArrayList<>());
+      extractDate(reader, json);
+    }
+  }
+
+  private static void extractDistributionFormat(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException {
+    if (reader.isStartElement() && reader.getLocalName().equals("distributionFormat")) {
+      if (json.getDistributionVersions() == null) {
+        json.setDistributionVersions(new ArrayList<>());
+      }
+      var version = new DistributionVersion();
+      json.getDistributionVersions().add(version);
+      while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("distributionFormat"))) {
+        reader.next();
+        if (!reader.isStartElement()) {
+          continue;
         }
-        while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("transferOptions"))) {
-          reader.next();
-          if (!reader.isStartElement()) {
-            continue;
-          }
-          if (reader.getLocalName().equals("CI_OnlineResource")) {
-            skipToElement(reader, "URL");
-            String url = reader.getElementText();
+        switch (reader.getLocalName()) {
+          case "name":
             skipToElement(reader, "CharacterString");
-            String text = reader.getElementText();
-            json.getContentDescriptions().add(new ContentDescription(url, text));
-          }
-        }
-      }
-      if (reader.getLocalName().equals("resourceConstraints")) {
-        ResourceConstraints resourceConstraints = new ResourceConstraints();
-        resourceConstraints.setConstraints(new ArrayList<>());
-        while (!(reader.isEndElement() && reader.getLocalName().equals("resourceConstraints"))) {
-          reader.next();
-          if (!reader.isStartElement()) {
-            continue;
-          }
-          switch (reader.getLocalName()) {
-            case "accessConstraints":
-            case "otherConstraints":
-            case "useConstraints":
-              do {
-                reader.next();
-              } while (!reader.isStartElement());
-              Constraint constraint = new Constraint();
-              resourceConstraints.getConstraints().add(constraint);
-              switch (reader.getLocalName()) {
-                case "MD_RestrictionCode":
-                  constraint.setRestrictionCode(MD_RestrictionCode.valueOf(reader.getAttributeValue(null, "codeListValue")));
-                  break;
-                case "Anchor":
-                  constraint.setUrl(reader.getAttributeValue(XLINK, "href"));
-                  constraint.setText(reader.getElementText());
-                  break;
-                case "CharacterString":
-                  constraint.setText(reader.getElementText());
-                  break;
-              }
-          }
-        }
-      }
-      if (reader.getLocalName().equals("date")) {
-        skipToElement(reader, "Date");
-        var date = FORMAT.parse(reader.getElementText()).toInstant();
-        skipToElement(reader, "CI_DateTypeCode");
-        switch (reader.getAttributeValue(null, "codeListValue")) {
-          case "creation":
-            json.setCreated(date);
+            version.setName(reader.getElementText());
             break;
-          case "publication":
-            json.setPublished(date);
+          case "version":
+            skipToElement(reader, "CharacterString");
+            version.setVersion(reader.getElementText());
             break;
-          case "revision":
-            json.setModified(date);
+          case "specification":
+            skipToElement(reader, "CharacterString");
+            version.setSpecification(reader.getElementText());
             break;
         }
       }
+    }
+  }
+
+  private static void extractDate(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException, ParseException {
+    if (reader.isStartElement() && reader.getLocalName().equals("date")) {
+      skipToElement(reader, "Date");
+      var date = FORMAT.parse(reader.getElementText()).toInstant();
+      skipToElement(reader, "CI_DateTypeCode");
+      switch (reader.getAttributeValue(null, "codeListValue")) {
+        case "creation":
+          json.setCreated(date);
+          break;
+        case "publication":
+          json.setPublished(date);
+          break;
+        case "revision":
+          json.setModified(date);
+          break;
+      }
+    }
+  }
+
+  private static void extractGraphicOverview(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException {
+    if (reader.isStartElement() && reader.getLocalName().equals("graphicOverview")) {
+      if (json.getPreviews() == null) {
+        json.setPreviews(new ArrayList<>());
+      }
+      skipToElement(reader, "CharacterString");
+      json.getPreviews().add(new Source("url", reader.getElementText()));
+    }
+  }
+
+  private static void extractConformanceResult(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException {
+    if (reader.isStartElement() && reader.getLocalName().equals("DQ_ConformanceResult")) {
+      while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("DQ_ConformanceResult"))) {
+        reader.next();
+        if (!reader.isStartElement()) {
+          continue;
+        }
+        if (reader.getLocalName().equals("Boolean")) {
+          json.setValid(Boolean.parseBoolean(reader.getElementText()));
+          if (json.isValid() && json.getMetadataProfile().equals(INSPIRE_IDENTIFIED)) {
+            json.setMetadataProfile(INSPIRE_HARMONISED);
+          }
+        }
+      }
+    }
+  }
+
+  private static void extractCitation(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException, ParseException {
+    if (reader.isStartElement() && reader.getLocalName().equals("citation")) {
+      while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("citation"))) {
+        var citation = new Citation();
+        json.setCitation(citation);
+        reader.next();
+        if (!reader.isStartElement()) {
+          continue;
+        }
+        if (reader.getLocalName().equals("title")) {
+          skipToElement(reader, "CharacterString");
+          citation.setTitle(reader.getElementText());
+        }
+        if (reader.getLocalName().equals("Date")) {
+          var date = FORMAT.parse(reader.getElementText()).toInstant();
+          citation.setDate(date);
+        }
+        if (reader.getLocalName().equals("code")) {
+          skipToElement(reader, "CharacterString");
+          citation.setUrl(reader.getElementText());
+        }
+      }
+    }
+  }
+
+  private static void extractSpatialResolution(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException {
+    if (reader.isStartElement() && reader.getLocalName().equals("spatialResolution")) {
+      while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("spatialResolution"))) {
+        reader.next();
+        if (!reader.isStartElement()) {
+          continue;
+        }
+        if (reader.getLocalName().equals("Distance")) {
+          json.setResolution(Double.parseDouble(reader.getElementText()));
+        }
+        if (reader.getLocalName().equals("denominator")) {
+          skipToElement(reader, "Integer");
+          json.setScale(Integer.parseInt(reader.getElementText()));
+        }
+      }
+    }
+  }
+
+  private static void extractTransferOptions(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException {
+    if (reader.isStartElement() && reader.getLocalName().equals("transferOptions")) {
+      if (json.getContentDescriptions() == null) {
+        json.setContentDescriptions(new ArrayList<>());
+      }
+      while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("transferOptions"))) {
+        reader.next();
+        if (!reader.isStartElement()) {
+          continue;
+        }
+        if (reader.getLocalName().equals("CI_OnlineResource")) {
+          skipToElement(reader, "URL");
+          String url = reader.getElementText();
+          skipToElement(reader, "CharacterString");
+          String text = reader.getElementText();
+          json.getContentDescriptions().add(new ContentDescription(url, text));
+        }
+      }
+    }
+  }
+
+  private static void extractResourceConstraints(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException {
+    if (reader.isStartElement() && reader.getLocalName().equals("resourceConstraints")) {
+      ResourceConstraints resourceConstraints = new ResourceConstraints();
+      resourceConstraints.setConstraints(new ArrayList<>());
+      while (!(reader.isEndElement() && reader.getLocalName().equals("resourceConstraints"))) {
+        reader.next();
+        if (!reader.isStartElement()) {
+          continue;
+        }
+        switch (reader.getLocalName()) {
+          case "accessConstraints":
+          case "otherConstraints":
+          case "useConstraints":
+            do {
+              reader.next();
+            } while (!reader.isStartElement());
+            Constraint constraint = new Constraint();
+            resourceConstraints.getConstraints().add(constraint);
+            switch (reader.getLocalName()) {
+              case "MD_RestrictionCode":
+                constraint.setRestrictionCode(MD_RestrictionCode.valueOf(reader.getAttributeValue(null, "codeListValue")));
+                break;
+              case "Anchor":
+                constraint.setUrl(reader.getAttributeValue(XLINK, "href"));
+                constraint.setText(reader.getElementText());
+                break;
+              case "CharacterString":
+                constraint.setText(reader.getElementText());
+                break;
+            }
+        }
+      }
+      json.getResourceConstraints().add(resourceConstraints);
+    }
+  }
+
+  private static void extractKeyword(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException {
+    if (reader.isStartElement() && reader.getLocalName().equals("keyword")) {
+      do {
+        reader.next();
+      } while (!reader.isStartElement());
+      if (json.getKeywords() == null) {
+        json.setKeywords(new ArrayList<>());
+      }
+      var keyword = new Keyword();
+      if (reader.getLocalName().equals("CharacterString")) {
+        keyword.setKeyword(reader.getElementText());
+      } else {
+        keyword.setNamespace(reader.getAttributeValue(XLINK, "href"));
+        keyword.setKeyword(reader.getElementText());
+      }
+      json.getKeywords().add(keyword);
     }
   }
 
@@ -351,7 +452,7 @@ public class ImportService {
     json.getContacts().add(contact);
   }
 
-  private void addService(Path file, JsonIsoMetadata json) {
+  private void addService(Path file, JsonIsoMetadata json, JsonClientMetadata clientMetadata, JsonTechnicalMetadata technical) {
     log.info("Adding service from {}", file.toString());
     try {
       var service = new Service();
@@ -367,7 +468,7 @@ public class ImportService {
       var reader = FACTORY.createXMLStreamReader(Files.newInputStream(file));
       nextElement(reader);
       while (reader.hasNext() && !reader.getLocalName().equals("IsoMetadata") && !reader.getLocalName().equals("IsoMetadataWMTS")) {
-        extractMetadataFields(reader, service);
+        extractMetadataFields(reader, service, clientMetadata, technical);
       }
 
       extractIsoFields(reader, service);
@@ -409,7 +510,14 @@ public class ImportService {
     service.setUrl(url);
   }
 
-  private static void extractMetadataFields(XMLStreamReader reader, Service service) throws XMLStreamException, ParseException {
+  private static void extractMetadataFields(XMLStreamReader reader, Service service, JsonClientMetadata client, JsonTechnicalMetadata technical) throws XMLStreamException, ParseException {
+    client.setLayers(new ArrayList<>());
+    if (service.getColumns() == null) {
+      service.setColumns(new ArrayList<>());
+    }
+    if (technical.getCategories() == null) {
+      technical.setCategories(new ArrayList<>());
+    }
     switch (reader.getLocalName()) {
       case "Dienstebeschreibung":
         var desc = new ServiceDescription(
@@ -468,6 +576,103 @@ public class ImportService {
         skipToElement(reader, "Inhalt");
         preview.setContent(reader.getElementText());
         service.getPreviews().add(preview);
+        break;
+      case "Kategorie":
+        var category = new Category();
+        technical.getCategories().add(category);
+        while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("Kategorie"))) {
+          reader.next();
+          if (!reader.isStartElement()) {
+            continue;
+          }
+          if (reader.getLocalName().equals("Link")) {
+            category.setLink(new Link(
+              reader.getAttributeValue(null, "title"),
+              reader.getAttributeValue(null, "type"),
+              reader.getElementText()
+            ));
+          }
+        }
+        break;
+      case "SelectColumn":
+        var columnInfo = new ColumnInfo();
+        service.getColumns().add(columnInfo);
+        while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("SelectColumn"))) {
+          reader.next();
+          if (!reader.isStartElement()) {
+            continue;
+          }
+          switch (reader.getLocalName()) {
+            case "ColumnName":
+              columnInfo.setName(reader.getElementText());
+              break;
+            case "ColumnAlias":
+              columnInfo.setTitle(reader.getElementText());
+              break;
+            case "ColumnDescription":
+              columnInfo.setDescription(reader.getElementText());
+              break;
+            case "ColumnType":
+              String tp = reader.getElementText();
+              if (tp.equals("T")) {
+                tp = "Text";
+              }
+              if (tp.equals("N")) {
+                tp = "Long";
+              }
+              columnInfo.setType(ColumnType.valueOf(tp));
+              break;
+            case "ColumnFilter":
+              while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("ColumnFilter"))) {
+                reader.next();
+                if (!reader.isStartElement()) {
+                  continue;
+                }
+                if (reader.getLocalName().equals("FilterType")) {
+                  String value = reader.getElementText().trim();
+                  if (value.equals("Catalogbox")) {
+                    columnInfo.setFilterType(FilterType.CatalogBox);
+                  } else if (!value.isBlank()) {
+                    columnInfo.setFilterType(FilterType.valueOf(value));
+                  }
+                }
+              }
+              break;
+          }
+        }
+        break;
+      case "Kartenebene":
+        var layer = new Layer();
+        client.getLayers().add(layer);
+        layer.setRelatedTopic(reader.getAttributeValue(null, "mt_klasse"));
+        layer.setName(reader.getAttributeValue(null, "name"));
+        while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("Kartenebene"))) {
+          reader.next();
+          if (!reader.isStartElement()) {
+            continue;
+          }
+          switch (reader.getLocalName()) {
+            case "Titel":
+              layer.setTitle(reader.getElementText());
+              break;
+            case "Kurzbeschreibung":
+              layer.setShortDescription(reader.getElementText());
+              break;
+            case "Style":
+              layer.setStyleName(reader.getAttributeValue(null, "name"));
+              layer.setStyleTitle(reader.getAttributeValue(null, "title"));
+              break;
+            case "LegendImage":
+              var image = new LegendImage(
+                reader.getAttributeValue(null, "format"),
+                reader.getAttributeValue(null, "url"),
+                Integer.parseInt(reader.getAttributeValue(null, "width")),
+                Integer.parseInt(reader.getAttributeValue(null, "height"))
+              );
+              layer.setLegendImage(image);
+              break;
+          }
+        }
         break;
     }
     nextElement(reader);

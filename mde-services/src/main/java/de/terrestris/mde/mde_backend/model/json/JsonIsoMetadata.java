@@ -48,6 +48,8 @@ public class JsonIsoMetadata {
 
   private InspireTheme inspireTheme;
 
+  private List<DistributionVersion> distributionVersions;
+
   private String fileIdentifier;
 
   private DataIdentificator dataIdentificator;
@@ -101,5 +103,13 @@ public class JsonIsoMetadata {
   private MD_MaintenanceFrequencyCode maintenanceFrequency;
 
   private List<ContentDescription> contentDescriptions;
+
+  private List<ResourceConstraints> resourceConstraints;
+
+  private String lineage;
+
+  private Citation citation;
+
+  private boolean valid;
 
 }
