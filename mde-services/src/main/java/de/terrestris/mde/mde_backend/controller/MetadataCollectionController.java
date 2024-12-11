@@ -1,6 +1,9 @@
 package de.terrestris.mde.mde_backend.controller;
 
+import de.terrestris.mde.mde_backend.enumeration.MetadataType;
+import de.terrestris.mde.mde_backend.model.BaseMetadata;
 import de.terrestris.mde.mde_backend.model.dto.MetadataCollection;
+import de.terrestris.mde.mde_backend.model.dto.MetadataJsonPatch;
 import de.terrestris.mde.mde_backend.service.MetadataCollectionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -119,6 +122,39 @@ public class MetadataCollectionController {
                 e
             );
         }
+    }
+
+    @PatchMapping("/{metadataId}")
+    public BaseMetadata updateJsonValue(@RequestBody MetadataJsonPatch patch, @PathVariable("metadataId")  String metadataId) {
+        MetadataType metadataType = patch.getType();
+
+        try {
+            return switch (metadataType) {
+                case MetadataType.CLIENT ->
+                    service.updateClientJsonValue(metadataId, patch.getKey(), patch.getValue());
+                case MetadataType.TECHNICAL ->
+                    service.updateTechnicalJsonValue(metadataId, patch.getKey(), patch.getValue());
+                case MetadataType.ISO ->
+                    service.updateIsoJsonValue(metadataId, patch.getKey(), patch.getValue());
+                default ->
+                    throw new IllegalArgumentException("Invalid metadata type: " + metadataType);
+            };
+        // TODO: Add more specific exception handling
+        } catch (Exception e) {
+            log.error("Error while updating metadata with id {}: \n {}", metadataId, e.getMessage());
+            log.trace("Full stack trace: ", e);
+
+            throw new ResponseStatusException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                messageSource.getMessage(
+                    "BaseController.INTERNAL_SERVER_ERROR",
+                    null,
+                    LocaleContextHolder.getLocale()
+                ),
+                e
+            );
+        }
+
     }
 
 }
