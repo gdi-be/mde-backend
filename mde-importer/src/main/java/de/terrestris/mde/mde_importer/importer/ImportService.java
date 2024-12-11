@@ -33,9 +33,9 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata.InspireTheme.*;
 import static de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata.MetadataProfile.*;
-import static de.terrestris.utils.xml.XmlUtils.nextElement;
-import static de.terrestris.utils.xml.XmlUtils.skipToElement;
+import static de.terrestris.utils.xml.XmlUtils.*;
 
 @Component
 @Log4j2
@@ -48,6 +48,28 @@ public class ImportService {
   private static final XMLInputFactory FACTORY = XMLInputFactory.newFactory();
 
   private static final SimpleDateFormat FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+
+  private static final Map<String, JsonIsoMetadata.InspireTheme> INSPIRE_THEME_MAP;
+
+  static {
+    INSPIRE_THEME_MAP = new HashMap<>();
+    INSPIRE_THEME_MAP.put("Adressen", AD);
+    INSPIRE_THEME_MAP.put("Verwaltungseinheiten", AU);
+    INSPIRE_THEME_MAP.put("Gebäude", BU);
+    INSPIRE_THEME_MAP.put("Flurstücke/Grundstücke (Katasterparzellen)", CP);
+    INSPIRE_THEME_MAP.put("Höhe", EL);
+    INSPIRE_THEME_MAP.put("Geologie", GE);
+    INSPIRE_THEME_MAP.put("Geografische Bezeichnungen", GN);
+    INSPIRE_THEME_MAP.put("Bodenbedeckung", LC);
+    INSPIRE_THEME_MAP.put("Bodennutzung", LU);
+    INSPIRE_THEME_MAP.put("Orthofotografie", OI);
+    INSPIRE_THEME_MAP.put("Produktions- und Industrieanlagen", PF);
+    INSPIRE_THEME_MAP.put("Schutzgebiete", PS);
+    INSPIRE_THEME_MAP.put("Verteilung der Arten", SD);
+    INSPIRE_THEME_MAP.put("Boden", SO);
+    INSPIRE_THEME_MAP.put("Statistische Einheiten", SU);
+    INSPIRE_THEME_MAP.put("Versorgungswirtschaft und staatliche Dienste", US);
+  }
 
   @Autowired
   private IsoMetadataRepository isoMetadataRepository;
@@ -209,6 +231,7 @@ public class ImportService {
         skipToElement(reader, "MD_MaintenanceFrequencyCode");
         json.setMaintenanceFrequency(MD_MaintenanceFrequencyCode.valueOf(reader.getAttributeValue(null, "codeListValue")));
       }
+      extractExtent(reader, json);
       extractSpatialResolution(reader, json);
       extractGraphicOverview(reader, json);
       extractCitation(reader, json);
@@ -220,6 +243,37 @@ public class ImportService {
         json.setLineage(reader.getElementText());
       }
       extractDate(reader, json);
+    }
+  }
+
+  private static void extractExtent(XMLStreamReader reader, JsonIsoMetadata metadata) throws XMLStreamException {
+    if (reader.isStartElement() && reader.getLocalName().equals("EX_GeographicBoundingBox")) {
+      var extent = new Extent();
+      metadata.setExtent(extent);
+      while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("EX_GeographicBoundingBox"))) {
+        reader.next();
+        if (!reader.isStartElement()) {
+          continue;
+        }
+        switch (reader.getLocalName()) {
+          case "westBoundLongitude":
+            skipToElement(reader, "Decimal");
+            extent.setMinx(Double.parseDouble(reader.getElementText()));
+            break;
+          case "eastBoundLongitude":
+            skipToElement(reader, "Decimal");
+            extent.setMaxx(Double.parseDouble(reader.getElementText()));
+            break;
+          case "southBoundLatitude":
+            skipToElement(reader, "Decimal");
+            extent.setMiny(Double.parseDouble(reader.getElementText()));
+            break;
+          case "northBoundLatitude":
+            skipToElement(reader, "Decimal");
+            extent.setMaxy(Double.parseDouble(reader.getElementText()));
+            break;
+        }
+      }
     }
   }
 
@@ -400,21 +454,45 @@ public class ImportService {
   }
 
   private static void extractKeyword(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException {
-    if (reader.isStartElement() && reader.getLocalName().equals("keyword")) {
-      do {
-        reader.next();
-      } while (!reader.isStartElement());
-      if (json.getKeywords() == null) {
-        json.setKeywords(new ArrayList<>());
-      }
+    if (json.getKeywords() == null) {
+      json.setKeywords(new ArrayList<>());
+    }
+    if (reader.isStartElement() && reader.getLocalName().equals("MD_Keywords")) {
       var keyword = new Keyword();
-      if (reader.getLocalName().equals("CharacterString")) {
-        keyword.setKeyword(reader.getElementText());
-      } else {
-        keyword.setNamespace(reader.getAttributeValue(XLINK, "href"));
-        keyword.setKeyword(reader.getElementText());
-      }
       json.getKeywords().add(keyword);
+      while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("MD_Keywords"))) {
+        reader.next();
+        if (!reader.isStartElement()) {
+          continue;
+        }
+        switch (reader.getLocalName()) {
+          case "keyword":
+            if (keyword.getKeyword() != null) {
+              keyword = new Keyword();
+              json.getKeywords().add(keyword);
+            }
+            skipToOneOf(reader, "CharacterString", "Anchor");
+            if (reader.getLocalName().equals("CharacterString")) {
+              keyword.setKeyword(reader.getElementText());
+            } else {
+              keyword.setNamespace(reader.getAttributeValue(XLINK, "href"));
+              keyword.setKeyword(reader.getElementText());
+            }
+            break;
+          case "thesaurusName":
+            skipToOneOf(reader, "CharacterString", "Anchor");
+            if (reader.getLocalName().equals("CharacterString")) {
+              keyword.setThesaurus(reader.getElementText());
+            } else {
+              keyword.setThesaurusNamespace(reader.getAttributeValue(XLINK, "href"));
+              keyword.setThesaurus(reader.getElementText());
+            }
+            break;
+        }
+      }
+      if (keyword.getThesaurus() != null && keyword.getThesaurus().equals("GEMET - INSPIRE themes, version 1.0")) {
+        json.setInspireTheme(INSPIRE_THEME_MAP.get(keyword.getKeyword()));
+      }
     }
   }
 
@@ -578,15 +656,13 @@ public class ImportService {
         service.getPreviews().add(preview);
         break;
       case "Kategorie":
-        var category = new Category();
-        technical.getCategories().add(category);
         while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("Kategorie"))) {
           reader.next();
           if (!reader.isStartElement()) {
             continue;
           }
           if (reader.getLocalName().equals("Link")) {
-            category.setLink(new Link(
+            technical.getCategories().add(new Category(
               reader.getAttributeValue(null, "title"),
               reader.getAttributeValue(null, "type"),
               reader.getElementText()
