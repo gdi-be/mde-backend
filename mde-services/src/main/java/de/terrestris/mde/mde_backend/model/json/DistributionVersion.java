@@ -6,23 +6,17 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
-@JsonDeserialize(as = JsonClientMetadata.class)
+@JsonDeserialize(as = DistributionVersion.class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
-public class JsonClientMetadata {
+public class DistributionVersion {
 
-  private String comment;
+  private String name;
 
-  private String privacy;
+  private String version;
 
-  private boolean highValueDataset;
-
-  private Extent initialExtent;
-
-  private List<Layer> layers;
+  private String specification;
 
 }

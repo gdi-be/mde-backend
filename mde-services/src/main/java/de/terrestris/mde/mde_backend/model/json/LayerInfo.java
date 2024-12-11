@@ -15,4 +15,6 @@ public class LayerInfo {
 
   private String accessInfo;
 
+  private String workspace;
+
 }

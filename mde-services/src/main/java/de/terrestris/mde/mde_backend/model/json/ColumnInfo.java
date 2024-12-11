@@ -21,13 +21,27 @@ public class ColumnInfo {
     EditOrderField
   }
 
+  public enum ColumnType {
+    BigDecimal,
+    Date,
+    Double,
+    Float,
+    Geometry,
+    Integer,
+    Link,
+    Long,
+    Text,
+    Short,
+    Timestamp
+  }
+
   private String name;
 
   private String title;
 
   private String description;
 
-  private String impressum;
+  private ColumnType type;
 
   private boolean listView;
 

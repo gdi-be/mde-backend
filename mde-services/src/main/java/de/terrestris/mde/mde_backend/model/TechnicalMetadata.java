@@ -10,8 +10,6 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
 
-import java.util.List;
-
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "technical_metadata")
@@ -21,6 +19,6 @@ public class TechnicalMetadata extends BaseMetadata {
   @Column
   @Type(JsonBinaryType.class)
   @ToString.Exclude
-  private List<JsonTechnicalMetadata> data;
+  private JsonTechnicalMetadata data;
 
 }
