@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.3.5</version>
+    <version>3.4.0</version>
   </parent>
 
   <groupId>de.terrestris.mde</groupId>
@@ -25,6 +25,8 @@
   <properties>
     <java.version>21</java.version>
     <flyway.version>10.21.0</flyway.version>
+    <spring-boot.version>3.4.0</spring-boot.version>
+    <log4j.version>2.24.1</log4j.version>
   </properties>
 
   <repositories>
@@ -227,6 +229,33 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter</artifactId>
+        <version>${spring-boot.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-to-slf4j</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jul-to-slf4j</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
         <groupId>org.flywaydb</groupId>
         <artifactId>flyway-database-postgresql</artifactId>
         <version>${flyway.version}</version>
@@ -292,9 +321,50 @@
         <version>2.5.0</version>
       </dependency>
       <dependency>
+        <groupId>org.hibernate.orm</groupId>
+        <artifactId>hibernate-core</artifactId>
+        <version>${hibernate.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
         <groupId>org.keycloak</groupId>
         <artifactId>keycloak-admin-client</artifactId>
         <version>26.0.3</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>commons-logging-jboss-logging</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-core</artifactId>
+        <version>${log4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-1.2-api</artifactId>
+        <version>${log4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-jcl</artifactId>
+        <version>${log4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-slf4j2-impl</artifactId>
+        <version>${log4j.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
