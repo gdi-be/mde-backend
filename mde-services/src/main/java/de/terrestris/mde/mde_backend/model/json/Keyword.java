@@ -17,4 +17,8 @@ public class Keyword {
 
   private String keyword;
 
+  private String thesaurus;
+
+  private String thesaurusNamespace;
+
 }
