@@ -100,6 +100,28 @@
       <groupId>com.fasterxml.jackson.datatype</groupId>
       <artifactId>jackson-datatype-jsr310</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>de.terrestris</groupId>
+      <artifactId>terrestris-utils</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-1.2-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-jcl</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j2-impl</artifactId>
+    </dependency>
   </dependencies>
 
   <build>
@@ -120,7 +142,7 @@
             <mainClass>de.terrestris.mde.mde_backend.MdeBackendApplication</mainClass>
           </container>
           <to>
-            <image>gdi-berlin-docker.terrestris.de/gdi-berlin/mde-backend</image>
+            <image>${env.REGISTRY}/${env.IMAGE_NAME}</image>
           </to>
         </configuration>
       </plugin>
