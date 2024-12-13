@@ -27,5 +27,11 @@ jobs:
           distribution: 'temurin'
       - name: Run the Maven install phase
         run: mvn -B install
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and deploy docker image
         run: cd mde-services && mvn -B jib:build
