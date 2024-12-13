@@ -1,5 +1,6 @@
 package de.terrestris.mde.mde_backend.model;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.Cacheable;
@@ -23,6 +24,11 @@ import org.hibernate.annotations.Type;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString(callSuper = true)
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.PROPERTY,
+    property = "@type"
+)
 public class IsoMetadata extends BaseMetadata {
 
   @Column
