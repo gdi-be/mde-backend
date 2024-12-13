@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonpatch.JsonPatchException;
+import de.terrestris.mde.mde_backend.enumeration.MetadataProfile;
 import de.terrestris.mde.mde_backend.jpa.ClientMetadataRepository;
 import de.terrestris.mde.mde_backend.jpa.IsoMetadataRepository;
 import de.terrestris.mde.mde_backend.jpa.TechnicalMetadataRepository;
@@ -25,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class MetadataCollectionService {
@@ -59,6 +61,41 @@ public class MetadataCollectionService {
         metadataCollection.setIsoMetadata(isoMetadata.getData());
 
         return  Optional.of(metadataCollection);
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'CREATE')")
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public MetadataCollection create(String title, MetadataProfile profile) {
+        String metadataId = UUID.randomUUID().toString();
+
+        ClientMetadata clientMetadata = new ClientMetadata();
+        TechnicalMetadata technicalMetadata = new TechnicalMetadata();
+        IsoMetadata isoMetadata = new IsoMetadata();
+        clientMetadata.setMetadataId(metadataId);
+        technicalMetadata.setMetadataId(metadataId);
+        isoMetadata.setMetadataId(metadataId);
+        isoMetadata.setTitle(title);
+        clientMetadata.setTitle(title);
+        technicalMetadata.setTitle(title);
+
+        isoMetadata.getData().setMetadataProfile(profile);
+
+        clientMetadataRepository.save(clientMetadata);
+        technicalMetadataRepository.save(technicalMetadata);
+        isoMetadataRepository.save(isoMetadata);
+
+        MetadataCollection metadataCollection = new MetadataCollection();
+        metadataCollection.setClientMetadata(clientMetadata.getData());
+        metadataCollection.setTechnicalMetadata(technicalMetadata.getData());
+        metadataCollection.setIsoMetadata(isoMetadata.getData());
+
+        return metadataCollection;
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'CREATE')")
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public MetadataCollection create(String title, MetadataProfile profile, String cloneMetadataId) {
+        throw new UnsupportedOperationException("Not implemented yet");
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")

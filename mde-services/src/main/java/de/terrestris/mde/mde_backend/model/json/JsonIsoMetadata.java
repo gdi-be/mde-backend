@@ -3,6 +3,7 @@ package de.terrestris.mde.mde_backend.model.json;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import de.terrestris.mde.mde_backend.enumeration.MetadataProfile;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,12 +19,6 @@ import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
 public class JsonIsoMetadata {
-
-  public enum MetadataProfile {
-    ISO,
-    INSPIRE_HARMONISED,
-    INSPIRE_IDENTIFIED
-  }
 
   public enum InspireTheme {
     AD,
