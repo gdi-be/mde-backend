@@ -14,9 +14,9 @@ import lombok.Setter;
 @AllArgsConstructor
 public class MetadataCollection {
 
-    JsonTechnicalMetadata technicalMetadata;
-
     JsonClientMetadata clientMetadata;
+
+    JsonTechnicalMetadata technicalMetadata;
 
     JsonIsoMetadata isoMetadata;
 }

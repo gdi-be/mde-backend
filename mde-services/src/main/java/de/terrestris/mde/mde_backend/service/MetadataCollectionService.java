@@ -1,5 +1,6 @@
 package de.terrestris.mde.mde_backend.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -65,37 +66,62 @@ public class MetadataCollectionService {
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'CREATE')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public MetadataCollection create(String title, MetadataProfile profile) {
+    public String create(String title, MetadataProfile profile) {
         String metadataId = UUID.randomUUID().toString();
 
-        ClientMetadata clientMetadata = new ClientMetadata();
-        TechnicalMetadata technicalMetadata = new TechnicalMetadata();
-        IsoMetadata isoMetadata = new IsoMetadata();
-        clientMetadata.setMetadataId(metadataId);
-        technicalMetadata.setMetadataId(metadataId);
-        isoMetadata.setMetadataId(metadataId);
-        isoMetadata.setTitle(title);
-        clientMetadata.setTitle(title);
-        technicalMetadata.setTitle(title);
-
+        ClientMetadata clientMetadata = new ClientMetadata(title, metadataId);
+        TechnicalMetadata technicalMetadata = new TechnicalMetadata(title, metadataId);
+        IsoMetadata isoMetadata = new IsoMetadata(title, metadataId);
         isoMetadata.getData().setMetadataProfile(profile);
 
         clientMetadataRepository.save(clientMetadata);
         technicalMetadataRepository.save(technicalMetadata);
         isoMetadataRepository.save(isoMetadata);
 
-        MetadataCollection metadataCollection = new MetadataCollection();
-        metadataCollection.setClientMetadata(clientMetadata.getData());
-        metadataCollection.setTechnicalMetadata(technicalMetadata.getData());
-        metadataCollection.setIsoMetadata(isoMetadata.getData());
-
-        return metadataCollection;
+      return metadataId;
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'CREATE')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public MetadataCollection create(String title, MetadataProfile profile, String cloneMetadataId) {
-        throw new UnsupportedOperationException("Not implemented yet");
+    public String create(String title, MetadataProfile profile, String cloneMetadataId) throws IOException {
+      String metadataId = UUID.randomUUID().toString();
+
+      ClientMetadata clientMetadata = new ClientMetadata(title, metadataId);
+      TechnicalMetadata technicalMetadata = new TechnicalMetadata(title, metadataId);
+      IsoMetadata isoMetadata = new IsoMetadata(title, metadataId);
+
+      IsoMetadata oIso = isoMetadataRepository.findByMetadataId(cloneMetadataId)
+        .orElseThrow(() -> new NoSuchElementException("IsoMetadata not found for metadataId: " + cloneMetadataId));
+      ClientMetadata oClient = clientMetadataRepository.findByMetadataId(cloneMetadataId)
+        .orElseThrow(() -> new NoSuchElementException("ClientMetadata not found for metadataId: " + cloneMetadataId));
+      TechnicalMetadata oTechnical = technicalMetadataRepository.findByMetadataId(cloneMetadataId)
+        .orElseThrow(() -> new NoSuchElementException("TechnicalMetadata not found for metadataId: " + cloneMetadataId));
+
+      JsonIsoMetadata clonedIsoData = objectMapper.readValue(
+        objectMapper.writeValueAsString(oIso.getData()),
+        new TypeReference<JsonIsoMetadata>() {}
+      );
+      clonedIsoData.setMetadataProfile(profile);
+
+      JsonClientMetadata clonedClientData = objectMapper.readValue(
+        objectMapper.writeValueAsString(oClient.getData()),
+        new TypeReference<JsonClientMetadata>() {}
+      );
+
+      JsonTechnicalMetadata clonedTechnicalData = objectMapper.readValue(
+        objectMapper.writeValueAsString(oTechnical.getData()),
+        new TypeReference<JsonTechnicalMetadata>() {}
+      );
+
+      isoMetadata.setData(clonedIsoData);
+      clientMetadata.setData(clonedClientData);
+      technicalMetadata.setData(clonedTechnicalData);
+
+      clientMetadataRepository.save(clientMetadata);
+      technicalMetadataRepository.save(technicalMetadata);
+      isoMetadataRepository.save(isoMetadata);
+
+      return metadataId;
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")

@@ -4,6 +4,7 @@ import de.terrestris.mde.mde_backend.enumeration.MetadataType;
 import de.terrestris.mde.mde_backend.model.BaseMetadata;
 import de.terrestris.mde.mde_backend.model.dto.MetadataCollection;
 import de.terrestris.mde.mde_backend.model.dto.MetadataCreationData;
+import de.terrestris.mde.mde_backend.model.dto.MetadataCreationResponse;
 import de.terrestris.mde.mde_backend.model.dto.MetadataJsonPatch;
 import de.terrestris.mde.mde_backend.service.MetadataCollectionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -126,14 +127,20 @@ public class MetadataCollectionController {
     }
 
     @PostMapping("/")
-    public MetadataCollection create(@RequestBody MetadataCreationData creationData) {
+    public MetadataCreationResponse create(@RequestBody MetadataCreationData creationData) {
 
         try {
+          String metadataId;
           if (creationData.getCloneMetadataId() != null) {
-              return service.create(creationData.getTitle(), creationData.getMetadataProfile(), creationData.getCloneMetadataId());
+              metadataId = service.create(creationData.getTitle(), creationData.getMetadataProfile(), creationData.getCloneMetadataId());
           } else {
-              return service.create(creationData.getTitle(), creationData.getMetadataProfile());
+              metadataId =  service.create(creationData.getTitle(), creationData.getMetadataProfile());
           }
+          MetadataCreationResponse response = new MetadataCreationResponse();
+          response.setMetadataId(metadataId);
+          response.setTitle(creationData.getTitle());
+
+          return response;
           // TODO: Add more specific exception handling
         } catch (Exception e) {
           log.error("Error while creating metadata: {}", e.getMessage());
