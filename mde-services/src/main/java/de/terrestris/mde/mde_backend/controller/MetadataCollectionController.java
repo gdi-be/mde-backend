@@ -3,6 +3,8 @@ package de.terrestris.mde.mde_backend.controller;
 import de.terrestris.mde.mde_backend.enumeration.MetadataType;
 import de.terrestris.mde.mde_backend.model.BaseMetadata;
 import de.terrestris.mde.mde_backend.model.dto.MetadataCollection;
+import de.terrestris.mde.mde_backend.model.dto.MetadataCreationData;
+import de.terrestris.mde.mde_backend.model.dto.MetadataCreationResponse;
 import de.terrestris.mde.mde_backend.model.dto.MetadataJsonPatch;
 import de.terrestris.mde.mde_backend.service.MetadataCollectionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -121,6 +123,38 @@ public class MetadataCollectionController {
                 ),
                 e
             );
+        }
+    }
+
+    @PostMapping("/")
+    public MetadataCreationResponse create(@RequestBody MetadataCreationData creationData) {
+
+        try {
+          String metadataId;
+          if (creationData.getCloneMetadataId() != null) {
+              metadataId = service.create(creationData.getTitle(), creationData.getMetadataProfile(), creationData.getCloneMetadataId());
+          } else {
+              metadataId =  service.create(creationData.getTitle(), creationData.getMetadataProfile());
+          }
+          MetadataCreationResponse response = new MetadataCreationResponse();
+          response.setMetadataId(metadataId);
+          response.setTitle(creationData.getTitle());
+
+          return response;
+          // TODO: Add more specific exception handling
+        } catch (Exception e) {
+          log.error("Error while creating metadata: {}", e.getMessage());
+          log.trace("Full stack trace: ", e);
+
+          throw new ResponseStatusException(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            messageSource.getMessage(
+              "BaseController.INTERNAL_SERVER_ERROR",
+              null,
+              LocaleContextHolder.getLocale()
+            ),
+            e
+          );
         }
     }
 

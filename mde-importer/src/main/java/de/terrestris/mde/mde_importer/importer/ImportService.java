@@ -1,5 +1,6 @@
 package de.terrestris.mde.mde_importer.importer;
 
+import de.terrestris.mde.mde_backend.enumeration.MetadataProfile;
 import de.terrestris.mde.mde_backend.jpa.ClientMetadataRepository;
 import de.terrestris.mde.mde_backend.jpa.IsoMetadataRepository;
 import de.terrestris.mde.mde_backend.jpa.TechnicalMetadataRepository;
@@ -34,7 +35,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata.InspireTheme.*;
-import static de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata.MetadataProfile.*;
 import static de.terrestris.utils.xml.XmlUtils.*;
 
 @Component
@@ -171,10 +171,10 @@ public class ImportService {
     skipToElement(reader, "Metadaten");
     var type = reader.getAttributeValue(null, "metadatenTyp");
     if (type.equals("ISO")) {
-      json.setMetadataProfile(ISO);
+      json.setMetadataProfile(MetadataProfile.ISO);
     }
     if (type.equals("INSPIRE")) {
-      json.setMetadataProfile(INSPIRE_IDENTIFIED);
+      json.setMetadataProfile(MetadataProfile.INSPIRE_IDENTIFIED);
     }
     skipToElement(reader, "Titel");
     metadata.setTitle(reader.getElementText());
@@ -345,8 +345,8 @@ public class ImportService {
         }
         if (reader.getLocalName().equals("Boolean")) {
           json.setValid(Boolean.parseBoolean(reader.getElementText()));
-          if (json.isValid() && json.getMetadataProfile().equals(INSPIRE_IDENTIFIED)) {
-            json.setMetadataProfile(INSPIRE_HARMONISED);
+          if (json.isValid() && json.getMetadataProfile().equals(MetadataProfile.INSPIRE_IDENTIFIED)) {
+            json.setMetadataProfile(MetadataProfile.INSPIRE_HARMONISED);
           }
         }
       }

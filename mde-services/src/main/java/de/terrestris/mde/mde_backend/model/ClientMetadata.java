@@ -7,10 +7,12 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
 
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 @Entity
 @Table(name = "client_metadata")
 @Data
@@ -20,5 +22,12 @@ public class ClientMetadata extends BaseMetadata {
   @Type(JsonBinaryType.class)
   @ToString.Exclude
   private JsonClientMetadata data;
+
+  public ClientMetadata (String title, String metadataId) {
+    super();
+    setTitle(title);
+    setMetadataId(metadataId);
+    setData(new JsonClientMetadata());
+  }
 
 }
