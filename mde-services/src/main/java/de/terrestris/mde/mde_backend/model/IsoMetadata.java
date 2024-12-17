@@ -7,12 +7,14 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.*;
 import org.hibernate.annotations.Type;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @Entity
 @Table(name = "iso_metadata")
 @Data
+@Indexed
 public class IsoMetadata extends BaseMetadata {
 
   @Column

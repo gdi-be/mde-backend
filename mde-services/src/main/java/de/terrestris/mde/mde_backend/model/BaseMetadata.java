@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.Hibernate;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 
 import java.io.Serializable;
 import java.math.BigInteger;
@@ -16,6 +18,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @ToString
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+@Indexed
 public abstract class BaseMetadata implements Serializable {
 
     @Column(unique = true, nullable = false)
@@ -25,6 +28,7 @@ public abstract class BaseMetadata implements Serializable {
 
     @Column
     @Setter
+    @FullTextField(analyzer = "standard")
     private String title;
 
     @Column
