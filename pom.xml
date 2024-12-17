@@ -27,6 +27,7 @@
     <flyway.version>10.21.0</flyway.version>
     <spring-boot.version>3.4.0</spring-boot.version>
     <log4j.version>2.24.1</log4j.version>
+    <hibernate-search.version>7.2.2.Final</hibernate-search.version>
   </properties>
 
   <repositories>
@@ -331,6 +332,18 @@
           </exclusion>
         </exclusions>
       </dependency>
+      <!-- Hibernate Search -->
+      <dependency>
+        <groupId>org.hibernate.search</groupId>
+        <artifactId>hibernate-search-mapper-orm</artifactId>
+        <version>${hibernate-search.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hibernate.search</groupId>
+        <artifactId>hibernate-search-backend-lucene</artifactId>
+        <version>${hibernate-search.version}</version>
+      </dependency>
+
       <dependency>
         <groupId>org.keycloak</groupId>
         <artifactId>keycloak-admin-client</artifactId>
