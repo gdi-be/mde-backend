@@ -73,6 +73,7 @@ public class MetadataCollectionService {
         TechnicalMetadata technicalMetadata = new TechnicalMetadata(title, metadataId);
         IsoMetadata isoMetadata = new IsoMetadata(title, metadataId);
         isoMetadata.getData().setMetadataProfile(profile);
+        isoMetadata.getData().setTitle(title);
 
         clientMetadataRepository.save(clientMetadata);
         technicalMetadataRepository.save(technicalMetadata);
@@ -102,6 +103,7 @@ public class MetadataCollectionService {
         new TypeReference<JsonIsoMetadata>() {}
       );
       clonedIsoData.setMetadataProfile(profile);
+      clonedIsoData.setTitle(title);
 
       JsonClientMetadata clonedClientData = objectMapper.readValue(
         objectMapper.writeValueAsString(oClient.getData()),
