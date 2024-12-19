@@ -35,13 +35,12 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata.InspireTheme.*;
+import static de.terrestris.mde.mde_backend.utils.NamespaceUtils.XLINK;
 import static de.terrestris.utils.xml.XmlUtils.*;
 
 @Component
 @Log4j2
 public class ImportService {
-
-  private static final String XLINK = "http://www.w3.org/1999/xlink";
 
   private static final Pattern ID_REGEXP = Pattern.compile(".*/([^/]+)");
 
@@ -49,7 +48,7 @@ public class ImportService {
 
   private static final SimpleDateFormat FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
-  private static final Map<String, JsonIsoMetadata.InspireTheme> INSPIRE_THEME_MAP;
+  public static final Map<String, JsonIsoMetadata.InspireTheme> INSPIRE_THEME_MAP;
 
   static {
     INSPIRE_THEME_MAP = new HashMap<>();
@@ -185,10 +184,15 @@ public class ImportService {
     skipToElement(reader, "CharacterString");
     json.setFileIdentifier(reader.getElementText());
     skipToElement(reader, "contact");
-    parseContact(reader, json, "contact");
+    var contact = parseContact(reader, "contact");
+    if (json.getContacts() == null) {
+      json.setContacts(new ArrayList<>());
+    }
+    json.getContacts().add(contact);
     skipToElement(reader, "dateStamp");
     skipToElement(reader, "DateTime");
     json.setDateTime(Instant.parse(reader.getElementText() + "Z"));
+    extractCoordinateSystem(reader, json);
     extractFromIso(reader, metadata, json, client, technical);
     var list = servicesMap.get(metadata.getMetadataId());
     if (list != null) {
@@ -197,6 +201,20 @@ public class ImportService {
     isoMetadataRepository.save(metadata);
     clientMetadataRepository.save(client);
     technicalMetadataRepository.save(technical);
+  }
+
+  private static void extractCoordinateSystem(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException {
+    while (reader.hasNext() && !(reader.isStartElement() && reader.getLocalName().equals("identificationInfo"))) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+      if (reader.getLocalName().equals("referenceSystemInfo")) {
+        skipToElement(reader, "code");
+        skipToElement(reader, "CharacterString");
+        json.setCrs(reader.getElementText());
+      }
+    }
   }
 
   private static void extractFromIso(XMLStreamReader reader, IsoMetadata metadata, JsonIsoMetadata json, ClientMetadata client, TechnicalMetadata technical) throws XMLStreamException, ParseException {
@@ -210,12 +228,21 @@ public class ImportService {
       if (!reader.isStartElement()) {
         continue;
       }
+      if (reader.isStartElement() && reader.getLocalName().equals("identifier")) {
+        skipToElement(reader, "CharacterString");
+        json.setIdentifier(reader.getElementText());
+      }
       if (reader.isStartElement() && reader.getLocalName().equals("abstract")) {
         skipToElement(reader, "CharacterString");
         json.setDescription(reader.getElementText());
       }
       if (reader.isStartElement() && reader.getLocalName().equals("pointOfContact")) {
-        parseContact(reader, json, "pointOfContact");
+        var contact = parseContact(reader, "pointOfContact");
+        json.setPointOfContact(contact);
+      }
+      if (reader.isStartElement() && reader.getLocalName().equals("topicCategory")) {
+        skipToElement(reader, "MD_TopicCategoryCode");
+        json.setTopicCategory(reader.getElementText());
       }
       if (reader.isStartElement() && reader.getLocalName().equals("graphicOverview")) {
         skipToElement(reader, "CharacterString");
@@ -234,7 +261,6 @@ public class ImportService {
       extractExtent(reader, json);
       extractSpatialResolution(reader, json);
       extractGraphicOverview(reader, json);
-      extractCitation(reader, json);
       extractTransferOptions(reader, json);
       extractResourceConstraints(reader, json);
       extractDistributionFormat(reader, json);
@@ -353,31 +379,6 @@ public class ImportService {
     }
   }
 
-  private static void extractCitation(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException, ParseException {
-    if (reader.isStartElement() && reader.getLocalName().equals("citation")) {
-      while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("citation"))) {
-        var citation = new Citation();
-        json.setCitation(citation);
-        reader.next();
-        if (!reader.isStartElement()) {
-          continue;
-        }
-        if (reader.getLocalName().equals("title")) {
-          skipToElement(reader, "CharacterString");
-          citation.setTitle(reader.getElementText());
-        }
-        if (reader.getLocalName().equals("Date")) {
-          var date = FORMAT.parse(reader.getElementText()).toInstant();
-          citation.setDate(date);
-        }
-        if (reader.getLocalName().equals("code")) {
-          skipToElement(reader, "CharacterString");
-          citation.setUrl(reader.getElementText());
-        }
-      }
-    }
-  }
-
   private static void extractSpatialResolution(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException {
     if (reader.isStartElement() && reader.getLocalName().equals("spatialResolution")) {
       while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("spatialResolution"))) {
@@ -386,7 +387,10 @@ public class ImportService {
           continue;
         }
         if (reader.getLocalName().equals("Distance")) {
-          json.setResolution(Double.parseDouble(reader.getElementText()));
+          if (json.getResolutions() == null) {
+            json.setResolutions(new ArrayList<>());
+          }
+          json.getResolutions().add(Double.parseDouble(reader.getElementText()));
         }
         if (reader.getLocalName().equals("denominator")) {
           skipToElement(reader, "Integer");
@@ -411,7 +415,9 @@ public class ImportService {
           String url = reader.getElementText();
           skipToElement(reader, "CharacterString");
           String text = reader.getElementText();
-          json.getContentDescriptions().add(new ContentDescription(url, text));
+          skipToElement(reader, "CI_OnLineFunctionCode");
+          String code = reader.getAttributeValue(null, "codeListValue");
+          json.getContentDescriptions().add(new ContentDescription(url, text, CI_OnLineFunctionCode.valueOf(code)));
         }
       }
     }
@@ -419,47 +425,38 @@ public class ImportService {
 
   private static void extractResourceConstraints(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException {
     if (reader.isStartElement() && reader.getLocalName().equals("resourceConstraints")) {
-      ResourceConstraints resourceConstraints = new ResourceConstraints();
-      resourceConstraints.setConstraints(new ArrayList<>());
+      var list = new ArrayList<Constraint>();
+      json.getResourceConstraints().add(list);
       while (!(reader.isEndElement() && reader.getLocalName().equals("resourceConstraints"))) {
         reader.next();
-        if (!reader.isStartElement()) {
+        if (!reader.isStartElement() || reader.getLocalName().equals("MD_LegalConstraints") ||
+          reader.getLocalName().equals("useLimitation") || reader.getLocalName().equals("CharacterString")) {
           continue;
         }
+        var constraint = new Constraint();
+        list.add(constraint);
+        constraint.setType(Constraint.ConstraintType.valueOf(reader.getLocalName()));
+        skipToOneOf(reader, "Anchor", "CharacterString", "MD_RestrictionCode");
         switch (reader.getLocalName()) {
-          case "accessConstraints":
-          case "otherConstraints":
-          case "useConstraints":
-            do {
-              reader.next();
-            } while (!reader.isStartElement());
-            Constraint constraint = new Constraint();
-            resourceConstraints.getConstraints().add(constraint);
-            switch (reader.getLocalName()) {
-              case "MD_RestrictionCode":
-                constraint.setRestrictionCode(MD_RestrictionCode.valueOf(reader.getAttributeValue(null, "codeListValue")));
-                break;
-              case "Anchor":
-                constraint.setUrl(reader.getAttributeValue(XLINK, "href"));
-                constraint.setText(reader.getElementText());
-                break;
-              case "CharacterString":
-                constraint.setText(reader.getElementText());
-                break;
-            }
+          case "MD_RestrictionCode":
+            constraint.setRestrictionCode(MD_RestrictionCode.valueOf(reader.getAttributeValue(null, "codeListValue")));
+            break;
+          case "Anchor":
+            constraint.setNamespace(reader.getAttributeValue(XLINK, "href"));
+            constraint.setText(reader.getElementText());
+            break;
+          case "CharacterString":
+            constraint.setText(reader.getElementText());
+            break;
         }
       }
-      json.getResourceConstraints().add(resourceConstraints);
     }
   }
 
-  private static void extractKeyword(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException {
-    if (json.getKeywords() == null) {
-      json.setKeywords(new ArrayList<>());
-    }
+  private static void extractKeyword(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException, ParseException {
     if (reader.isStartElement() && reader.getLocalName().equals("MD_Keywords")) {
-      var keyword = new Keyword();
-      json.getKeywords().add(keyword);
+      var keywords = new ArrayList<Keyword>();
+      var thesaurus = new Thesaurus();
       while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("MD_Keywords"))) {
         reader.next();
         if (!reader.isStartElement()) {
@@ -467,36 +464,40 @@ public class ImportService {
         }
         switch (reader.getLocalName()) {
           case "keyword":
-            if (keyword.getKeyword() != null) {
-              keyword = new Keyword();
-              json.getKeywords().add(keyword);
-            }
             skipToOneOf(reader, "CharacterString", "Anchor");
             if (reader.getLocalName().equals("CharacterString")) {
-              keyword.setKeyword(reader.getElementText());
+              keywords.add(new Keyword(null, reader.getElementText()));
             } else {
+              var keyword = new Keyword();
               keyword.setNamespace(reader.getAttributeValue(XLINK, "href"));
               keyword.setKeyword(reader.getElementText());
+              keywords.add(keyword);
             }
             break;
           case "thesaurusName":
             skipToOneOf(reader, "CharacterString", "Anchor");
             if (reader.getLocalName().equals("CharacterString")) {
-              keyword.setThesaurus(reader.getElementText());
+              thesaurus.setTitle(reader.getElementText());
             } else {
-              keyword.setThesaurusNamespace(reader.getAttributeValue(XLINK, "href"));
-              keyword.setThesaurus(reader.getElementText());
+              thesaurus.setNamespace(reader.getAttributeValue(XLINK, "href"));
+              thesaurus.setTitle(reader.getElementText());
             }
+            skipToElement(reader, "Date");
+            thesaurus.setDate(FORMAT.parse(reader.getElementText()).toInstant());
+            skipToElement(reader, "CI_DateTypeCode");
+            thesaurus.setCode(CI_DateTypeCode.valueOf(reader.getAttributeValue(null, "codeListValue")));
             break;
         }
       }
-      if (keyword.getThesaurus() != null && keyword.getThesaurus().equals("GEMET - INSPIRE themes, version 1.0")) {
-        json.setInspireTheme(INSPIRE_THEME_MAP.get(keyword.getKeyword()));
+      json.getKeywords().put(thesaurus.getTitle() == null ? "default" : thesaurus.getTitle(), keywords);
+      json.getThesauri().put(thesaurus.getTitle() == null ? "default" : thesaurus.getTitle(), thesaurus);
+      if (thesaurus.getTitle() != null && thesaurus.getTitle().equals("GEMET - INSPIRE themes, version 1.0")) {
+        json.setInspireTheme(INSPIRE_THEME_MAP.get(keywords.getFirst().getKeyword()));
       }
     }
   }
 
-  private static void parseContact(XMLStreamReader reader, JsonIsoMetadata json, String elementName) throws XMLStreamException {
+  private static Contact parseContact(XMLStreamReader reader, String elementName) throws XMLStreamException {
     var contact = new Contact();
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals(elementName))) {
       reader.next();
@@ -527,7 +528,7 @@ public class ImportService {
           break;
       }
     }
-    json.getContacts().add(contact);
+    return contact;
   }
 
   private void addService(Path file, JsonIsoMetadata json, JsonClientMetadata clientMetadata, JsonTechnicalMetadata technical) {

@@ -13,10 +13,18 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Constraint {
 
-  private String url;
+  public enum ConstraintType {
+    accessConstraints,
+    useConstraints,
+    otherConstraints
+  }
+
+  private String namespace;
 
   private String text;
 
   private MD_RestrictionCode restrictionCode;
+
+  private ConstraintType type;
 
 }

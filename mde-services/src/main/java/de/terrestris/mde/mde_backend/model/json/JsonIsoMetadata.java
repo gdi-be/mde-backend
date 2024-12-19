@@ -9,7 +9,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
 
@@ -47,7 +50,7 @@ public class JsonIsoMetadata {
 
   private String fileIdentifier;
 
-  private DataIdentificator dataIdentificator;
+  private String identifier;
 
   private String title;
 
@@ -55,7 +58,9 @@ public class JsonIsoMetadata {
 
   private List<Service> services;
 
-  private List<Keyword> keywords;
+  private Map<String, List<Keyword>> keywords = new HashMap<>();
+
+  private Map<String, Thesaurus> thesauri = new HashMap<>();
 
   private String highValueDataCategory;
 
@@ -85,26 +90,30 @@ public class JsonIsoMetadata {
 
   private List<Contact> contacts;
 
+  private Contact pointOfContact;
+
   private Integer scale;
 
-  private Double resolution;
+  private List<Double> resolutions;
 
   private PreviewMap previewMap;
 
   private PreviewMap previewMapInternal;
 
+  private String crs;
+
   private Extent extent;
 
-  private MD_MaintenanceFrequencyCode maintenanceFrequency;
+  private MD_MaintenanceFrequencyCode maintenanceFrequency = MD_MaintenanceFrequencyCode.unknown;
 
   private List<ContentDescription> contentDescriptions;
 
-  private List<ResourceConstraints> resourceConstraints;
+  private List<List<Constraint>> resourceConstraints = new ArrayList<>();
 
   private String lineage;
 
-  private Citation citation;
-
   private boolean valid;
+
+  private String topicCategory;
 
 }
