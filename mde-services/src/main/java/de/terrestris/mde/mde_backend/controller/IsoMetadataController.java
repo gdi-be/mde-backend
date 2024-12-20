@@ -1,6 +1,7 @@
 package de.terrestris.mde.mde_backend.controller;
 
 import de.terrestris.mde.mde_backend.model.IsoMetadata;
+import de.terrestris.mde.mde_backend.service.IsoGenerator;
 import de.terrestris.mde.mde_backend.service.IsoMetadataService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -14,11 +15,25 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.xml.stream.XMLStreamException;
+import java.io.IOException;
+
+import static org.springframework.http.HttpStatus.OK;
 
 @Log4j2
 @RestController
 @RequestMapping("/metadata/iso")
 public class IsoMetadataController extends BaseMetadataController<IsoMetadataService, IsoMetadata> {
+
+  @Autowired
+  private IsoGenerator isoGenerator;
 
   @GetMapping(
     path = "/search",
@@ -59,5 +74,10 @@ public class IsoMetadataController extends BaseMetadataController<IsoMetadataSer
     }
   }
 
+  @GetMapping(path = "/generate/{id}")
+  public ResponseEntity<String> generateIsoMetadata(@PathVariable("id") String id) throws XMLStreamException, IOException {
+    isoGenerator.generateMetadata(id);
+    return new ResponseEntity<>(OK);
+  }
 
 }
