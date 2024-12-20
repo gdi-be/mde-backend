@@ -1,5 +1,6 @@
 package de.terrestris.mde.mde_backend.service;
 
+import de.terrestris.mde.mde_backend.enumeration.MetadataProfile;
 import de.terrestris.mde.mde_backend.model.json.*;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
@@ -426,7 +427,7 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // level
     writer.writeEndElement(); // DQ_Scope
     writer.writeEndElement(); // scope
-    if (!metadata.getMetadataProfile().equals(JsonIsoMetadata.MetadataProfile.ISO)) {
+    if (!metadata.getMetadataProfile().equals(MetadataProfile.ISO)) {
       writer.writeStartElement(GMD, "report");
       writer.writeStartElement(GMD, "DQ_DomainConsistency");
       writer.writeStartElement(GMD, "specification");
