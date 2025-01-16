@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @JsonDeserialize(as = JsonClientMetadata.class)
@@ -23,6 +24,6 @@ public class JsonClientMetadata {
 
   private Extent initialExtent;
 
-  private List<Layer> layers;
+  private Map<String, List<Layer>> layers;
 
 }
