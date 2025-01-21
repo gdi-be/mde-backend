@@ -29,10 +29,7 @@ import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -53,6 +50,7 @@ public class ImportService {
   public static final Map<String, JsonIsoMetadata.InspireTheme> INSPIRE_THEME_MAP;
 
   static {
+    FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
     INSPIRE_THEME_MAP = new HashMap<>();
     INSPIRE_THEME_MAP.put("Adressen", AD);
     INSPIRE_THEME_MAP.put("Verwaltungseinheiten", AU);
@@ -339,7 +337,11 @@ public class ImportService {
   private static void extractDate(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException, ParseException {
     if (reader.isStartElement() && reader.getLocalName().equals("date")) {
       skipToElement(reader, "Date");
-      var date = FORMAT.parse(reader.getElementText()).toInstant();
+      var text = reader.getElementText();
+      if (!text.endsWith("Z")) {
+        text += "Z";
+      }
+      var date = FORMAT.parse(text).toInstant();
       skipToElement(reader, "CI_DateTypeCode");
       switch (reader.getAttributeValue(null, "codeListValue")) {
         case "creation":
@@ -420,16 +422,17 @@ public class ImportService {
             if (!reader.isStartElement()) {
               continue;
             }
-            if (reader.getLocalName().equals("URL")) {
-              description.setUrl(reader.getElementText());
-            }
-            if (reader.getLocalName().equals("CharacterString")) {
-              description.setDescription(reader.getElementText());
-            }
-            if (reader.getLocalName().equals("CI_OnLineFunctionCode")) {
-              description.setCode(CI_OnLineFunctionCode.valueOf(
-                reader.getAttributeValue(null, "codeListValue")
-              ));
+            switch (reader.getLocalName()) {
+              case "URL":
+                description.setUrl(reader.getElementText());
+                break;
+              case "CharacterString":
+                description.setDescription(reader.getElementText());
+                break;
+              case "CI_OnLineFunctionCode":
+                String code = reader.getAttributeValue(null, "codeListValue");
+                description.setCode(CI_OnLineFunctionCode.valueOf(code));
+                break;
             }
           }
           json.getContentDescriptions().add(description);
@@ -498,7 +501,9 @@ public class ImportService {
               thesaurus.setTitle(reader.getElementText());
             }
             skipToElement(reader, "Date");
-            thesaurus.setDate(FORMAT.parse(reader.getElementText()).toInstant());
+            var text = reader.getElementText();
+            text += text.endsWith("Z") ? "" : "Z";
+            thesaurus.setDate(FORMAT.parse(text).toInstant());
             skipToElement(reader, "CI_DateTypeCode");
             thesaurus.setCode(CI_DateTypeCode.valueOf(reader.getAttributeValue(null, "codeListValue")));
             break;
@@ -759,15 +764,21 @@ public class ImportService {
         publication.setContent(reader.getElementText());
         service.getPublications().add(publication);
         break;
-      case "Erstellungsdatum":
-        service.setCreated(FORMAT.parse(reader.getElementText()).toInstant());
+      case "Erstellungsdatum": {
+        var txt = reader.getElementText();
+        service.setCreated(FORMAT.parse(txt + (txt.endsWith("Z") ? "" : "Z")).toInstant());
         break;
-      case "Revisionsdatum":
-        service.setUpdated(FORMAT.parse(reader.getElementText()).toInstant());
+      }
+      case "Revisionsdatum": {
+        var txt = reader.getElementText();
+        service.setUpdated(FORMAT.parse(txt + (txt.endsWith("Z") ? "" : "Z")).toInstant());
         break;
-      case "Veroeffentlichungsdatum":
-        service.setPublished(FORMAT.parse(reader.getElementText()).toInstant());
+      }
+      case "Veroeffentlichungsdatum": {
+        var txt = reader.getElementText();
+        service.setPublished(FORMAT.parse(txt + (txt.endsWith("Z") ? "" : "Z")).toInstant());
         break;
+      }
       case "Vorschau":
         var preview = new Source();
         preview.setType(reader.getAttributeValue(null, "Typ"));
