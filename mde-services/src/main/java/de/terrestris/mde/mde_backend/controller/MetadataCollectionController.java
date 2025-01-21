@@ -75,7 +75,7 @@ public class MetadataCollectionController {
                 throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
                     messageSource.getMessage(
-                        "BaseController.NOT_FOUND",
+                        "BASE_CONTROLLER.NOT_FOUND",
                         null,
                         LocaleContextHolder.getLocale()
                     )
@@ -88,7 +88,7 @@ public class MetadataCollectionController {
             throw new ResponseStatusException(
                 HttpStatus.NOT_FOUND,
                 messageSource.getMessage(
-                    "BaseController.NOT_FOUND",
+                    "BASE_CONTROLLER.NOT_FOUND",
                     null,
                     LocaleContextHolder.getLocale()
                 ),
@@ -102,7 +102,7 @@ public class MetadataCollectionController {
             throw new ResponseStatusException(
                 HttpStatus.NOT_FOUND,
                 messageSource.getMessage(
-                    "BaseController.NOT_FOUND",
+                    "BASE_CONTROLLER.NOT_FOUND",
                     null,
                     LocaleContextHolder.getLocale()
                 ),
@@ -117,7 +117,7 @@ public class MetadataCollectionController {
             throw new ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 messageSource.getMessage(
-                    "BaseController.INTERNAL_SERVER_ERROR",
+                    "BASE_CONTROLLER.INTERNAL_SERVER_ERROR",
                     null,
                     LocaleContextHolder.getLocale()
                 ),
@@ -149,7 +149,7 @@ public class MetadataCollectionController {
           throw new ResponseStatusException(
             HttpStatus.INTERNAL_SERVER_ERROR,
             messageSource.getMessage(
-              "BaseController.INTERNAL_SERVER_ERROR",
+              "BASE_CONTROLLER.INTERNAL_SERVER_ERROR",
               null,
               LocaleContextHolder.getLocale()
             ),
@@ -181,7 +181,7 @@ public class MetadataCollectionController {
             throw new ResponseStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 messageSource.getMessage(
-                    "BaseController.INTERNAL_SERVER_ERROR",
+                    "BASE_CONTROLLER.INTERNAL_SERVER_ERROR",
                     null,
                     LocaleContextHolder.getLocale()
                 ),

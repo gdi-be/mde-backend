@@ -43,7 +43,7 @@ public class SearchController extends BaseMetadataController<IsoMetadataService,
       throw new ResponseStatusException(
         HttpStatus.INTERNAL_SERVER_ERROR,
         messageSource.getMessage(
-          "BaseController.INTERNAL_SERVER_ERROR",
+          "BASE_CONTROLLER.INTERNAL_SERVER_ERROR",
           null,
           LocaleContextHolder.getLocale()
         ),
