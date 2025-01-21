@@ -12,6 +12,7 @@ import de.terrestris.mde.mde_backend.model.json.ColumnInfo.ColumnType;
 import de.terrestris.mde.mde_backend.model.json.ColumnInfo.FilterType;
 import de.terrestris.mde.mde_backend.model.json.Service.ServiceType;
 import lombok.extern.log4j.Log4j2;
+import org.apache.http.client.utils.URIBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -22,6 +23,7 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
@@ -165,6 +167,7 @@ public class ImportService {
     var technical = new TechnicalMetadata();
     technical.setData(new JsonTechnicalMetadata());
     client.setData(new JsonClientMetadata());
+    client.getData().setLayers(new HashMap<>());
     metadata.setData(json);
     json.setContacts(new ArrayList<>());
     skipToElement(reader, "Metadaten");
@@ -411,13 +414,25 @@ public class ImportService {
           continue;
         }
         if (reader.getLocalName().equals("CI_OnlineResource")) {
-          skipToElement(reader, "URL");
-          String url = reader.getElementText();
-          skipToElement(reader, "CharacterString");
-          String text = reader.getElementText();
-          skipToElement(reader, "CI_OnLineFunctionCode");
-          String code = reader.getAttributeValue(null, "codeListValue");
-          json.getContentDescriptions().add(new ContentDescription(url, text, CI_OnLineFunctionCode.valueOf(code)));
+          var description = new ContentDescription();
+          while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("CI_OnlineResource"))) {
+            reader.next();
+            if (!reader.isStartElement()) {
+              continue;
+            }
+            if (reader.getLocalName().equals("URL")) {
+              description.setUrl(reader.getElementText());
+            }
+            if (reader.getLocalName().equals("CharacterString")) {
+              description.setDescription(reader.getElementText());
+            }
+            if (reader.getLocalName().equals("CI_OnLineFunctionCode")) {
+              description.setCode(CI_OnLineFunctionCode.valueOf(
+                reader.getAttributeValue(null, "codeListValue")
+              ));
+            }
+          }
+          json.getContentDescriptions().add(description);
         }
       }
     }
@@ -546,12 +561,18 @@ public class ImportService {
 
       var reader = FACTORY.createXMLStreamReader(Files.newInputStream(file));
       nextElement(reader);
+      List<Layer> layers = null;
       while (reader.hasNext() && !reader.getLocalName().equals("IsoMetadata") && !reader.getLocalName().equals("IsoMetadataWMTS")) {
-        extractMetadataFields(reader, service, clientMetadata, technical);
+        var res = extractMetadataFields(reader, service, technical);
+        if (!res.isEmpty()) {
+          layers = res;
+        }
       }
 
       extractIsoFields(reader, service);
-    } catch (XMLStreamException | IOException | ParseException e) {
+      clientMetadata.getLayers().put(service.getFileIdentifier(), layers);
+      parseCapabilities(service, clientMetadata);
+    } catch (XMLStreamException | IOException | ParseException | URISyntaxException e) {
       log.warn("Unable to add service from {}: {}", file, e.getMessage());
       log.trace("Stack trace", e);
       throw new ImportException(e);
@@ -589,8 +610,98 @@ public class ImportService {
     service.setUrl(url);
   }
 
-  private static void extractMetadataFields(XMLStreamReader reader, Service service, JsonClientMetadata client, JsonTechnicalMetadata technical) throws XMLStreamException, ParseException {
-    client.setLayers(new ArrayList<>());
+  private static void parseLayer(XMLStreamReader reader, List<Layer> layers) throws XMLStreamException {
+    var layer = new Layer();
+    while (!(reader.isEndElement() && reader.getLocalName().equals("Layer"))) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+      switch (reader.getLocalName()) {
+        case "Layer":
+          parseLayer(reader, layers);
+          break;
+        case "Title":
+          layer.setTitle(reader.getElementText());
+          break;
+        case "Name":
+          layer.setName(reader.getElementText());
+          break;
+        case "Abstract":
+          layer.setShortDescription(reader.getElementText());
+          break;
+        case "Style":
+          parseStyle(reader, layer);
+          break;
+      }
+    }
+    // prevent previous possibly recursive calls from ending prematurely
+    reader.next();
+  }
+
+  private static void parseStyle(XMLStreamReader reader, Layer layer) throws XMLStreamException {
+    while (!(reader.isEndElement() && reader.getLocalName().equals("Style"))) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+      switch (reader.getLocalName()) {
+        case "Title":
+          layer.setStyleTitle(reader.getElementText());
+          break;
+        case "Name":
+          layer.setStyleName(reader.getElementText());
+          break;
+        case "LegendURL":
+          var legend = new LegendImage();
+          legend.setWidth(Integer.parseInt(reader.getAttributeValue(null, "width")));
+          legend.setHeight(Integer.parseInt(reader.getAttributeValue(null, "height")));
+          skipToElement(reader, "Format");
+          legend.setFormat(reader.getElementText());
+          skipToElement(reader, "OnlineResource");
+          legend.setUrl(reader.getAttributeValue(XLINK, "href"));
+          layer.setLegendImage(legend);
+          break;
+      }
+    }
+  }
+
+  private static void parseLayers(XMLStreamReader reader, List<Layer> layers) throws XMLStreamException {
+    while (!(reader.isEndElement() && reader.getLocalName().equals("WMS_Capabilities"))) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+      if (reader.getLocalName().equals("Layer")) {
+        parseLayer(reader, layers);
+      }
+    }
+  }
+
+  private static void parseCapabilities(Service service, JsonClientMetadata client) throws URISyntaxException, IOException, XMLStreamException {
+    var url = service.getUrl();
+    if (!url.contains("@@WMSServiceServer@senstadt@@")) {
+      log.info("Not reading capabilities from {}", url);
+      return;
+    }
+    url = url.replace("@@WMSServiceServer@senstadt@@", "gdi.berlin.de/services/wms/");
+    log.info("Reading capabilities from {}", url);
+    if (!service.getServiceType().equals(ServiceType.WMS)) {
+      return;
+    }
+    var layers = new ArrayList<Layer>();
+    client.getLayers().put(service.getFileIdentifier(), layers);
+    var uri = new URIBuilder(url)
+      .clearParameters()
+      .setParameter("request", "GetCapabilities")
+      .setParameter("service", "WMS")
+      .build();
+    var reader = FACTORY.createXMLStreamReader(uri.toURL().openStream());
+    parseLayers(reader, layers);
+  }
+
+  private static List<Layer> extractMetadataFields(XMLStreamReader reader, Service service, JsonTechnicalMetadata technical) throws XMLStreamException, ParseException, URISyntaxException {
+    var layers = new ArrayList<Layer>();
     if (service.getColumns() == null) {
       service.setColumns(new ArrayList<>());
     }
@@ -616,6 +727,14 @@ public class ImportService {
         break;
       case "TechnischeBeschreibung":
         service.setTechnicalDescription(reader.getElementText());
+        break;
+      case "GIS-Typ":
+        if (reader.getElementText().equals("ogcmap")) {
+          service.setServiceType(ServiceType.WMS);
+        }
+        break;
+      case "GIS-ServerName":
+        service.setUrl(reader.getElementText());
         break;
       case "LegendImage":
         var img = new LegendImage(
@@ -720,7 +839,7 @@ public class ImportService {
         break;
       case "Kartenebene":
         var layer = new Layer();
-        client.getLayers().add(layer);
+        layers.add(layer);
         layer.setRelatedTopic(reader.getAttributeValue(null, "mt_klasse"));
         layer.setName(reader.getAttributeValue(null, "name"));
         while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("Kartenebene"))) {
@@ -753,6 +872,7 @@ public class ImportService {
         break;
     }
     nextElement(reader);
+    return layers;
   }
 
 }
