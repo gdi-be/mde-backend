@@ -16,7 +16,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class JsonClientMetadata {
 
-  private String comment;
+  private List<Comment> comments;
 
   private String privacy;
 
