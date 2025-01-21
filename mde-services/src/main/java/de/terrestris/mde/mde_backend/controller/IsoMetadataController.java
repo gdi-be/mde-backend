@@ -9,21 +9,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.extern.log4j.Log4j2;
 import org.hibernate.search.engine.search.query.SearchResult;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import javax.xml.stream.XMLStreamException;
 import java.io.IOException;
+import java.util.List;
 
 import static org.springframework.http.HttpStatus.OK;
 
@@ -74,10 +69,9 @@ public class IsoMetadataController extends BaseMetadataController<IsoMetadataSer
     }
   }
 
-  @GetMapping(path = "/generate/{id}")
+  @GetMapping(path = "/generate/{id}", produces = "application/xml")
   public ResponseEntity<String> generateIsoMetadata(@PathVariable("id") String id) throws XMLStreamException, IOException {
-    isoGenerator.generateMetadata(id);
-    return new ResponseEntity<>(OK);
+    return new ResponseEntity<>(isoGenerator.generateMetadata(id), OK);
   }
 
 }

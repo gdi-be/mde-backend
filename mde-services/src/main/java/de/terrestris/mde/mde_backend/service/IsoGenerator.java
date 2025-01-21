@@ -18,14 +18,14 @@ public class IsoGenerator {
   @Autowired
   private DatasetIsoGenerator datasetIsoGenerator;
 
-  public void generateMetadata(String metadataId) throws XMLStreamException, IOException {
+  public String generateMetadata(String metadataId) throws XMLStreamException, IOException {
     var metadata = isoMetadataRepository.findByMetadataId(metadataId);
     if (metadata.isEmpty()) {
       log.info("Metadata with ID {} is not available.", metadataId);
-      return;
+      return null;
     }
     var data = metadata.get().getData();
-    datasetIsoGenerator.generateDatasetMetadata(data, metadataId);
+    return datasetIsoGenerator.generateDatasetMetadata(data, metadataId);
   }
 
 }
