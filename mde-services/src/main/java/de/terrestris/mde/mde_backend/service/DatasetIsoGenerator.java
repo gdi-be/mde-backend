@@ -11,6 +11,8 @@ import javax.xml.stream.XMLStreamWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static de.terrestris.mde.mde_backend.utils.NamespaceUtils.*;
@@ -123,11 +125,13 @@ public class DatasetIsoGenerator {
   private static void writeCrs(XMLStreamWriter writer, JsonIsoMetadata metadata) throws XMLStreamException {
     writer.writeStartElement(GMD, "referenceSystemInfo");
     writer.writeStartElement(GMD, "MD_ReferenceSystem");
+    writer.writeStartElement(GMD, "referenceSystemIdentifier");
     writer.writeStartElement(GMD, "RS_Identifier");
     writer.writeStartElement(GMD, "code");
     writeSimpleElement(writer, GCO, "CharacterString", metadata.getCrs());
     writer.writeEndElement(); // code
     writer.writeEndElement(); // RS_Identifier
+    writer.writeEndElement(); // referenceSystemIdentifier
     writer.writeEndElement(); // MD_ReferenceSystem
     writer.writeEndElement(); // referenceSystemInfo
   }
@@ -136,8 +140,8 @@ public class DatasetIsoGenerator {
     writer.writeStartElement(GMD, "date");
     writer.writeStartElement(GMD, "CI_Date");
     writer.writeStartElement(GMD, "date");
-    writeSimpleElement(writer, GCO, "date", date.toString());
-    writer.writeEndElement(); // date
+    writeSimpleElement(writer, GCO, "Date", DateTimeFormatter.ISO_DATE.format(date.atOffset(ZoneOffset.UTC)));
+    writer.writeEndElement(); // Date
     writer.writeStartElement(GMD, "dateType");
     writer.writeStartElement(GMD, "CI_DateTypeCode");
     writer.writeAttribute("codeList", "http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#CI_DateTypeCode");
@@ -192,11 +196,12 @@ public class DatasetIsoGenerator {
         if (constraint.getRestrictionCode() != null) {
           writer.writeStartElement(GMD, "MD_RestrictionCode");
           writer.writeAttribute("codeList", "http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_RestrictionCode");
-          writer.writeAttribute("codeListValue", constraint.getType().toString());
+          writer.writeAttribute("codeListValue", constraint.getRestrictionCode().toString());
           writer.writeEndElement(); // MD_RestrictionCode
         } else if (constraint.getNamespace() != null) {
           writer.writeStartElement(GMX, "Anchor");
           writer.writeAttribute(XLINK, "href", constraint.getNamespace());
+          writer.writeCharacters(constraint.getText());
           writer.writeEndElement(); // Anchor
         } else {
           writeSimpleElement(writer, GCO, "CharacterString", constraint.getText());
@@ -357,7 +362,7 @@ public class DatasetIsoGenerator {
         writer.writeStartElement(GMD, "date");
         writer.writeStartElement(GMD, "CI_Date");
         writer.writeStartElement(GMD, "date");
-        writeSimpleElement(writer, GCO, "Date", thesaurus.getDate().toString());
+        writeSimpleElement(writer, GCO, "Date", DateTimeFormatter.ISO_DATE.format(thesaurus.getDate().atOffset(ZoneOffset.UTC)));
         writer.writeEndElement(); // date
         writer.writeStartElement(GMD, "dateType");
         writer.writeStartElement(GMD, "CI_DateTypeCode");
@@ -416,7 +421,7 @@ public class DatasetIsoGenerator {
 
   private static void writeDataQualityInfo(XMLStreamWriter writer, JsonIsoMetadata metadata) throws XMLStreamException {
     writer.writeStartElement(GMD, "dataQualityInfo");
-    writer.writeStartElement(GMD, "DQ_DataQualityInfo");
+    writer.writeStartElement(GMD, "DQ_DataQuality");
     writer.writeStartElement(GMD, "scope");
     writer.writeStartElement(GMD, "DQ_Scope");
     writer.writeStartElement(GMD, "level");
@@ -456,11 +461,18 @@ public class DatasetIsoGenerator {
       writer.writeEndElement(); // DQ_DomainConsistency
       writer.writeEndElement(); // report
     }
-    writer.writeEndElement(); // DQ_DataQualityInfo
+    writer.writeStartElement(GMD, "lineage");
+    writer.writeStartElement(GMD, "LI_Lineage");
+    writer.writeStartElement(GMD, "statement");
+    writeSimpleElement(writer, GCO, "CharacterString", metadata.getLineage());
+    writer.writeEndElement(); // statement
+    writer.writeEndElement(); // LI_Lineage
+    writer.writeEndElement(); // lineage
+    writer.writeEndElement(); // DQ_DataQuality
     writer.writeEndElement(); // dataQualityInfo
   }
 
-  public void generateDatasetMetadata(JsonIsoMetadata metadata, String id) throws IOException, XMLStreamException {
+  public String generateDatasetMetadata(JsonIsoMetadata metadata, String id) throws IOException, XMLStreamException {
     try (var out = new ByteArrayOutputStream()) {
       var writer = FACTORY.createXMLStreamWriter(out);
       setNamespaceBindings(writer);
@@ -468,8 +480,8 @@ public class DatasetIsoGenerator {
       writer.writeStartElement(GMD, "MD_Metadata");
       writeNamespaceBindings(writer);
       writeFileIdentifier(writer, metadata);
-      writeCharacterSet(writer);
       writeLanguage(writer);
+      writeCharacterSet(writer);
       writeHierarchyLevel(writer);
       for (var contact : metadata.getContacts()) {
         writeContact(writer, contact, "contact");
@@ -484,7 +496,7 @@ public class DatasetIsoGenerator {
       writer.writeEndDocument();
       writer.close();
       out.close();
-      log.info(out.toString(UTF_8));
+      return out.toString(UTF_8);
     }
   }
 
