@@ -66,13 +66,15 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // organisationName
     writer.writeStartElement(GMD, "contactInfo");
     writer.writeStartElement(GMD, "CI_Contact");
-    writer.writeStartElement(GMD, "phone");
-    writer.writeStartElement(GMD, "CI_Telephone");
-    writer.writeStartElement(GMD, "voice");
-    writeSimpleElement(writer, GCO, "CharacterString", contact.getPhone());
-    writer.writeEndElement(); // voice
-    writer.writeEndElement(); // CI_Telephone
-    writer.writeEndElement(); // phone
+    if (contact.getPhone() != null) {
+      writer.writeStartElement(GMD, "phone");
+      writer.writeStartElement(GMD, "CI_Telephone");
+      writer.writeStartElement(GMD, "voice");
+      writeSimpleElement(writer, GCO, "CharacterString", contact.getPhone());
+      writer.writeEndElement(); // voice
+      writer.writeEndElement(); // CI_Telephone
+      writer.writeEndElement(); // phone
+    }
     writer.writeStartElement(GMD, "address");
     writer.writeStartElement(GMD, "CI_Address");
     writer.writeStartElement(GMD, "electronicMailAddress");
@@ -362,7 +364,7 @@ public class DatasetIsoGenerator {
         writer.writeStartElement(GMD, "date");
         writer.writeStartElement(GMD, "CI_Date");
         writer.writeStartElement(GMD, "date");
-        writeSimpleElement(writer, GCO, "Date", DateTimeFormatter.ISO_DATE.format(thesaurus.getDate().atOffset(ZoneOffset.UTC)));
+        writeSimpleElement(writer, GCO, "Date", DateTimeFormatter.ISO_DATE.format(thesaurus.getDate().atOffset(ZoneOffset.UTC)).substring(0, 10));
         writer.writeEndElement(); // date
         writer.writeStartElement(GMD, "dateType");
         writer.writeStartElement(GMD, "CI_DateTypeCode");
@@ -435,6 +437,8 @@ public class DatasetIsoGenerator {
     if (!metadata.getMetadataProfile().equals(MetadataProfile.ISO)) {
       writer.writeStartElement(GMD, "report");
       writer.writeStartElement(GMD, "DQ_DomainConsistency");
+      writer.writeStartElement(GMD, "result");
+      writer.writeStartElement(GMD, "DQ_ConformanceResult");
       writer.writeStartElement(GMD, "specification");
       writer.writeStartElement(GMD, "CI_Citation");
       writer.writeStartElement(GMD, "title");
@@ -448,6 +452,12 @@ public class DatasetIsoGenerator {
       writer.writeStartElement(GMD, "date");
       writeSimpleElement(writer, GCO, "Date", "2010-12-08");
       writer.writeEndElement(); // date
+      writer.writeStartElement(GMD, "dateType");
+      writer.writeStartElement(GMD, "CI_DateTypeCode");
+      writer.writeAttribute("codeList", "http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#CI_DateTypeCode");
+      writer.writeAttribute("codeListValue", CI_DateTypeCode.publication.toString());
+      writer.writeEndElement(); // CI_DateTypeCode
+      writer.writeEndElement(); // dateType
       writer.writeEndElement(); // CI_Date
       writer.writeEndElement(); // date
       writer.writeEndElement(); // CI_Citation
@@ -458,6 +468,8 @@ public class DatasetIsoGenerator {
       writer.writeStartElement(GMD, "pass");
       writeSimpleElement(writer, GCO, "Boolean", Boolean.toString(metadata.isValid()));
       writer.writeEndElement(); // pass
+      writer.writeEndElement(); // DQ_ConformanceResult
+      writer.writeEndElement(); // result
       writer.writeEndElement(); // DQ_DomainConsistency
       writer.writeEndElement(); // report
     }
