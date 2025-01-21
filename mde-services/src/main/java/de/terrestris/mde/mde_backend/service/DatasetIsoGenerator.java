@@ -15,6 +15,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import static de.terrestris.mde.mde_backend.service.IsoGenerator.replaceValues;
 import static de.terrestris.mde.mde_backend.utils.NamespaceUtils.*;
 import static de.terrestris.utils.xml.XmlUtils.writeSimpleElement;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -86,7 +87,7 @@ public class DatasetIsoGenerator {
       writer.writeStartElement(GMD, "onlineResource");
       writer.writeStartElement(GMD, "CI_OnlineResource");
       writer.writeStartElement(GMD, "linkage");
-      writeSimpleElement(writer, GMD, "URL", contact.getUrl());
+      writeSimpleElement(writer, GMD, "URL", replaceValues(contact.getUrl()));
       writer.writeEndElement(); // linkage
       writer.writeStartElement(GMD, "function");
       writer.writeStartElement(GMD, "CI_OnLineFunctionCode");
@@ -182,7 +183,7 @@ public class DatasetIsoGenerator {
       writer.writeStartElement(GMD, "graphicOverview");
       writer.writeStartElement(GMD, "MD_BrowseGraphic");
       writer.writeStartElement(GMD, "fileName");
-      writeSimpleElement(writer, GCO, "CharacterString", source.getContent());
+      writeSimpleElement(writer, GCO, "CharacterString", replaceValues(source.getContent()));
       writer.writeEndElement(); // fileName
       writer.writeEndElement(); // MD_BrowseGraphic
       writer.writeEndElement(); // graphicOverview
@@ -401,7 +402,7 @@ public class DatasetIsoGenerator {
       writer.writeStartElement(GMD, "onLine");
       writer.writeStartElement(GMD, "CI_OnlineResource");
       writer.writeStartElement(GMD, "linkage");
-      writeSimpleElement(writer, GMD, "URL", content.getUrl());
+      writeSimpleElement(writer, GMD, "URL", replaceValues(content.getUrl()));
       writer.writeEndElement(); // linkage
       writer.writeStartElement(GMD, "description");
       writeSimpleElement(writer, GCO, "CharacterString", content.getDescription());
