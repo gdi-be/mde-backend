@@ -66,13 +66,12 @@ public class MetadataCollectionService {
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'CREATE')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public String create(String title, MetadataProfile profile) {
+    public String create(String title) {
         String metadataId = UUID.randomUUID().toString();
 
         ClientMetadata clientMetadata = new ClientMetadata(title, metadataId);
         TechnicalMetadata technicalMetadata = new TechnicalMetadata(title, metadataId);
         IsoMetadata isoMetadata = new IsoMetadata(title, metadataId);
-        isoMetadata.getData().setMetadataProfile(profile);
         isoMetadata.getData().setTitle(title);
 
         clientMetadataRepository.save(clientMetadata);
@@ -84,7 +83,7 @@ public class MetadataCollectionService {
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'CREATE')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public String create(String title, MetadataProfile profile, String cloneMetadataId) throws IOException {
+    public String create(String title, String cloneMetadataId) throws IOException {
       String metadataId = UUID.randomUUID().toString();
 
       ClientMetadata clientMetadata = new ClientMetadata(title, metadataId);
@@ -102,7 +101,6 @@ public class MetadataCollectionService {
         objectMapper.writeValueAsString(oIso.getData()),
         new TypeReference<JsonIsoMetadata>() {}
       );
-      clonedIsoData.setMetadataProfile(profile);
       clonedIsoData.setTitle(title);
 
       JsonClientMetadata clonedClientData = objectMapper.readValue(

@@ -132,9 +132,9 @@ public class MetadataCollectionController {
         try {
           String metadataId;
           if (creationData.getCloneMetadataId() != null) {
-              metadataId = service.create(creationData.getTitle(), creationData.getMetadataProfile(), creationData.getCloneMetadataId());
+              metadataId = service.create(creationData.getTitle(), creationData.getCloneMetadataId());
           } else {
-              metadataId =  service.create(creationData.getTitle(), creationData.getMetadataProfile());
+              metadataId =  service.create(creationData.getTitle());
           }
           MetadataCreationResponse response = new MetadataCreationResponse();
           response.setMetadataId(metadataId);
