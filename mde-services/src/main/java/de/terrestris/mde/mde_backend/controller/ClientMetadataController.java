@@ -16,7 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.math.BigInteger;
+import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.OK;
 
@@ -65,45 +65,15 @@ public class ClientMetadataController extends BaseMetadataController<IsoMetadata
     }
   }
 
-  @PatchMapping("/comment/{commentId}")
-  @ResponseStatus(HttpStatus.OK)
-  @Operation(security = { @SecurityRequirement(name = "bearer-key") })
-  @ApiResponses(value = {
-    @ApiResponse(
-      responseCode = "200",
-      description = "Ok: The Comment was successfully updated"
-    ),
-    @ApiResponse(
-      responseCode = "500",
-      description = "Internal Server Error: Something internal went wrong while updating the Comment"
-    )
-  })
-  public ResponseEntity<Comment> updateComment(@RequestBody String commentText, @PathVariable("commentId") BigInteger commentId) {
-    try {
-      Comment comment = service.updateComment(commentId, commentText);
-      return ResponseEntity.status(OK).body(comment);
-    } catch (Exception e) {
-      log.error("Error while updating comment with id {}: {}", commentId, e.getMessage());
-      log.trace("Full stack trace: ", e);
-
-      throw new ResponseStatusException(
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        messageSource.getMessage(
-          "BASE_CONTROLLER.INTERNAL_SERVER_ERROR",
-          null,
-          LocaleContextHolder.getLocale()
-        ),
-        e
-      );
-    }
-  }
-
-  @DeleteMapping("/comment/{commentId}")
+  @DeleteMapping("/comment/{metadataId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(security = { @SecurityRequirement(name = "bearer-key") })
-  public ResponseEntity<Void> deleteComment(@PathVariable("commentId") BigInteger commentId) {
+  public ResponseEntity<Void> deleteComment(
+    @RequestBody String commentId,
+    @PathVariable("metadataId") String metadataId
+  ) {
     try {
-      service.deleteComment(commentId);
+      service.deleteComment(metadataId, UUID.fromString(commentId));
       return ResponseEntity.status(OK).build();
     } catch (Exception e) {
       log.error("Error while deleting comment: {}", e.getMessage());

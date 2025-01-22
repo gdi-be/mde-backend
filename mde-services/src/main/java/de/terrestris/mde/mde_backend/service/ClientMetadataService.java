@@ -13,9 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 @Service
 public class ClientMetadataService extends BaseMetadataService<ClientMetadataRepository, ClientMetadata> {
@@ -50,15 +50,20 @@ public class ClientMetadataService extends BaseMetadataService<ClientMetadataRep
     return comment;
   }
 
-  @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'CREATE')")
+  @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'DELETE')")
   @Transactional(isolation = Isolation.SERIALIZABLE)
-  public Comment updateComment(BigInteger commentId, String text) {
-    return null;
-  }
+  public void deleteComment(String metadataId, UUID commentId) {
+    ClientMetadata clientMetadata = repository.findByMetadataId(metadataId)
+      .orElseThrow(() -> new NoSuchElementException("IsoMetadata not found for metadataId: " + metadataId));
 
-  @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'CREATE')")
-  @Transactional(isolation = Isolation.SERIALIZABLE)
-  public void deleteComment(BigInteger commentId) {
-    return;
+    JsonClientMetadata data = clientMetadata.getData();
+
+    if (data.getComments() == null) {
+      return;
+    }
+
+    data.getComments().removeIf(comment -> comment.getId().equals(commentId));
+
+    repository.save(clientMetadata);
   }
 }
