@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import javax.xml.stream.XMLStreamException;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Map;
 
 @Component
@@ -21,6 +22,9 @@ public class IsoGenerator {
 
   @Autowired
   private DatasetIsoGenerator datasetIsoGenerator;
+
+  @Autowired
+  private ServiceIsoGenerator serviceIsoGenerator;
 
   private static final Map<String, String> VALUES_MAP;
 
@@ -39,14 +43,25 @@ public class IsoGenerator {
     return text;
   }
 
-  public String generateMetadata(String metadataId) throws XMLStreamException, IOException {
+  public File generateMetadata(String metadataId) throws XMLStreamException, IOException {
     var metadata = isoMetadataRepository.findByMetadataId(metadataId);
     if (metadata.isEmpty()) {
       log.info("Metadata with ID {} is not available.", metadataId);
       return null;
     }
     var data = metadata.get().getData();
-    return datasetIsoGenerator.generateDatasetMetadata(data, metadataId);
+    var tmp = Files.createTempDirectory(null).toFile();
+    var dataset = new File(tmp, String.format("dataset_%s.xml", metadataId)).toPath();
+    datasetIsoGenerator.generateDatasetMetadata(data, metadataId, Files.newOutputStream(dataset));
+    data.getServices().forEach(service -> {
+      try {
+        var file = new File(tmp, String.format("service_%s_%s.xml", service.getServiceType().toString(), service.getServiceIdentification())).toPath();
+        serviceIsoGenerator.generateServiceMetadata(data, service, Files.newOutputStream(file));
+      } catch (IOException | XMLStreamException e) {
+        throw new MdeException("Unable to render service metadata for " + service.getServiceIdentification(), e);
+      }
+    });
+    return tmp;
   }
 
 }

@@ -3,11 +3,14 @@ package de.terrestris.mde.mde_backend.controller;
 import de.terrestris.mde.mde_backend.model.IsoMetadata;
 import de.terrestris.mde.mde_backend.service.IsoGenerator;
 import de.terrestris.mde.mde_backend.service.IsoMetadataService;
+import de.terrestris.utils.io.ZipUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.hibernate.search.engine.search.query.SearchResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -18,6 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 
 import static org.springframework.http.HttpStatus.OK;
@@ -69,9 +73,14 @@ public class IsoMetadataController extends BaseMetadataController<IsoMetadataSer
     }
   }
 
-  @GetMapping(path = "/generate/{id}", produces = "application/xml")
-  public ResponseEntity<String> generateIsoMetadata(@PathVariable("id") String id) throws XMLStreamException, IOException {
-    return new ResponseEntity<>(isoGenerator.generateMetadata(id), OK);
+  @GetMapping(path = "/generate/{id}")
+  public ResponseEntity<byte[]> generateIsoMetadata(@PathVariable("id") String id) throws XMLStreamException, IOException {
+    var tmp = isoGenerator.generateMetadata(id);
+    var zipTmp = Files.createTempFile(null, null);
+    ZipUtils.zip(zipTmp.toFile(), tmp, true);
+    var bs = IOUtils.toByteArray(Files.newInputStream(zipTmp));
+    FileUtils.deleteDirectory(tmp);
+    return new ResponseEntity<>(bs, OK);
   }
 
 }
