@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import de.terrestris.mde.mde_backend.enumeration.MetadataProfile;
+import de.terrestris.mde.mde_backend.model.json.codelists.MD_MaintenanceFrequencyCode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -90,7 +91,7 @@ public class JsonIsoMetadata {
 
   private List<Contact> contacts;
 
-  private Contact pointOfContact;
+  private List<Contact> pointsOfContact;
 
   private Integer scale;
 

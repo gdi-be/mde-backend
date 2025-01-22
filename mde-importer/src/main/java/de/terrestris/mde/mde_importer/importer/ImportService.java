@@ -11,6 +11,7 @@ import de.terrestris.mde.mde_backend.model.json.*;
 import de.terrestris.mde.mde_backend.model.json.ColumnInfo.ColumnType;
 import de.terrestris.mde.mde_backend.model.json.ColumnInfo.FilterType;
 import de.terrestris.mde.mde_backend.model.json.Service.ServiceType;
+import de.terrestris.mde.mde_backend.model.json.codelists.*;
 import lombok.extern.log4j.Log4j2;
 import org.apache.http.client.utils.URIBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -224,6 +225,7 @@ public class ImportService {
     metadata.setMetadataId(reader.getAttributeValue(null, "uuid"));
     client.setMetadataId(metadata.getMetadataId());
     technical.setMetadataId(metadata.getMetadataId());
+    json.setPointsOfContact(new ArrayList<>());
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("MD_Metadata"))) {
       reader.next();
       if (!reader.isStartElement()) {
@@ -239,7 +241,7 @@ public class ImportService {
       }
       if (reader.isStartElement() && reader.getLocalName().equals("pointOfContact")) {
         var contact = parseContact(reader, "pointOfContact");
-        json.setPointOfContact(contact);
+        json.getPointsOfContact().add(contact);
       }
       if (reader.isStartElement() && reader.getLocalName().equals("topicCategory")) {
         skipToElement(reader, "MD_TopicCategoryCode");

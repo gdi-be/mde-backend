@@ -15,12 +15,15 @@ public class NamespaceUtils {
 
   public static final String GML = "http://www.opengis.net/gml/3.2";
 
+  public static final String SRV = "http://www.isotc211.org/2005/srv";
+
   public static void setNamespaceBindings(XMLStreamWriter writer) throws XMLStreamException {
     writer.setPrefix("gmd", GMD);
     writer.setPrefix("gco", GCO);
     writer.setPrefix("gmx", GMX);
     writer.setPrefix("xlink", XLINK);
     writer.setPrefix("gml", GML);
+    writer.setPrefix("srv", SRV);
   }
 
   public static void writeNamespaceBindings(XMLStreamWriter writer) throws XMLStreamException {
@@ -29,6 +32,7 @@ public class NamespaceUtils {
     writer.writeNamespace("gmx", GMX);
     writer.writeNamespace("xlink", XLINK);
     writer.writeNamespace("gml", GML);
+    writer.writeNamespace("srv", SRV);
   }
 
 }
