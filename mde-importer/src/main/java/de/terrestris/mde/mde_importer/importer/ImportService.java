@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata.InspireTheme.*;
-import static de.terrestris.mde.mde_backend.utils.NamespaceUtils.XLINK;
+import static de.terrestris.utils.xml.MetadataNamespaceUtils.XLINK;
 import static de.terrestris.utils.xml.XmlUtils.*;
 
 @Component
@@ -644,6 +644,7 @@ public class ImportService {
     }
     // prevent previous possibly recursive calls from ending prematurely
     reader.next();
+    layers.add(layer);
   }
 
   private static void parseStyle(XMLStreamReader reader, Layer layer) throws XMLStreamException {

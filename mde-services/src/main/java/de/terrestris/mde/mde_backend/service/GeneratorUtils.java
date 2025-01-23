@@ -1,8 +1,8 @@
 package de.terrestris.mde.mde_backend.service;
 
-import de.terrestris.mde.mde_backend.model.json.codelists.CI_DateTypeCode;
 import de.terrestris.mde.mde_backend.model.json.Contact;
 import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
+import de.terrestris.mde.mde_backend.model.json.codelists.CI_DateTypeCode;
 import de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode;
 
 import javax.xml.stream.XMLStreamException;
@@ -14,8 +14,7 @@ import java.time.format.DateTimeFormatter;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode.information;
 import static de.terrestris.mde.mde_backend.model.json.codelists.MD_CharacterSetCode.utf8;
 import static de.terrestris.mde.mde_backend.service.IsoGenerator.replaceValues;
-import static de.terrestris.mde.mde_backend.utils.NamespaceUtils.GCO;
-import static de.terrestris.mde.mde_backend.utils.NamespaceUtils.GMD;
+import static de.terrestris.utils.xml.MetadataNamespaceUtils.*;
 import static de.terrestris.utils.xml.XmlUtils.writeSimpleElement;
 
 public class GeneratorUtils {
@@ -142,6 +141,12 @@ public class GeneratorUtils {
     writer.writeAttribute("codeList", String.format("http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#%s", codeListValue.getClass().getSimpleName()));
     writer.writeAttribute("codeListValue", codeListValue.toString());
     writer.writeEndElement();
+  }
+
+  protected static void writeVersion(XMLStreamWriter writer, String version) throws XMLStreamException {
+    writer.writeStartElement(SRV, "serviceTypeVersion");
+    writeSimpleElement(writer, GCO, "CharacterString", version);
+    writer.writeEndElement(); // serviceTypeVersion
   }
 
 }
