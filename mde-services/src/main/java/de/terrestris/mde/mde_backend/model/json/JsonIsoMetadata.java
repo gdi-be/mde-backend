@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigInteger;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -116,5 +117,7 @@ public class JsonIsoMetadata {
   private boolean valid;
 
   private String topicCategory;
+
+  private BigInteger termsOfUseId;
 
 }
