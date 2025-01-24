@@ -1,7 +1,10 @@
 package de.terrestris.mde.mde_backend.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import de.terrestris.mde.mde_backend.jpa.IsoMetadataRepository;
+import de.terrestris.mde.mde_backend.model.json.termsofuse.TermsOfUse;
 import de.terrestris.mde.mde_backend.utils.MdeException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +14,8 @@ import javax.xml.stream.XMLStreamException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -28,9 +33,25 @@ public class IsoGenerator {
 
   private static final Map<String, String> VALUES_MAP;
 
+  protected static final List<TermsOfUse> TERMS_OF_USES;
+
+  public static final Map<String, TermsOfUse> TERMS_OF_USE_MAP = new HashMap<>();
+
+  public static final Map<Integer, TermsOfUse> TERMS_OF_USE_BY_ID = new HashMap<>();
+
   static {
     try {
       VALUES_MAP = new ObjectMapper().readValue(new File(System.getenv("VARIABLE_FILE")), Map.class);
+      var mapper = new ObjectMapper(new YAMLFactory());
+      var type = TypeFactory.defaultInstance().constructCollectionType(List.class, TermsOfUse.class);
+      TERMS_OF_USES = mapper.readValue(new File("/data/codelists/terms_of_use.yaml"), type);
+      TERMS_OF_USES.forEach(t -> {
+        if (t.getMatchStrings() == null) {
+          t.setMatchStrings(List.of(t.getDescription()));
+        }
+        t.getMatchStrings().forEach(s -> TERMS_OF_USE_MAP.put(s, t));
+        TERMS_OF_USE_BY_ID.put(t.getId(), t);
+      });
     } catch (IOException e) {
       throw new MdeException("Could not read the variables map file.", e);
     }

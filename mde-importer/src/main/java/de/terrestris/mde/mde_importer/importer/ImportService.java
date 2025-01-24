@@ -24,6 +24,7 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,6 +36,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata.InspireTheme.*;
+import static de.terrestris.mde.mde_backend.service.IsoGenerator.TERMS_OF_USE_MAP;
 import static de.terrestris.utils.xml.MetadataNamespaceUtils.XLINK;
 import static de.terrestris.utils.xml.XmlUtils.*;
 
@@ -49,6 +51,18 @@ public class ImportService {
   private static final SimpleDateFormat FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
   public static final Map<String, JsonIsoMetadata.InspireTheme> INSPIRE_THEME_MAP;
+
+  private static final Set<String> AUTO_KEYWORDS = Set.of(
+    "inspireidentifiziert",
+    "open data",
+    "opendata",
+    "Sachdaten",
+    "Karten",
+    "Geodaten",
+    "Berlin",
+    "infoFeatureAccessService",
+    "infoMapAccessService"
+  );
 
   static {
     FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -200,6 +214,10 @@ public class ImportService {
     if (list != null) {
       list.forEach(file -> addService(file, json, client.getData(), technical.getData()));
     }
+    if (json.getTermsOfUseId() == null) {
+      log.info("Terms of use could not be mapped for {}, using standard.", metadata.getMetadataId());
+      json.setTermsOfUseId(BigInteger.ONE);
+    }
     isoMetadataRepository.save(metadata);
     clientMetadataRepository.save(client);
     technicalMetadataRepository.save(technical);
@@ -220,7 +238,6 @@ public class ImportService {
   }
 
   private static void extractFromIso(XMLStreamReader reader, IsoMetadata metadata, JsonIsoMetadata json, ClientMetadata client, TechnicalMetadata technical) throws XMLStreamException, ParseException {
-    json.setResourceConstraints(new ArrayList<>());
     skipToElement(reader, "MD_DataIdentification");
     metadata.setMetadataId(reader.getAttributeValue(null, "uuid"));
     client.setMetadataId(metadata.getMetadataId());
@@ -445,29 +462,18 @@ public class ImportService {
 
   private static void extractResourceConstraints(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException {
     if (reader.isStartElement() && reader.getLocalName().equals("resourceConstraints")) {
-      var list = new ArrayList<Constraint>();
-      json.getResourceConstraints().add(list);
       while (!(reader.isEndElement() && reader.getLocalName().equals("resourceConstraints"))) {
         reader.next();
         if (!reader.isStartElement() || reader.getLocalName().equals("MD_LegalConstraints") ||
           reader.getLocalName().equals("useLimitation") || reader.getLocalName().equals("CharacterString")) {
           continue;
         }
-        var constraint = new Constraint();
-        list.add(constraint);
-        constraint.setType(Constraint.ConstraintType.valueOf(reader.getLocalName()));
         skipToOneOf(reader, "Anchor", "CharacterString", "MD_RestrictionCode");
-        switch (reader.getLocalName()) {
-          case "MD_RestrictionCode":
-            constraint.setRestrictionCode(MD_RestrictionCode.valueOf(reader.getAttributeValue(null, "codeListValue")));
-            break;
-          case "Anchor":
-            constraint.setNamespace(reader.getAttributeValue(XLINK, "href"));
-            constraint.setText(reader.getElementText());
-            break;
-          case "CharacterString":
-            constraint.setText(reader.getElementText());
-            break;
+        if (reader.getLocalName().equals("CharacterString")) {
+          String text = reader.getElementText();
+          if (TERMS_OF_USE_MAP.get(text) != null) {
+            json.setTermsOfUseId(BigInteger.valueOf(TERMS_OF_USE_MAP.get(text).getId()));
+          }
         }
       }
     }
@@ -486,12 +492,18 @@ public class ImportService {
           case "keyword":
             skipToOneOf(reader, "CharacterString", "Anchor");
             if (reader.getLocalName().equals("CharacterString")) {
-              keywords.add(new Keyword(null, reader.getElementText()));
+              var keyword = reader.getElementText();
+              if (!AUTO_KEYWORDS.contains(keyword)) {
+                keywords.add(new Keyword(null, keyword));
+              }
             } else {
               var keyword = new Keyword();
               keyword.setNamespace(reader.getAttributeValue(XLINK, "href"));
-              keyword.setKeyword(reader.getElementText());
-              keywords.add(keyword);
+              var text = reader.getElementText();
+              keyword.setKeyword(text);
+              if (!AUTO_KEYWORDS.contains(text)) {
+                keywords.add(keyword);
+              }
             }
             break;
           case "thesaurusName":
@@ -510,6 +522,9 @@ public class ImportService {
             thesaurus.setCode(CI_DateTypeCode.valueOf(reader.getAttributeValue(null, "codeListValue")));
             break;
         }
+      }
+      if (keywords.isEmpty()) {
+        return;
       }
       json.getKeywords().put(thesaurus.getTitle() == null ? "default" : thesaurus.getTitle(), keywords);
       json.getThesauri().put(thesaurus.getTitle() == null ? "default" : thesaurus.getTitle(), thesaurus);

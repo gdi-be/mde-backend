@@ -1,5 +1,6 @@
 package de.terrestris.mde.mde_backend.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
 import de.terrestris.mde.mde_backend.model.json.Service;
 import de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode;
@@ -17,6 +18,7 @@ import static de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFuncti
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_PresentationFormCode.mapDigital;
 import static de.terrestris.mde.mde_backend.service.DatasetIsoGenerator.*;
 import static de.terrestris.mde.mde_backend.service.GeneratorUtils.*;
+import static de.terrestris.mde.mde_backend.service.IsoGenerator.TERMS_OF_USE_BY_ID;
 import static de.terrestris.utils.xml.MetadataNamespaceUtils.*;
 import static de.terrestris.utils.xml.XmlUtils.writeSimpleElement;
 
@@ -65,7 +67,7 @@ public class ServiceIsoGenerator {
     writer.writeEndElement(); // connectPoint
   }
 
-  private static void writeServiceIdentification(XMLStreamWriter writer, Service service, JsonIsoMetadata metadata) throws XMLStreamException {
+  private static void writeServiceIdentification(XMLStreamWriter writer, Service service, JsonIsoMetadata metadata) throws XMLStreamException, JsonProcessingException {
     writer.writeStartElement(GMD, "identificationInfo");
     writer.writeStartElement(SRV, "SV_ServiceIdentification");
     writer.writeAttribute("uuid", service.getServiceIdentification());
@@ -101,7 +103,7 @@ public class ServiceIsoGenerator {
       case WFS, ATOM -> writeServiceKeyword(writer, "infoFeatureAccessService");
       case WMS, WMTS -> writeServiceKeyword(writer, "infoMapAccessService");
     }
-    writeResourceConstraints(writer, metadata.getResourceConstraints());
+    writeResourceConstraints(writer, TERMS_OF_USE_BY_ID.get(metadata.getTermsOfUseId().intValue()));
     writer.writeStartElement(SRV, "serviceType");
     writer.writeStartElement(GCO, "LocalName");
     writer.writeAttribute("codeSpace", "http://inspire.ec.europa.eu/metadata-codelist/SpatialDataServiceType");
