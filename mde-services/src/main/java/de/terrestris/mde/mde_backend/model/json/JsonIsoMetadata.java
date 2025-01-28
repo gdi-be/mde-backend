@@ -110,8 +110,6 @@ public class JsonIsoMetadata {
 
   private List<ContentDescription> contentDescriptions;
 
-  private List<List<Constraint>> resourceConstraints = new ArrayList<>();
-
   private String lineage;
 
   private boolean valid;

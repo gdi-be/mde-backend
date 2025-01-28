@@ -1,11 +1,12 @@
 package de.terrestris.mde.mde_backend.service;
 
-import de.terrestris.mde.mde_backend.enumeration.MetadataProfile;
-import de.terrestris.mde.mde_backend.model.json.Constraint;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.terrestris.mde.mde_backend.model.json.Extent;
 import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
 import de.terrestris.mde.mde_backend.model.json.Source;
 import de.terrestris.mde.mde_backend.model.json.codelists.MD_MaintenanceFrequencyCode;
+import de.terrestris.mde.mde_backend.model.json.termsofuse.TermsOfUse;
 import lombok.extern.log4j.Log4j2;
 import org.codehaus.stax2.XMLOutputFactory2;
 import org.springframework.stereotype.Component;
@@ -19,9 +20,12 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import static de.terrestris.mde.mde_backend.enumeration.MetadataProfile.ISO;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_DateTypeCode.*;
+import static de.terrestris.mde.mde_backend.model.json.codelists.MD_RestrictionCode.otherRestrictions;
 import static de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode.dataset;
 import static de.terrestris.mde.mde_backend.service.GeneratorUtils.*;
+import static de.terrestris.mde.mde_backend.service.IsoGenerator.TERMS_OF_USE_BY_ID;
 import static de.terrestris.mde.mde_backend.service.IsoGenerator.replaceValues;
 import static de.terrestris.utils.xml.MetadataNamespaceUtils.*;
 import static de.terrestris.utils.xml.XmlUtils.writeSimpleElement;
@@ -29,6 +33,8 @@ import static de.terrestris.utils.xml.XmlUtils.writeSimpleElement;
 @Component
 @Log4j2
 public class DatasetIsoGenerator {
+
+  private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private static final XMLOutputFactory FACTORY = XMLOutputFactory2.newFactory();
 
@@ -64,27 +70,33 @@ public class DatasetIsoGenerator {
     }
   }
 
-  protected static void writeResourceConstraints(XMLStreamWriter writer, List<List<Constraint>> constraints) throws XMLStreamException {
-    for (var list : constraints) {
-      writer.writeStartElement(GMD, "resourceConstraints");
-      writer.writeStartElement(GMD, "MD_LegalConstraints");
-      for (var constraint : list) {
-        writer.writeStartElement(GMD, constraint.getType().toString());
-        if (constraint.getRestrictionCode() != null) {
-          writeCodelistValue(writer, constraint.getRestrictionCode());
-        } else if (constraint.getNamespace() != null) {
-          writer.writeStartElement(GMX, "Anchor");
-          writer.writeAttribute(XLINK, "href", constraint.getNamespace());
-          writer.writeCharacters(constraint.getText());
-          writer.writeEndElement(); // Anchor
-        } else {
-          writeSimpleElement(writer, GCO, "CharacterString", constraint.getText());
-        }
-        writer.writeEndElement();
-      }
-      writer.writeEndElement(); // MD_LegalConstraints
-      writer.writeEndElement(); // resourceConstraints
-    }
+  protected static void writeResourceConstraints(XMLStreamWriter writer, TermsOfUse terms) throws XMLStreamException, JsonProcessingException {
+    writer.writeStartElement(GMD, "resourceConstraints");
+    writer.writeStartElement(GMD, "MD_LegalConstraints");
+    writer.writeStartElement(GMD, "accessConstraints");
+    writeCodelistValue(writer, otherRestrictions);
+    writer.writeEndElement(); // accessConstraints
+    writer.writeStartElement(GMD, "otherConstraints");
+    writer.writeStartElement(GMX, "Anchor");
+    writer.writeAttribute(XLINK, "href", "http://inspire.ec.europa.eu/metadata-codelist/LimitationsOnPublicAccess/noLimitations");
+    writer.writeCharacters("Es gelten keine Zugriffsbeschränkungen");
+    writer.writeEndElement(); // Anchor
+    writer.writeEndElement(); // otherConstraints
+    writer.writeEndElement(); // MD_LegalConstraints
+    writer.writeEndElement(); // resourceConstraints
+    writer.writeStartElement(GMD, "resourceConstraints");
+    writer.writeStartElement(GMD, "MD_LegalConstraints");
+    writer.writeStartElement(GMD, "useConstraints");
+    writeCodelistValue(writer, otherRestrictions);
+    writer.writeEndElement(); // useConstraints
+    writer.writeStartElement(GMD, "otherConstraints");
+    writeSimpleElement(writer, GCO, "CharacterString", terms.getDescription());
+    writer.writeEndElement(); // otherConstraints
+    writer.writeStartElement(GMD, "otherConstraints");
+    writeSimpleElement(writer, GCO, "CharacterString", MAPPER.writeValueAsString(terms.getJson()));
+    writer.writeEndElement(); // otherConstraints
+    writer.writeEndElement(); // MD_LegalConstraints
+    writer.writeEndElement(); // resourceConstraints
   }
 
   private static void writeSpatialResolution(XMLStreamWriter writer, JsonIsoMetadata metadata) throws XMLStreamException {
@@ -165,7 +177,7 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // extent
   }
 
-  protected static void writeIdentificationInfo(XMLStreamWriter writer, JsonIsoMetadata metadata, String id) throws XMLStreamException {
+  protected static void writeIdentificationInfo(XMLStreamWriter writer, JsonIsoMetadata metadata, String id) throws XMLStreamException, JsonProcessingException {
     writer.writeStartElement(GMD, "identificationInfo");
     writer.writeStartElement(GMD, "MD_DataIdentification");
     writer.writeAttribute("uuid", id);
@@ -189,7 +201,7 @@ public class DatasetIsoGenerator {
     writeMaintenanceInfo(writer, metadata.getMaintenanceFrequency());
     writePreviews(writer, metadata.getPreviews());
     writeKeywords(writer, metadata);
-    writeResourceConstraints(writer, metadata.getResourceConstraints());
+    writeResourceConstraints(writer, TERMS_OF_USE_BY_ID.get(metadata.getTermsOfUseId().intValue()));
     writeSpatialResolution(writer, metadata);
     writeLanguage(writer);
     writeCharacterSet(writer);
@@ -199,11 +211,22 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // identificationInfo
   }
 
+  private static void writeKeyword(XMLStreamWriter writer, String keyword) throws XMLStreamException {
+    writer.writeStartElement(GMD, "keyword");
+    writeSimpleElement(writer, GCO, "CharacterString", keyword);
+    writer.writeEndElement(); // keyword
+  }
+
   protected static void writeKeywords(XMLStreamWriter writer, JsonIsoMetadata metadata) throws XMLStreamException {
     for (var entry : metadata.getKeywords().entrySet()) {
       var thesaurus = metadata.getThesauri().get(entry.getKey());
       writer.writeStartElement(GMD, "descriptiveKeywords");
       writer.writeStartElement(GMD, "MD_Keywords");
+      if (entry.getKey().equals("default")) {
+        if (!metadata.getMetadataProfile().equals(ISO)) {
+          writeKeyword(writer, "inspireidentifiziert");
+        }
+      }
       for (var keyword : entry.getValue()) {
         writer.writeStartElement(GMD, "keyword");
         if (keyword.getNamespace() != null) {
@@ -294,7 +317,7 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // level
     writer.writeEndElement(); // DQ_Scope
     writer.writeEndElement(); // scope
-    if (!metadata.getMetadataProfile().equals(MetadataProfile.ISO)) {
+    if (!metadata.getMetadataProfile().equals(ISO)) {
       writeReport(writer, metadata, service);
     }
     writer.writeStartElement(GMD, "lineage");
