@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 import static de.terrestris.mde.mde_backend.enumeration.MetadataProfile.ISO;
@@ -217,14 +218,42 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // keyword
   }
 
+  public static List<String> getAutomaticKeywords(JsonIsoMetadata metadata) {
+    var list = new ArrayList<String>();
+    if (!metadata.getMetadataProfile().equals(ISO)) {
+      list.add("inspireidentifiziert");
+    }
+    if (TERMS_OF_USE_BY_ID.get(metadata.getTermsOfUseId().intValue()).isOpenData()) {
+      list.add("open data");
+      list.add("opendata");
+    }
+    for (var service : metadata.getServices()) {
+      switch (service.getServiceType()) {
+        case WFS, ATOM -> {
+          if (!list.contains("Sachdaten")) {
+            list.add("Sachdaten");
+          }
+        }
+        case WMS, WMTS -> {
+          if (!list.contains("Karten")) {
+            list.add("Karten");
+          }
+        }
+      }
+    }
+    list.add("Geodaten");
+    list.add("Berlin");
+    return list;
+  }
+
   protected static void writeKeywords(XMLStreamWriter writer, JsonIsoMetadata metadata) throws XMLStreamException {
     for (var entry : metadata.getKeywords().entrySet()) {
       var thesaurus = metadata.getThesauri().get(entry.getKey());
       writer.writeStartElement(GMD, "descriptiveKeywords");
       writer.writeStartElement(GMD, "MD_Keywords");
       if (entry.getKey().equals("default")) {
-        if (!metadata.getMetadataProfile().equals(ISO)) {
-          writeKeyword(writer, "inspireidentifiziert");
+        for (var word : getAutomaticKeywords(metadata)) {
+          writeKeyword(writer, word);
         }
       }
       for (var keyword : entry.getValue()) {
