@@ -46,15 +46,10 @@
 
   <distributionManagement>
     <repository>
-      <id>nexus.terrestris.de-releases-berlin</id>
-      <name>Nexus Release Repository</name>
-      <url>https://nexus.terrestris.de/repository/gdi-berlin-maven/</url>
+      <id>github</id>
+      <name>GitHub Packages</name>
+      <url>https://maven.pkg.github.com/gdi-be/mde-backend</url>
     </repository>
-    <snapshotRepository>
-      <id>nexus.terrestris.de-snapshots-berlin</id>
-      <name>SHOGun Snapshot Repository</name>
-      <url>https://nexus.terrestris.de/repository/gdi-berlin-maven/</url>
-    </snapshotRepository>
   </distributionManagement>
 
   <profiles>
