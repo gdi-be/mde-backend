@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigInteger;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,21 +25,39 @@ import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
 public class JsonIsoMetadata {
 
   public enum InspireTheme {
+    AC,
     AD,
+    AF,
+    AM,
     AU,
+    BR,
     BU,
     CP,
+    EF,
     EL,
+    ER,
     GE,
+    GG,
     GN,
+    HB,
+    HH,
+    HY,
     LC,
     LU,
+    MF,
+    MR,
+    NZ,
+    OF,
     OI,
+    PD,
     PF,
     PS,
+    RS,
     SD,
     SO,
+    SR,
     SU,
+    TN,
     US
   }
 
