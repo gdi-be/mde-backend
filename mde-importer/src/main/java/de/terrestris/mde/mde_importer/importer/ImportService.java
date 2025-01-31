@@ -35,7 +35,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import static de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata.InspireTheme.*;
+import static de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata.InspireTheme;
 import static de.terrestris.mde.mde_backend.service.IsoGenerator.TERMS_OF_USE_MAP;
 import static de.terrestris.utils.xml.MetadataNamespaceUtils.XLINK;
 import static de.terrestris.utils.xml.XmlUtils.*;
@@ -67,22 +67,39 @@ public class ImportService {
   static {
     FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
     INSPIRE_THEME_MAP = new HashMap<>();
-    INSPIRE_THEME_MAP.put("Adressen", AD);
-    INSPIRE_THEME_MAP.put("Verwaltungseinheiten", AU);
-    INSPIRE_THEME_MAP.put("Gebäude", BU);
-    INSPIRE_THEME_MAP.put("Flurstücke/Grundstücke (Katasterparzellen)", CP);
-    INSPIRE_THEME_MAP.put("Höhe", EL);
-    INSPIRE_THEME_MAP.put("Geologie", GE);
-    INSPIRE_THEME_MAP.put("Geografische Bezeichnungen", GN);
-    INSPIRE_THEME_MAP.put("Bodenbedeckung", LC);
-    INSPIRE_THEME_MAP.put("Bodennutzung", LU);
-    INSPIRE_THEME_MAP.put("Orthofotografie", OI);
-    INSPIRE_THEME_MAP.put("Produktions- und Industrieanlagen", PF);
-    INSPIRE_THEME_MAP.put("Schutzgebiete", PS);
-    INSPIRE_THEME_MAP.put("Verteilung der Arten", SD);
-    INSPIRE_THEME_MAP.put("Boden", SO);
-    INSPIRE_THEME_MAP.put("Statistische Einheiten", SU);
-    INSPIRE_THEME_MAP.put("Versorgungswirtschaft und staatliche Dienste", US);
+    INSPIRE_THEME_MAP.put("Adressen", InspireTheme.AD);
+    INSPIRE_THEME_MAP.put("Verwaltungseinheiten", InspireTheme.AU);
+    INSPIRE_THEME_MAP.put("Gebäude", InspireTheme.BU);
+    INSPIRE_THEME_MAP.put("Flurstücke/Grundstücke (Katasterparzellen)", InspireTheme.CP);
+    INSPIRE_THEME_MAP.put("Höhe", InspireTheme.AM);
+    INSPIRE_THEME_MAP.put("Geologie", InspireTheme.GE);
+    INSPIRE_THEME_MAP.put("Geografische Bezeichnungen", InspireTheme.GN);
+    INSPIRE_THEME_MAP.put("Bodenbedeckung", InspireTheme.LC);
+    INSPIRE_THEME_MAP.put("Bodennutzung", InspireTheme.LU);
+    INSPIRE_THEME_MAP.put("Orthofotografie", InspireTheme.OI);
+    INSPIRE_THEME_MAP.put("Produktions- und Industrieanlagen", InspireTheme.PF);
+    INSPIRE_THEME_MAP.put("Schutzgebiete", InspireTheme.PD);
+    INSPIRE_THEME_MAP.put("Verteilung der Arten", InspireTheme.SR);
+    INSPIRE_THEME_MAP.put("Boden", InspireTheme.SO);
+    INSPIRE_THEME_MAP.put("Statistische Einheiten", InspireTheme.SD);
+    INSPIRE_THEME_MAP.put("Versorgungswirtschaft und staatliche Dienste", InspireTheme.US);
+    INSPIRE_THEME_MAP.put("Hydrographie", InspireTheme.HY);
+    INSPIRE_THEME_MAP.put("Energiequellen", InspireTheme.EL);
+    INSPIRE_THEME_MAP.put("Geografische Gittersysteme", InspireTheme.GG);
+    INSPIRE_THEME_MAP.put("Biologische Vielfalt", InspireTheme.BR);
+    INSPIRE_THEME_MAP.put("Mineralische Ressourcen", InspireTheme.ER);
+    INSPIRE_THEME_MAP.put("Umweltüberwachung", InspireTheme.EF);
+    INSPIRE_THEME_MAP.put("Habitate und Biotope", InspireTheme.HB);
+    INSPIRE_THEME_MAP.put("Gesundheit und Sicherheit", InspireTheme.HH);
+    INSPIRE_THEME_MAP.put("Meeresregionen", InspireTheme.MR);
+    INSPIRE_THEME_MAP.put("Natürliche Risikogebiete", InspireTheme.NZ);
+    INSPIRE_THEME_MAP.put("Ozeanografische geografische Merkmale", InspireTheme.OF);
+    INSPIRE_THEME_MAP.put("Bevölkerung und demografie", InspireTheme.PS);
+    INSPIRE_THEME_MAP.put("Transportnetze", InspireTheme.TN);
+    INSPIRE_THEME_MAP.put("Biogeografische Regionen", InspireTheme.AC);
+    INSPIRE_THEME_MAP.put("Atmosphärische Bedingungen", InspireTheme.AF);
+//    INSPIRE_THEME_MAP.put("Versorgungswirtschaft und staatliche Dienste", InspireTheme.SU);
+    INSPIRE_THEME_MAP.put("Landwirtschaftliche Anlagen", InspireTheme.AC_MF);
   }
 
   @Autowired
