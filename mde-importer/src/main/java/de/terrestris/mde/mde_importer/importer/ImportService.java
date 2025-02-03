@@ -46,7 +46,7 @@ public class ImportService {
 
   private static final Pattern ID_REGEXP = Pattern.compile(".*/([^/]+)");
 
-  private static final Pattern PHONE_REGEXP = Pattern.compile("[+][\\d-]+");
+  private static final Pattern PHONE_REGEXP = Pattern.compile("([+][\\d-]+)");
 
   private static final XMLInputFactory FACTORY = XMLInputFactory.newFactory();
 
@@ -543,15 +543,14 @@ public class ImportService {
           break;
         case "voice":
           skipToElement(reader, "CharacterString");
-          var matcher = PHONE_REGEXP.matcher(reader.getElementText());
+          var text = reader.getElementText();
+          var matcher = PHONE_REGEXP.matcher(text);
           if (matcher.matches()) {
             var number = matcher.group(1);
             contact.setPhone(number.replace("-", ""));
           } else {
-            log.warn("Unable to extract phone number from {}", reader.getElementText());
+            log.warn("Unable to extract phone number from {}", text);
           }
-
-          contact.setPhone(reader.getElementText());
           break;
         case "electronicMailAddress":
           skipToElement(reader, "CharacterString");
