@@ -49,17 +49,29 @@ public class GeneratorUtils {
   protected static void writeContact(XMLStreamWriter writer, Contact contact, String localName) throws XMLStreamException {
     writer.writeStartElement(GMD, localName);
     writer.writeStartElement(GMD, "CI_ResponsibleParty");
+    if (contact.getName() != null) {
+      writer.writeStartElement(GMD, "individualName");
+      writeSimpleElement(writer, GCO, "CharacterString", contact.getName());
+      writer.writeEndElement(); // individual name
+    }
     writer.writeStartElement(GMD, "organisationName");
     writeSimpleElement(writer, GCO, "CharacterString", contact.getOrganisation());
     writer.writeEndElement(); // organisationName
     writer.writeStartElement(GMD, "contactInfo");
     writer.writeStartElement(GMD, "CI_Contact");
-    if (contact.getPhone() != null) {
+    if (contact.getPhone() != null || contact.getFax() != null) {
       writer.writeStartElement(GMD, "phone");
       writer.writeStartElement(GMD, "CI_Telephone");
-      writer.writeStartElement(GMD, "voice");
-      writeSimpleElement(writer, GCO, "CharacterString", contact.getPhone());
-      writer.writeEndElement(); // voice
+      if (contact.getPhone() != null) {
+        writer.writeStartElement(GMD, "voice");
+        writeSimpleElement(writer, GCO, "CharacterString", contact.getPhone());
+        writer.writeEndElement(); // voice
+      }
+      if (contact.getFax() != null) {
+        writer.writeStartElement(GMD, "facsimile");
+        writeSimpleElement(writer, GCO, "CharacterString", contact.getFax());
+        writer.writeEndElement(); // facsimile
+      }
       writer.writeEndElement(); // CI_Telephone
       writer.writeEndElement(); // phone
     }

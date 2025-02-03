@@ -75,14 +75,16 @@ public class IsoGenerator {
     var tmp = Files.createTempDirectory(null).toFile();
     var dataset = new File(tmp, String.format("dataset_%s.xml", metadataId)).toPath();
     datasetIsoGenerator.generateDatasetMetadata(data, metadataId, Files.newOutputStream(dataset));
-    data.getServices().forEach(service -> {
-      try {
-        var file = new File(tmp, String.format("service_%s_%s.xml", service.getServiceType().toString(), service.getServiceIdentification())).toPath();
-        serviceIsoGenerator.generateServiceMetadata(data, service, Files.newOutputStream(file));
-      } catch (IOException | XMLStreamException e) {
-        throw new MdeException("Unable to render service metadata for " + service.getServiceIdentification(), e);
-      }
-    });
+    if (data.getServices() != null) {
+      data.getServices().forEach(service -> {
+        try {
+          var file = new File(tmp, String.format("service_%s_%s.xml", service.getServiceType().toString(), service.getServiceIdentification())).toPath();
+          serviceIsoGenerator.generateServiceMetadata(data, service, Files.newOutputStream(file));
+        } catch (IOException | XMLStreamException e) {
+          throw new MdeException("Unable to render service metadata for " + service.getServiceIdentification(), e);
+        }
+      });
+    }
     return tmp;
   }
 

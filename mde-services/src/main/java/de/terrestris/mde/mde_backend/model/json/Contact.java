@@ -23,6 +23,8 @@ public class Contact {
 
   private String phone;
 
+  private String fax;
+
   private String email;
 
   private CI_OnLineFunctionCode code;

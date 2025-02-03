@@ -537,17 +537,26 @@ public class ImportService {
         continue;
       }
       switch (reader.getLocalName()) {
+        case "individualName":
+          skipToElement(reader, "CharacterString");
+          contact.setName(reader.getElementText());
         case "organisationName":
           skipToElement(reader, "CharacterString");
           contact.setOrganisation(reader.getElementText());
           break;
         case "voice":
+        case "facsimile":
+          var voice = reader.getLocalName().equals("voice");
           skipToElement(reader, "CharacterString");
           var text = reader.getElementText();
           var matcher = PHONE_REGEXP.matcher(text);
           if (matcher.matches()) {
-            var number = matcher.group(1);
-            contact.setPhone(number.replace("-", ""));
+            var number = matcher.group(1).replace("-", "");
+            if (voice) {
+              contact.setPhone(number);
+            } else {
+              contact.setFax(number);
+            }
           } else {
             log.warn("Unable to extract phone number from {}", text);
           }

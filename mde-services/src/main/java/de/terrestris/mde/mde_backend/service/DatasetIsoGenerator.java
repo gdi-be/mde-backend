@@ -224,16 +224,18 @@ public class DatasetIsoGenerator {
       list.add("open data");
       list.add("opendata");
     }
-    for (var service : metadata.getServices()) {
-      switch (service.getServiceType()) {
-        case WFS, ATOM -> {
-          if (!list.contains("Sachdaten")) {
-            list.add("Sachdaten");
+    if (metadata.getServices() != null) {
+      for (var service : metadata.getServices()) {
+        switch (service.getServiceType()) {
+          case WFS, ATOM -> {
+            if (!list.contains("Sachdaten")) {
+              list.add("Sachdaten");
+            }
           }
-        }
-        case WMS, WMTS -> {
-          if (!list.contains("Karten")) {
-            list.add("Karten");
+          case WMS, WMTS -> {
+            if (!list.contains("Karten")) {
+              list.add("Karten");
+            }
           }
         }
       }
@@ -312,20 +314,22 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // distributionFormat
     writer.writeStartElement(GMD, "transferOptions");
     writer.writeStartElement(GMD, "MD_DigitalTransferOptions");
-    for (var content : metadata.getContentDescriptions()) {
-      writer.writeStartElement(GMD, "onLine");
-      writer.writeStartElement(GMD, "CI_OnlineResource");
-      writer.writeStartElement(GMD, "linkage");
-      writeSimpleElement(writer, GMD, "URL", replaceValues(content.getUrl()));
-      writer.writeEndElement(); // linkage
-      writer.writeStartElement(GMD, "description");
-      writeSimpleElement(writer, GCO, "CharacterString", content.getDescription() == null ? "" : content.getDescription());
-      writer.writeEndElement(); // description
-      writer.writeStartElement(GMD, "function");
-      writeCodelistValue(writer, content.getCode());
-      writer.writeEndElement(); // function
-      writer.writeEndElement(); // CI_OnlineResource
-      writer.writeEndElement(); // onLine
+    if (metadata.getContentDescriptions() != null) {
+      for (var content : metadata.getContentDescriptions()) {
+        writer.writeStartElement(GMD, "onLine");
+        writer.writeStartElement(GMD, "CI_OnlineResource");
+        writer.writeStartElement(GMD, "linkage");
+        writeSimpleElement(writer, GMD, "URL", replaceValues(content.getUrl()));
+        writer.writeEndElement(); // linkage
+        writer.writeStartElement(GMD, "description");
+        writeSimpleElement(writer, GCO, "CharacterString", content.getDescription() == null ? "" : content.getDescription());
+        writer.writeEndElement(); // description
+        writer.writeStartElement(GMD, "function");
+        writeCodelistValue(writer, content.getCode());
+        writer.writeEndElement(); // function
+        writer.writeEndElement(); // CI_OnlineResource
+        writer.writeEndElement(); // onLine
+      }
     }
     writer.writeEndElement(); // MD_DigitalTransferOptions
     writer.writeEndElement(); // transferOptions
