@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigInteger;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,8 +83,6 @@ public class JsonIsoMetadata {
   @JsonFormat(shape = STRING)
   private Instant validTo;
 
-  private List<Source> previews;
-
   private String url; // rufUrl in import data
 
   private String capabilities;
@@ -98,9 +95,7 @@ public class JsonIsoMetadata {
 
   private List<Double> resolutions;
 
-  private PreviewMap previewMap;
-
-  private PreviewMap previewMapInternal;
+  private String preview;
 
   private String crs;
 

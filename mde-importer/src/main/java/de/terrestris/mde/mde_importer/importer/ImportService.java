@@ -46,6 +46,8 @@ public class ImportService {
 
   private static final Pattern ID_REGEXP = Pattern.compile(".*/([^/]+)");
 
+  private static final Pattern PHONE_REGEXP = Pattern.compile("[+][\\d-]+");
+
   private static final XMLInputFactory FACTORY = XMLInputFactory.newFactory();
 
   private static final SimpleDateFormat FORMAT = new SimpleDateFormat("yyyy-MM-dd");
@@ -266,11 +268,7 @@ public class ImportService {
       }
       if (reader.isStartElement() && reader.getLocalName().equals("graphicOverview")) {
         skipToElement(reader, "CharacterString");
-        if (json.getPreviews() == null) {
-          json.setPreviews(new ArrayList<>());
-        }
-        var source = new Source(null, reader.getElementText());
-        json.getPreviews().add(source);
+        json.setPreview(reader.getElementText());
       }
       extractConformanceResult(reader, json);
       extractKeyword(reader, json);
@@ -378,11 +376,8 @@ public class ImportService {
 
   private static void extractGraphicOverview(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException {
     if (reader.isStartElement() && reader.getLocalName().equals("graphicOverview")) {
-      if (json.getPreviews() == null) {
-        json.setPreviews(new ArrayList<>());
-      }
       skipToElement(reader, "CharacterString");
-      json.getPreviews().add(new Source("url", reader.getElementText()));
+      json.setPreview(reader.getElementText());
     }
   }
 
@@ -548,6 +543,14 @@ public class ImportService {
           break;
         case "voice":
           skipToElement(reader, "CharacterString");
+          var matcher = PHONE_REGEXP.matcher(reader.getElementText());
+          if (matcher.matches()) {
+            var number = matcher.group(1);
+            contact.setPhone(number.replace("-", ""));
+          } else {
+            log.warn("Unable to extract phone number from {}", reader.getElementText());
+          }
+
           contact.setPhone(reader.getElementText());
           break;
         case "electronicMailAddress":
@@ -579,7 +582,6 @@ public class ImportService {
       service.setServiceDescriptions(new ArrayList<>());
       service.setDataBases(new ArrayList<>());
       service.setPublications(new ArrayList<>());
-      service.setPreviews(new ArrayList<>());
 
       var reader = FACTORY.createXMLStreamReader(Files.newInputStream(file));
       nextElement(reader);
@@ -798,11 +800,7 @@ public class ImportService {
         break;
       }
       case "Vorschau":
-        var preview = new Source();
-        preview.setType(reader.getAttributeValue(null, "Typ"));
-        skipToElement(reader, "Inhalt");
-        preview.setContent(reader.getElementText());
-        service.getPreviews().add(preview);
+        // ignored
         break;
       case "Kategorie":
         while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("Kategorie"))) {
