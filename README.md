@@ -1,6 +1,7 @@
 ## Getting the importer
 
-
+Download the latest importer jar from [here](https://github.com/gdi-be/mde-backend/packages/2390377). Make sure you
+download the .jar with the spring-boot suffix.
 
 ## Running the importer
 
