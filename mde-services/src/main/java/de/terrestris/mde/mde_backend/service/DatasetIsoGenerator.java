@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.terrestris.mde.mde_backend.model.json.Extent;
 import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
-import de.terrestris.mde.mde_backend.model.json.Source;
 import de.terrestris.mde.mde_backend.model.json.codelists.MD_MaintenanceFrequencyCode;
 import de.terrestris.mde.mde_backend.model.json.termsofuse.TermsOfUse;
 import lombok.extern.log4j.Log4j2;
@@ -59,16 +58,14 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // resourceMaintenance
   }
 
-  protected static void writePreviews(XMLStreamWriter writer, List<Source> previews) throws XMLStreamException {
-    for (var source : previews) {
-      writer.writeStartElement(GMD, "graphicOverview");
-      writer.writeStartElement(GMD, "MD_BrowseGraphic");
-      writer.writeStartElement(GMD, "fileName");
-      writeSimpleElement(writer, GCO, "CharacterString", replaceValues(source.getContent()));
-      writer.writeEndElement(); // fileName
-      writer.writeEndElement(); // MD_BrowseGraphic
-      writer.writeEndElement(); // graphicOverview
-    }
+  protected static void writePreview(XMLStreamWriter writer, String preview) throws XMLStreamException {
+    writer.writeStartElement(GMD, "graphicOverview");
+    writer.writeStartElement(GMD, "MD_BrowseGraphic");
+    writer.writeStartElement(GMD, "fileName");
+    writeSimpleElement(writer, GCO, "CharacterString", preview);
+    writer.writeEndElement(); // fileName
+    writer.writeEndElement(); // MD_BrowseGraphic
+    writer.writeEndElement(); // graphicOverview
   }
 
   protected static void writeResourceConstraints(XMLStreamWriter writer, TermsOfUse terms) throws XMLStreamException, JsonProcessingException {
@@ -200,7 +197,7 @@ public class DatasetIsoGenerator {
       writeContact(writer, contact, "pointOfContact");
     }
     writeMaintenanceInfo(writer, metadata.getMaintenanceFrequency());
-    writePreviews(writer, metadata.getPreviews());
+    writePreview(writer, metadata.getPreview());
     writeKeywords(writer, metadata);
     writeResourceConstraints(writer, TERMS_OF_USE_BY_ID.get(metadata.getTermsOfUseId().intValue()));
     writeSpatialResolution(writer, metadata);

@@ -97,7 +97,11 @@ public class ServiceIsoGenerator {
     for (var contact : metadata.getPointsOfContact()) {
       writeContact(writer, contact, "pointOfContact");
     }
-    writePreviews(writer, service.getPreviews());
+    if (service.getPreview() != null) {
+      writePreview(writer, service.getPreview());
+    } else {
+      writePreview(writer, metadata.getPreview());
+    }
     writeKeywords(writer, metadata);
     switch (service.getServiceType()) {
       case WFS, ATOM -> writeServiceKeyword(writer, "infoFeatureAccessService");

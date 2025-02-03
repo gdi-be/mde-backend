@@ -59,7 +59,7 @@ public class Service {
   @JsonFormat(shape = STRING)
   private Instant published;
 
-  private List<Source> previews;
+  private String preview;
 
   private List<ColumnInfo> columns;
 
