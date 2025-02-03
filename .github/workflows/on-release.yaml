@@ -35,3 +35,18 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and deploy docker image
         run: cd mde-services && mvn -B jib:build
+  publish_maven:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Publish package
+        run: mvn --batch-mode deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

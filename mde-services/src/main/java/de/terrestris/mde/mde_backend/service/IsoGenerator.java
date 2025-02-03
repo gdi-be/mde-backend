@@ -44,7 +44,8 @@ public class IsoGenerator {
       VALUES_MAP = new ObjectMapper().readValue(new File(System.getenv("VARIABLE_FILE")), Map.class);
       var mapper = new ObjectMapper(new YAMLFactory());
       var type = TypeFactory.defaultInstance().constructCollectionType(List.class, TermsOfUse.class);
-      TERMS_OF_USES = mapper.readValue(new File("/data/codelists/terms_of_use.yaml"), type);
+      var dir = new File(System.getenv("CODELISTS_DIR"));
+      TERMS_OF_USES = mapper.readValue(new File(dir, "terms_of_use.yaml"), type);
       TERMS_OF_USES.forEach(t -> {
         if (t.getMatchStrings() == null) {
           t.setMatchStrings(List.of(t.getDescription()));
