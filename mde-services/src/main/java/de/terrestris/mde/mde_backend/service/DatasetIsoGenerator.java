@@ -404,18 +404,23 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // report
   }
 
-  public void generateDatasetMetadata(JsonIsoMetadata metadata, String id, OutputStream out) throws IOException, XMLStreamException {
-    var writer = FACTORY.createXMLStreamWriter(out);
-    setNamespaceBindings(writer);
-    writer.writeStartDocument();
-    writer.writeStartElement(GMD, "MD_Metadata");
-    writeNamespaceBindings(writer);
+  /**
+   * Write metadata to a XMLStreamWriter.
+   * @param metadata the metadata object
+   * @param id       the metadata id
+   * @param writer   the writer, must have already written the MD_Metadata element and the namespace bindings etc.
+   * @throws IOException in case anything goes wrong
+   * @throws XMLStreamException in case anything goes wrong
+   */
+  public void generateDatasetMetadata(JsonIsoMetadata metadata, String id, XMLStreamWriter writer) throws IOException, XMLStreamException {
     writeFileIdentifier(writer, metadata.getFileIdentifier());
     writeLanguage(writer);
     writeCharacterSet(writer);
     writeHierarchyLevel(writer, dataset);
-    for (var contact : metadata.getContacts()) {
-      writeContact(writer, contact, "contact");
+    if (metadata.getContacts() != null) {
+      for (var contact : metadata.getContacts()) {
+        writeContact(writer, contact, "contact");
+      }
     }
     writeDateStamp(writer, metadata);
     writeMetadataInfo(writer);
@@ -423,6 +428,15 @@ public class DatasetIsoGenerator {
     writeIdentificationInfo(writer, metadata, id);
     writeDistributionInfo(writer, metadata);
     writeDataQualityInfo(writer, metadata, false);
+  }
+
+  public void generateDatasetMetadata(JsonIsoMetadata metadata, String id, OutputStream out) throws IOException, XMLStreamException {
+    var writer = FACTORY.createXMLStreamWriter(out);
+    setNamespaceBindings(writer);
+    writer.writeStartDocument();
+    writer.writeStartElement(GMD, "MD_Metadata");
+    generateDatasetMetadata(metadata, id, writer);
+    writeNamespaceBindings(writer);
     writer.writeEndElement(); // MD_Metadata
     writer.writeEndDocument();
     writer.close();

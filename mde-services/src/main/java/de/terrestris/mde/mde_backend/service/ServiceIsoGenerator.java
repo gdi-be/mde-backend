@@ -31,12 +31,8 @@ public class ServiceIsoGenerator {
     writer.writeStartElement(SRV, "containsOperations");
     writer.writeStartElement(SRV, "SV_OperationMetadata");
     switch (service.getServiceType()) {
-      case WFS, WMS, WMTS -> {
-        writeOperation(writer, service, "GetCapabilities");
-      }
-      case ATOM -> {
-        writeOperation(writer, service, "Download");
-      }
+      case WFS, WMS, WMTS -> writeOperation(writer, service, "GetCapabilities");
+      case ATOM -> writeOperation(writer, service, "Download");
     }
     writer.writeEndElement(); // SV_CouplingType
     writer.writeEndElement(); // containsOperations
@@ -112,12 +108,8 @@ public class ServiceIsoGenerator {
     writer.writeStartElement(GCO, "LocalName");
     writer.writeAttribute("codeSpace", "http://inspire.ec.europa.eu/metadata-codelist/SpatialDataServiceType");
     switch (service.getServiceType()) {
-      case WFS, ATOM -> {
-        writer.writeCharacters("download");
-      }
-      case WMS, WMTS -> {
-        writer.writeCharacters("view");
-      }
+      case WFS, ATOM -> writer.writeCharacters("download");
+      case WMS, WMTS -> writer.writeCharacters("view");
     }
     writer.writeEndElement(); // LocalName
     writer.writeEndElement(); // serviceType
@@ -133,12 +125,8 @@ public class ServiceIsoGenerator {
         writeVersion(writer, "OGC:WMS 1.1.1");
         writeVersion(writer, "OGC:WMS 1.3.0");
       }
-      case ATOM -> {
-        writeVersion(writer, "predefined ATOM");
-      }
-      case WMTS -> {
-        writeVersion(writer, "OGC:WMTS 1.0.0");
-      }
+      case ATOM -> writeVersion(writer, "predefined ATOM");
+      case WMTS -> writeVersion(writer, "OGC:WMTS 1.0.0");
     }
     writeExtent(writer, metadata.getExtent(), SRV);
     writer.writeStartElement(SRV, "couplingType");
@@ -162,12 +150,15 @@ public class ServiceIsoGenerator {
     writer.writeEndElement(); // descriptiveKeywords
   }
 
-  public void generateServiceMetadata(JsonIsoMetadata metadata, Service service, OutputStream out) throws IOException, XMLStreamException {
-    var writer = FACTORY.createXMLStreamWriter(out);
-    setNamespaceBindings(writer);
-    writer.writeStartDocument();
-    writer.writeStartElement(GMD, "MD_Metadata");
-    writeNamespaceBindings(writer);
+  /**
+   * Write metadata to a XMLStreamWriter.
+   * @param metadata the metadata object
+   * @param service  the service object
+   * @param writer   the writer, must have already written the MD_Metadata element and the namespace bindings etc.
+   * @throws IOException in case anything goes wrong
+   * @throws XMLStreamException in case anything goes wrong
+   */
+  public void generateServiceMetadata(JsonIsoMetadata metadata, Service service, XMLStreamWriter writer) throws IOException, XMLStreamException {
     writeFileIdentifier(writer, service.getFileIdentifier());
     writeLanguage(writer);
     writeCharacterSet(writer);
@@ -181,6 +172,15 @@ public class ServiceIsoGenerator {
     writeServiceIdentification(writer, service, metadata);
     writeDistributionInfo(writer, metadata);
     writeDataQualityInfo(writer, metadata, true);
+  }
+
+  public void generateServiceMetadata(JsonIsoMetadata metadata, Service service, OutputStream out) throws IOException, XMLStreamException {
+    var writer = FACTORY.createXMLStreamWriter(out);
+    setNamespaceBindings(writer);
+    writer.writeStartDocument();
+    writer.writeStartElement(GMD, "MD_Metadata");
+    writeNamespaceBindings(writer);
+    generateServiceMetadata(metadata, service, writer);
     writer.writeEndElement(); // MD_Metadata
     writer.writeEndDocument();
     writer.close();
