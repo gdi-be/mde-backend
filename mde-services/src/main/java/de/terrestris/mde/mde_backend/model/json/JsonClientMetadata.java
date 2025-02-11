@@ -16,9 +16,16 @@ import java.util.Map;
 @AllArgsConstructor
 public class JsonClientMetadata {
 
+  public enum Privacy {
+    NONE,
+    CRITICAL_INFRASTRUCTURE,
+    PERSONAL_DATA,
+    INTERNAL_USE_ONLY
+  }
+
   private List<Comment> comments;
 
-  private String privacy;
+  private Privacy privacy;
 
   private boolean highValueDataset;
 
