@@ -17,7 +17,7 @@ import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
-public class Service {
+public class Service implements FileIdentifier {
 
   public enum ServiceType {
     WFS,

@@ -22,7 +22,7 @@ import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
-public class JsonIsoMetadata {
+public class JsonIsoMetadata implements FileIdentifier {
 
   public enum InspireTheme {
     AC,

@@ -29,6 +29,9 @@ public class GeneratorUtils {
   }
 
   protected static void writeFileIdentifier(XMLStreamWriter writer, String fileIdentifier) throws XMLStreamException {
+    if (fileIdentifier == null) {
+      return;
+    }
     writer.writeStartElement(GMD, "fileIdentifier");
     writeSimpleElement(writer, GCO, "CharacterString", fileIdentifier);
     writer.writeEndElement();
@@ -104,6 +107,9 @@ public class GeneratorUtils {
   }
 
   protected static void writeDateStamp(XMLStreamWriter writer, JsonIsoMetadata metadata) throws XMLStreamException {
+    if (metadata.getDateTime() == null) {
+      return;
+    }
     writer.writeStartElement(GMD, "dateStamp");
     writeSimpleElement(writer, GCO, "DateTime", metadata.getDateTime().toString());
     writer.writeEndElement(); // dateStamp
@@ -139,7 +145,7 @@ public class GeneratorUtils {
     writer.writeStartElement(GMD, "date");
     writer.writeStartElement(GMD, "CI_Date");
     writer.writeStartElement(GMD, "date");
-    writeSimpleElement(writer, GCO, "Date", DateTimeFormatter.ISO_DATE.format(date.atOffset(ZoneOffset.UTC)));
+    writeSimpleElement(writer, GCO, "Date", DateTimeFormatter.ISO_DATE_TIME.format(date.atOffset(ZoneOffset.UTC)));
     writer.writeEndElement(); // Date
     writer.writeStartElement(GMD, "dateType");
     writeCodelistValue(writer, type);

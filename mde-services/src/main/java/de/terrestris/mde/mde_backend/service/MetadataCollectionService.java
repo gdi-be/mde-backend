@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonpatch.JsonPatchException;
-import de.terrestris.mde.mde_backend.enumeration.MetadataProfile;
 import de.terrestris.mde.mde_backend.jpa.ClientMetadataRepository;
 import de.terrestris.mde.mde_backend.jpa.IsoMetadataRepository;
 import de.terrestris.mde.mde_backend.jpa.TechnicalMetadataRepository;
@@ -73,6 +72,8 @@ public class MetadataCollectionService {
         TechnicalMetadata technicalMetadata = new TechnicalMetadata(title, metadataId);
         IsoMetadata isoMetadata = new IsoMetadata(title, metadataId);
         isoMetadata.getData().setTitle(title);
+        isoMetadata.getData().setIdentifier(metadataId);
+        isoMetadata.getData().setFileIdentifier(null);
 
         clientMetadataRepository.save(clientMetadata);
         technicalMetadataRepository.save(technicalMetadata);
@@ -112,6 +113,8 @@ public class MetadataCollectionService {
         objectMapper.writeValueAsString(oTechnical.getData()),
         new TypeReference<JsonTechnicalMetadata>() {}
       );
+      clonedIsoData.setIdentifier(metadataId);
+      clonedIsoData.setFileIdentifier(null);
 
       isoMetadata.setData(clonedIsoData);
       clientMetadata.setData(clonedClientData);
