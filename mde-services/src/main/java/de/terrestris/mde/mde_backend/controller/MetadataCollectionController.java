@@ -190,8 +190,28 @@ public class MetadataCollectionController {
         e
       );
     }
-
   }
+
+  @PostMapping("/{metadataId}/updateTitle")
+  public void updateTitle(@PathVariable("metadataId") String metadataId, @RequestBody String title) {
+    try {
+      service.updateTitle(metadataId, title);
+    } catch (Exception e) {
+      log.error("Error while updating title of metadata with id {}: \n {}", metadataId, e.getMessage());
+      log.trace("Full stack trace: ", e);
+
+      throw new ResponseStatusException(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        messageSource.getMessage(
+          "BASE_CONTROLLER.INTERNAL_SERVER_ERROR",
+          null,
+          LocaleContextHolder.getLocale()
+        ),
+        e
+      );
+    }
+  }
+
 
   @GetMapping("/{metadataId}/autokeywords")
   public ResponseEntity<List<String>> getAutomaticKeywords(@PathVariable("metadataId") String metadataId) {

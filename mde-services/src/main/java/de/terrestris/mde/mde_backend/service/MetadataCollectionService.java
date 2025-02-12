@@ -136,7 +136,6 @@ public class MetadataCollectionService {
         JsonIsoMetadata data = isoMetadata.getData();
         String jsonString = objectMapper.writeValueAsString(data);
 
-
         ObjectNode jsonNode = (ObjectNode) objectMapper.readTree(jsonString);
         jsonNode.replace(key, value);
 
@@ -180,6 +179,21 @@ public class MetadataCollectionService {
         technicalMetadata.setData(updatedData);
 
         return technicalMetadataRepository.save(technicalMetadata);
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void updateTitle(String metadataId, String title) {
+      IsoMetadata oIso = isoMetadataRepository.findByMetadataId(metadataId)
+        .orElseThrow(() -> new NoSuchElementException("IsoMetadata not found for metadataId: " + metadataId));
+      ClientMetadata oClient = clientMetadataRepository.findByMetadataId(metadataId)
+        .orElseThrow(() -> new NoSuchElementException("ClientMetadata not found for metadataId: " + metadataId));
+      TechnicalMetadata oTechnical = technicalMetadataRepository.findByMetadataId(metadataId)
+        .orElseThrow(() -> new NoSuchElementException("TechnicalMetadata not found for metadataId: " + metadataId));
+
+      oIso.setTitle(title);
+      oClient.setTitle(title);
+      oTechnical.setTitle(title);
     }
 
 }
