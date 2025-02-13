@@ -202,4 +202,46 @@ public class MetadataCollectionController {
     return new ResponseEntity<>(DatasetIsoGenerator.getAutomaticKeywords(metadata), OK);
   }
 
+  @PostMapping("/{metadataId}/assignUser")
+  public ResponseEntity<Void> assignUser(@PathVariable("metadataId") String metadataId, @RequestBody String userId) {
+    try {
+      service.assignUser(metadataId, userId);
+      return new ResponseEntity<Void>(OK);
+    } catch (Exception e) {
+      log.error("Error while assigning user to metadata with id {}: \n {}", metadataId, e.getMessage());
+      log.trace("Full stack trace: ", e);
+
+      throw new ResponseStatusException(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        messageSource.getMessage(
+          "BASE_CONTROLLER.INTERNAL_SERVER_ERROR",
+          null,
+          LocaleContextHolder.getLocale()
+        ),
+        e
+      );
+    }
+  }
+
+  @PostMapping("/{metadataId}/assignRole")
+  public ResponseEntity<Void> assignRole(@PathVariable("metadataId") String metadataId, @RequestBody String role) {
+    try {
+      service.assignRole(metadataId, role);
+      return new ResponseEntity<Void>(OK);
+    } catch (Exception e) {
+      log.error("Error while assigning role to metadata with id {}: \n {}", metadataId, e.getMessage());
+      log.trace("Full stack trace: ", e);
+
+      throw new ResponseStatusException(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        messageSource.getMessage(
+          "BASE_CONTROLLER.INTERNAL_SERVER_ERROR",
+          null,
+          LocaleContextHolder.getLocale()
+        ),
+        e
+      );
+    }
+  }
+
 }
