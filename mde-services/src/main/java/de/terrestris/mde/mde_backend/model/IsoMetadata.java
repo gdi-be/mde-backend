@@ -6,6 +6,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.*;
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.Type;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
@@ -18,15 +19,17 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmb
 @Indexed
 public class IsoMetadata extends BaseMetadata {
 
+  @Formula("(data->>'title')")
+  private String title;
+
   @Column
   @Type(JsonBinaryType.class)
   @ToString.Exclude
   @IndexedEmbedded
   private JsonIsoMetadata data;
 
-  public IsoMetadata (String title, String metadataId) {
+  public IsoMetadata (String metadataId) {
     super();
-    setTitle(title);
     setMetadataId(metadataId);
     setData(new JsonIsoMetadata());
   }

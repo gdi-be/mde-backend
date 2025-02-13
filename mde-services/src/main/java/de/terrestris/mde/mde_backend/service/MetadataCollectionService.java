@@ -68,9 +68,9 @@ public class MetadataCollectionService {
     public String create(String title) {
         String metadataId = UUID.randomUUID().toString();
 
-        ClientMetadata clientMetadata = new ClientMetadata(title, metadataId);
-        TechnicalMetadata technicalMetadata = new TechnicalMetadata(title, metadataId);
-        IsoMetadata isoMetadata = new IsoMetadata(title, metadataId);
+        ClientMetadata clientMetadata = new ClientMetadata(metadataId);
+        TechnicalMetadata technicalMetadata = new TechnicalMetadata(metadataId);
+        IsoMetadata isoMetadata = new IsoMetadata(metadataId);
         isoMetadata.getData().setTitle(title);
         isoMetadata.getData().setIdentifier(metadataId);
         isoMetadata.getData().setFileIdentifier(null);
@@ -87,9 +87,9 @@ public class MetadataCollectionService {
     public String create(String title, String cloneMetadataId) throws IOException {
       String metadataId = UUID.randomUUID().toString();
 
-      ClientMetadata clientMetadata = new ClientMetadata(title, metadataId);
-      TechnicalMetadata technicalMetadata = new TechnicalMetadata(title, metadataId);
-      IsoMetadata isoMetadata = new IsoMetadata(title, metadataId);
+      ClientMetadata clientMetadata = new ClientMetadata(metadataId);
+      TechnicalMetadata technicalMetadata = new TechnicalMetadata(metadataId);
+      IsoMetadata isoMetadata = new IsoMetadata(metadataId);
 
       IsoMetadata oIso = isoMetadataRepository.findByMetadataId(cloneMetadataId)
         .orElseThrow(() -> new NoSuchElementException("IsoMetadata not found for metadataId: " + cloneMetadataId));
@@ -179,21 +179,6 @@ public class MetadataCollectionService {
         technicalMetadata.setData(updatedData);
 
         return technicalMetadataRepository.save(technicalMetadata);
-    }
-
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void updateTitle(String metadataId, String title) {
-      IsoMetadata oIso = isoMetadataRepository.findByMetadataId(metadataId)
-        .orElseThrow(() -> new NoSuchElementException("IsoMetadata not found for metadataId: " + metadataId));
-      ClientMetadata oClient = clientMetadataRepository.findByMetadataId(metadataId)
-        .orElseThrow(() -> new NoSuchElementException("ClientMetadata not found for metadataId: " + metadataId));
-      TechnicalMetadata oTechnical = technicalMetadataRepository.findByMetadataId(metadataId)
-        .orElseThrow(() -> new NoSuchElementException("TechnicalMetadata not found for metadataId: " + metadataId));
-
-      oIso.setTitle(title);
-      oClient.setTitle(title);
-      oTechnical.setTitle(title);
     }
 
 }
