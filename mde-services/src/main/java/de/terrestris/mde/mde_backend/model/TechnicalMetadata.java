@@ -23,9 +23,8 @@ public class TechnicalMetadata extends BaseMetadata {
   @ToString.Exclude
   private JsonTechnicalMetadata data;
 
-  public TechnicalMetadata (String title, String metadataId) {
+  public TechnicalMetadata (String metadataId) {
     super();
-    setTitle(title);
     setMetadataId(metadataId);
     setData(new JsonTechnicalMetadata());
   }

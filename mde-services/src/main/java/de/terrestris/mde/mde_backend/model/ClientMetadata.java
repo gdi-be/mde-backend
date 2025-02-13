@@ -23,9 +23,8 @@ public class ClientMetadata extends BaseMetadata {
   @ToString.Exclude
   private JsonClientMetadata data;
 
-  public ClientMetadata (String title, String metadataId) {
+  public ClientMetadata (String metadataId) {
     super();
-    setTitle(title);
     setMetadataId(metadataId);
     setData(new JsonClientMetadata());
   }

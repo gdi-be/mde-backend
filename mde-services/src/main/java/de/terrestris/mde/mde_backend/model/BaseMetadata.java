@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.Hibernate;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 
 import java.io.Serializable;
@@ -25,11 +24,6 @@ public abstract class BaseMetadata implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     private BigInteger id;
-
-    @Column
-    @Setter
-    @FullTextField(analyzer = "standard")
-    private String title;
 
     @Column
     @Setter

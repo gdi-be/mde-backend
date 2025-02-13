@@ -72,6 +72,7 @@ public class JsonIsoMetadata implements FileIdentifier {
 
   private String identifier;
 
+  @FullTextField
   private String title;
 
   @FullTextField

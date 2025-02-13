@@ -212,10 +212,7 @@ public class ImportService {
       json.setMetadataProfile(MetadataProfile.INSPIRE_IDENTIFIED);
     }
     skipToElement(reader, "Titel");
-    metadata.setTitle(reader.getElementText());
-    client.setTitle(metadata.getTitle());
-    technical.setTitle(metadata.getTitle());
-    json.setTitle(metadata.getTitle());
+    json.setTitle(reader.getElementText());
     skipToElement(reader, "fileIdentifier");
     skipToElement(reader, "CharacterString");
     json.setFileIdentifier(reader.getElementText());
