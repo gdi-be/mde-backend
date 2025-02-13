@@ -26,3 +26,14 @@ temporarily expose the postgres port to your machine, for example by adding a po
       - 5432:5432
     ...
 ```
+
+## Activate debug logging
+
+In order to activate debug or trace logging for a specific package run:
+
+```
+curl -k https://localhost/api/actuator/loggers/de.terrestris -X POST --data-raw '{"configuredLevel":"TRACE"}' -H "Authorization: Bearer <token>" -H "Content-Type: application/json" -D -
+```
+
+Please note that on trace logging CSW-T requests to the GNOS are written to the `/tmp/` directory in the backend
+container and NOT deleted.
