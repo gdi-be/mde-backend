@@ -24,7 +24,7 @@ public class IsoMetadataService extends BaseMetadataService<IsoMetadataRepositor
 
     return searchSession.search(IsoMetadata.class)
       .where(f -> f.simpleQueryString()
-        .fields("title")
+        .fields("title", "data.description")
         // title is tokenized with standard analyzer so a wildcard prefix is not necessary
         .matching(searchTerm + "*")
       )

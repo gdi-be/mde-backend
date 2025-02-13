@@ -8,6 +8,7 @@ import jakarta.persistence.Table;
 import lombok.*;
 import org.hibernate.annotations.Type;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
 
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
@@ -20,6 +21,7 @@ public class IsoMetadata extends BaseMetadata {
   @Column
   @Type(JsonBinaryType.class)
   @ToString.Exclude
+  @IndexedEmbedded
   private JsonIsoMetadata data;
 
   public IsoMetadata (String title, String metadataId) {

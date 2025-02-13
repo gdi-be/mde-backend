@@ -8,6 +8,7 @@ import de.terrestris.mde.mde_backend.model.json.codelists.MD_MaintenanceFrequenc
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -73,6 +74,7 @@ public class JsonIsoMetadata implements FileIdentifier {
 
   private String title;
 
+  @FullTextField
   private String description;
 
   private List<Service> services;
