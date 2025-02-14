@@ -22,6 +22,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Function;
 
@@ -47,6 +49,10 @@ public class PublicationService {
   @Value("${csw.password}")
   private String cswPassword;
 
+  private String publicationUrl;
+
+  private String meUrl;
+
   @Autowired
   private DatasetIsoGenerator datasetIsoGenerator;
 
@@ -61,6 +67,8 @@ public class PublicationService {
     if (!cswServer.endsWith("/")) {
       cswServer = cswServer + "/";
     }
+    publicationUrl = String.format("%ssrv/api/records", cswServer);
+    meUrl = String.format("%ssrv/api/me", cswServer);
     cswServer = String.format("%ssrv/eng/csw-publication", cswServer);
   }
 
@@ -153,6 +161,30 @@ public class PublicationService {
     out.close();
   }
 
+  private void publishRecords(List<String> uuids) throws URISyntaxException, IOException, InterruptedException {
+    try (var client = HttpClient.newHttpClient()) {
+      var builder = HttpRequest.newBuilder(new URI(meUrl));
+      var req = builder.GET();
+      var response = client.send(req.build(), HttpResponse.BodyHandlers.ofInputStream());
+      var cookiesList = response.headers().allValues("set-cookie");
+      var csrf = cookiesList.stream().map(s -> s.split(";")[0]).filter(s -> s.startsWith("XSRF")).findFirst().get().split("=")[1];
+      var cookies = String.join("; ", cookiesList.stream().map(s -> s.split(";")[0]).toList());
+      for (var uuid : uuids) {
+        var url = String.format("%s/%s/publish?publicationType=", publicationUrl, uuid);
+        builder = HttpRequest.newBuilder(new URI(url));
+        req = builder.PUT(HttpRequest.BodyPublishers.ofString(""));
+        var encoded = Base64.encode(String.format("%s:%s", cswUser, cswPassword)).toString();
+        req.header("Authorization", "Basic " + encoded)
+          .header("X-XSRF-TOKEN", csrf)
+          .header("Cookie", cookies);
+        log.debug("Publishing record");
+        response = client.send(req.build(), HttpResponse.BodyHandlers.ofInputStream());
+        log.debug("Published record");
+        log.debug("Response status: {}", response.statusCode());
+      }
+    }
+  }
+
   public void publishMetadata(String metadataId) throws XMLStreamException, IOException, URISyntaxException, InterruptedException {
     var metadata = metadataService.findOneByMetadataId(metadataId);
     if (metadata.isEmpty()) {
@@ -161,6 +193,8 @@ public class PublicationService {
     }
     var entity = metadata.get();
     var data = entity.getData();
+    var uuids = new ArrayList<String>();
+    var insert = data.getFileIdentifier() == null;
     if (log.isTraceEnabled()) {
       saveTransaction(writer -> {
         try {
@@ -170,17 +204,18 @@ public class PublicationService {
           log.trace("Stack trace:", e);
         }
         return null;
-      }, data.getFileIdentifier() == null);
+      }, insert);
     }
     sendTransaction(writer -> {
       try {
         datasetIsoGenerator.generateDatasetMetadata(data, metadataId, writer);
+        uuids.add(data.getFileIdentifier());
       } catch (IOException | XMLStreamException e) {
         log.warn("Unable to generate dataset metadata: {}", e.getMessage());
         log.trace("Stack trace:", e);
       }
       return null;
-    }, data.getFileIdentifier() == null, data);
+    }, insert, data);
     if (data.getServices() != null) {
       data.getServices().forEach(service -> {
         try {
@@ -193,17 +228,18 @@ public class PublicationService {
                 log.trace("Stack trace:", e);
               }
               return null;
-            }, data.getFileIdentifier() == null);
+            }, insert);
           }
           sendTransaction(writer -> {
             try {
               serviceIsoGenerator.generateServiceMetadata(data, service, writer);
+              uuids.add(service.getFileIdentifier());
             } catch (IOException | XMLStreamException e) {
               log.warn("Unable to generate service metadata: {}", e.getMessage());
               log.trace("Stack trace:", e);
             }
             return null;
-          }, data.getFileIdentifier() == null, service);
+          }, insert, service);
         } catch (URISyntaxException | IOException | InterruptedException | XMLStreamException e) {
           log.warn("Unable to generate service metadata: {}", e.getMessage());
           log.trace("Stack trace:", e);
@@ -211,6 +247,7 @@ public class PublicationService {
       });
     }
     metadataService.update(entity.getId(), entity);
+    publishRecords(uuids);
   }
 
 }
