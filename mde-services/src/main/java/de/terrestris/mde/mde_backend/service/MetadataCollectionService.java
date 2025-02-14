@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonpatch.JsonPatchException;
+import de.terrestris.mde.mde_backend.enumeration.Role;
 import de.terrestris.mde.mde_backend.jpa.ClientMetadataRepository;
 import de.terrestris.mde.mde_backend.jpa.IsoMetadataRepository;
 import de.terrestris.mde.mde_backend.jpa.TechnicalMetadataRepository;
@@ -179,6 +180,44 @@ public class MetadataCollectionService {
         technicalMetadata.setData(updatedData);
 
         return technicalMetadataRepository.save(technicalMetadata);
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void assignUser(String metadataId, String userId) {
+        IsoMetadata isoMetadata = isoMetadataRepository.findByMetadataId(metadataId)
+          .orElseThrow(() -> new NoSuchElementException("IsoMetadata not found for metadataId: " + metadataId));
+        ClientMetadata clientMetadata = clientMetadataRepository.findByMetadataId(metadataId)
+          .orElseThrow(() -> new NoSuchElementException("ClientMetadata not found for metadataId: " + metadataId));
+        TechnicalMetadata technicalMetadata = technicalMetadataRepository.findByMetadataId(metadataId)
+          .orElseThrow(() -> new NoSuchElementException("TechnicalMetadata not found for metadataId: " + metadataId));
+
+        isoMetadata.setResponsibleUserId(userId);
+        clientMetadata.setResponsibleUserId(userId);
+        technicalMetadata.setResponsibleUserId(userId);
+
+        isoMetadataRepository.save(isoMetadata);
+        clientMetadataRepository.save(clientMetadata);
+        technicalMetadataRepository.save(technicalMetadata);
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void assignRole(String metadataId, String role) {
+        IsoMetadata isoMetadata = isoMetadataRepository.findByMetadataId(metadataId)
+          .orElseThrow(() -> new NoSuchElementException("IsoMetadata not found for metadataId: " + metadataId));
+        ClientMetadata clientMetadata = clientMetadataRepository.findByMetadataId(metadataId)
+          .orElseThrow(() -> new NoSuchElementException("ClientMetadata not found for metadataId: " + metadataId));
+        TechnicalMetadata technicalMetadata = technicalMetadataRepository.findByMetadataId(metadataId)
+          .orElseThrow(() -> new NoSuchElementException("TechnicalMetadata not found for metadataId: " + metadataId));
+
+        isoMetadata.setResponsibleRole(Role.valueOf(role));
+        clientMetadata.setResponsibleRole(Role.valueOf(role));
+        technicalMetadata.setResponsibleRole(Role.valueOf(role));
+
+        isoMetadataRepository.save(isoMetadata);
+        clientMetadataRepository.save(clientMetadata);
+        technicalMetadataRepository.save(technicalMetadata);
     }
 
 }
