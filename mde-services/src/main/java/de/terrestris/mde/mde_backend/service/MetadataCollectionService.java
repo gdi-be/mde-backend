@@ -203,6 +203,25 @@ public class MetadataCollectionService {
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void unassignUser(String metadataId) {
+        IsoMetadata isoMetadata = isoMetadataRepository.findByMetadataId(metadataId)
+          .orElseThrow(() -> new NoSuchElementException("IsoMetadata not found for metadataId: " + metadataId));
+        ClientMetadata clientMetadata = clientMetadataRepository.findByMetadataId(metadataId)
+          .orElseThrow(() -> new NoSuchElementException("ClientMetadata not found for metadataId: " + metadataId));
+        TechnicalMetadata technicalMetadata = technicalMetadataRepository.findByMetadataId(metadataId)
+          .orElseThrow(() -> new NoSuchElementException("TechnicalMetadata not found for metadataId: " + metadataId));
+
+        isoMetadata.setResponsibleUserId(null);
+        clientMetadata.setResponsibleUserId(null);
+        technicalMetadata.setResponsibleUserId(null);
+
+        isoMetadataRepository.save(isoMetadata);
+        clientMetadataRepository.save(clientMetadata);
+        technicalMetadataRepository.save(technicalMetadata);
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public void assignRole(String metadataId, String role) {
         IsoMetadata isoMetadata = isoMetadataRepository.findByMetadataId(metadataId)
           .orElseThrow(() -> new NoSuchElementException("IsoMetadata not found for metadataId: " + metadataId));
@@ -214,6 +233,25 @@ public class MetadataCollectionService {
         isoMetadata.setResponsibleRole(Role.valueOf(role));
         clientMetadata.setResponsibleRole(Role.valueOf(role));
         technicalMetadata.setResponsibleRole(Role.valueOf(role));
+
+        isoMetadataRepository.save(isoMetadata);
+        clientMetadataRepository.save(clientMetadata);
+        technicalMetadataRepository.save(technicalMetadata);
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void unassignRole(String metadataId) {
+        IsoMetadata isoMetadata = isoMetadataRepository.findByMetadataId(metadataId)
+          .orElseThrow(() -> new NoSuchElementException("IsoMetadata not found for metadataId: " + metadataId));
+        ClientMetadata clientMetadata = clientMetadataRepository.findByMetadataId(metadataId)
+          .orElseThrow(() -> new NoSuchElementException("ClientMetadata not found for metadataId: " + metadataId));
+        TechnicalMetadata technicalMetadata = technicalMetadataRepository.findByMetadataId(metadataId)
+          .orElseThrow(() -> new NoSuchElementException("TechnicalMetadata not found for metadataId: " + metadataId));
+
+        isoMetadata.setResponsibleRole(null);
+        clientMetadata.setResponsibleRole(null);
+        technicalMetadata.setResponsibleRole(null);
 
         isoMetadataRepository.save(isoMetadata);
         clientMetadataRepository.save(clientMetadata);
