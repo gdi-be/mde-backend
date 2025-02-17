@@ -2,7 +2,6 @@ package de.terrestris.mde.mde_backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import de.terrestris.mde.mde_backend.enumeration.Role;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.Hibernate;
@@ -25,18 +24,6 @@ public abstract class BaseMetadata implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     private BigInteger id;
-
-    @Column
-    @Setter
-    private String metadataId;
-
-    @Column
-    @Setter
-    private String responsibleUserId;
-
-    @Column
-    @Setter
-    private Role responsibleRole;
 
     @Override
     public boolean equals(Object o) {

@@ -215,17 +215,17 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // keyword
   }
 
-  public static List<String> getAutomaticKeywords(JsonIsoMetadata metadata) {
+  public static List<String> getAutomaticKeywords(JsonIsoMetadata isoMetadata) {
     var list = new ArrayList<String>();
-    if (!metadata.getMetadataProfile().equals(ISO)) {
+    if (!isoMetadata.getMetadataProfile().equals(ISO)) {
       list.add("inspireidentifiziert");
     }
-    if (TERMS_OF_USE_BY_ID.get(metadata.getTermsOfUseId().intValue()).isOpenData()) {
+    if (TERMS_OF_USE_BY_ID.get(isoMetadata.getTermsOfUseId().intValue()).isOpenData()) {
       list.add("open data");
       list.add("opendata");
     }
-    if (metadata.getServices() != null) {
-      for (var service : metadata.getServices()) {
+    if (isoMetadata.getServices() != null) {
+      for (var service : isoMetadata.getServices()) {
         switch (service.getServiceType()) {
           case WFS, ATOM -> {
             if (!list.contains("Sachdaten")) {

@@ -1,6 +1,6 @@
 package de.terrestris.mde.mde_backend.jpa;
 
-import de.terrestris.mde.mde_backend.model.TechnicalMetadata;
+import de.terrestris.mde.mde_backend.model.MetadataCollection;
 import jakarta.persistence.QueryHint;
 import org.hibernate.jpa.AvailableHints;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -12,8 +12,8 @@ import java.math.BigInteger;
 import java.util.Optional;
 
 @Repository
-public interface TechnicalMetadataRepository extends BaseRepository<TechnicalMetadata, BigInteger>, JpaSpecificationExecutor<TechnicalMetadata>, QuerydslPredicateExecutor<TechnicalMetadata> {
+public interface MetadataCollectionRepository extends BaseRepository<MetadataCollection, BigInteger>, JpaSpecificationExecutor<MetadataCollection>, QuerydslPredicateExecutor<MetadataCollection> {
 
     @QueryHints(@QueryHint(name = AvailableHints.HINT_CACHEABLE, value = "true"))
-    Optional<TechnicalMetadata> findByMetadataId(String metadataId);
+    Optional<MetadataCollection> findByMetadataId(String metadataId);
 }

@@ -3,7 +3,7 @@ package de.terrestris.mde.mde_backend.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import de.terrestris.mde.mde_backend.jpa.IsoMetadataRepository;
+import de.terrestris.mde.mde_backend.jpa.MetadataCollectionRepository;
 import de.terrestris.mde.mde_backend.model.json.termsofuse.TermsOfUse;
 import de.terrestris.mde.mde_backend.utils.MdeException;
 import lombok.extern.log4j.Log4j2;
@@ -25,7 +25,7 @@ import java.util.Map;
 public class IsoGenerator {
 
   @Autowired
-  private IsoMetadataRepository isoMetadataRepository;
+  private MetadataCollectionRepository metadataCollectionRepository;
 
   @Autowired
   private DatasetIsoGenerator datasetIsoGenerator;
@@ -69,21 +69,21 @@ public class IsoGenerator {
 
   public List<Path> generateMetadata(String metadataId) throws XMLStreamException, IOException {
     var files = new ArrayList<Path>();
-    var metadata = isoMetadataRepository.findByMetadataId(metadataId);
-    if (metadata.isEmpty()) {
+    var metadataCollection = metadataCollectionRepository.findByMetadataId(metadataId);
+    if (metadataCollection.isEmpty()) {
       log.info("Metadata with ID {} is not available.", metadataId);
       return null;
     }
-    var data = metadata.get().getData();
+    var isoMetadata = metadataCollection.get().getIsoMetadata();
     var tmp = Files.createTempDirectory(null).toFile();
     var dataset = new File(tmp, String.format("dataset_%s.xml", metadataId)).toPath();
-    datasetIsoGenerator.generateDatasetMetadata(data, metadataId, Files.newOutputStream(dataset));
+    datasetIsoGenerator.generateDatasetMetadata(isoMetadata, metadataId, Files.newOutputStream(dataset));
     files.add(dataset);
-    if (data.getServices() != null) {
-      data.getServices().forEach(service -> {
+    if (isoMetadata.getServices() != null) {
+      isoMetadata.getServices().forEach(service -> {
         try {
           var file = new File(tmp, String.format("service_%s_%s.xml", service.getServiceType().toString(), service.getServiceIdentification())).toPath();
-          serviceIsoGenerator.generateServiceMetadata(data, service, Files.newOutputStream(file));
+          serviceIsoGenerator.generateServiceMetadata(isoMetadata, service, Files.newOutputStream(file));
           files.add(file);
         } catch (IOException | XMLStreamException e) {
           throw new MdeException("Unable to render service metadata for " + service.getServiceIdentification(), e);
