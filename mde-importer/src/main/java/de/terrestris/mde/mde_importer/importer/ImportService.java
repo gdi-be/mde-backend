@@ -1,12 +1,8 @@
 package de.terrestris.mde.mde_importer.importer;
 
 import de.terrestris.mde.mde_backend.enumeration.MetadataProfile;
-import de.terrestris.mde.mde_backend.jpa.ClientMetadataRepository;
-import de.terrestris.mde.mde_backend.jpa.IsoMetadataRepository;
-import de.terrestris.mde.mde_backend.jpa.TechnicalMetadataRepository;
-import de.terrestris.mde.mde_backend.model.ClientMetadata;
-import de.terrestris.mde.mde_backend.model.IsoMetadata;
-import de.terrestris.mde.mde_backend.model.TechnicalMetadata;
+import de.terrestris.mde.mde_backend.jpa.MetadataCollectionRepository;
+import de.terrestris.mde.mde_backend.model.MetadataCollection;
 import de.terrestris.mde.mde_backend.model.json.*;
 import de.terrestris.mde.mde_backend.model.json.ColumnInfo.ColumnType;
 import de.terrestris.mde.mde_backend.model.json.ColumnInfo.FilterType;
@@ -106,13 +102,7 @@ public class ImportService {
   }
 
   @Autowired
-  private IsoMetadataRepository isoMetadataRepository;
-
-  @Autowired
-  private ClientMetadataRepository clientMetadataRepository;
-
-  @Autowired
-  private TechnicalMetadataRepository technicalMetadataRepository;
+  private MetadataCollectionRepository metadataCollectionRepository;
 
   private final Map<String, List<Path>> servicesMap = new HashMap<>();
 
@@ -194,50 +184,49 @@ public class ImportService {
   }
 
   private void parseDatasetMetadata(XMLStreamReader reader) throws XMLStreamException, ParseException {
-    var metadata = new IsoMetadata();
-    var json = new JsonIsoMetadata();
-    var client = new ClientMetadata();
-    var technical = new TechnicalMetadata();
-    technical.setData(new JsonTechnicalMetadata());
-    client.setData(new JsonClientMetadata());
-    client.getData().setLayers(new HashMap<>());
-    metadata.setData(json);
-    json.setContacts(new ArrayList<>());
+    var metadataCollection = new MetadataCollection();
+    var isoMetadata = new JsonIsoMetadata();
+    var technicalMetadata = new JsonTechnicalMetadata();
+    var clientMetadata = new JsonClientMetadata();
+    clientMetadata.setLayers(new HashMap<>());
+
+    metadataCollection.setTechnicalMetadata(technicalMetadata);
+    metadataCollection.setClientMetadata(clientMetadata);
+    metadataCollection.setIsoMetadata(isoMetadata);
+    isoMetadata.setContacts(new ArrayList<>());
     skipToElement(reader, "Metadaten");
     var type = reader.getAttributeValue(null, "metadatenTyp");
     if (type.equals("ISO")) {
-      json.setMetadataProfile(MetadataProfile.ISO);
+      isoMetadata.setMetadataProfile(MetadataProfile.ISO);
     }
     if (type.equals("INSPIRE")) {
-      json.setMetadataProfile(MetadataProfile.INSPIRE_IDENTIFIED);
+      isoMetadata.setMetadataProfile(MetadataProfile.INSPIRE_IDENTIFIED);
     }
     skipToElement(reader, "Titel");
-    json.setTitle(reader.getElementText());
+    isoMetadata.setTitle(reader.getElementText());
     skipToElement(reader, "fileIdentifier");
     skipToElement(reader, "CharacterString");
-    json.setFileIdentifier(reader.getElementText());
+    isoMetadata.setFileIdentifier(reader.getElementText());
     skipToElement(reader, "contact");
     var contact = parseContact(reader, "contact");
-    if (json.getContacts() == null) {
-      json.setContacts(new ArrayList<>());
+    if (isoMetadata.getContacts() == null) {
+      isoMetadata.setContacts(new ArrayList<>());
     }
-    json.getContacts().add(contact);
+    isoMetadata.getContacts().add(contact);
     skipToElement(reader, "dateStamp");
     skipToElement(reader, "DateTime");
-    json.setDateTime(Instant.parse(reader.getElementText() + "Z"));
-    extractCoordinateSystem(reader, json);
-    extractFromIso(reader, metadata, json, client, technical);
-    var list = servicesMap.get(metadata.getMetadataId());
+    isoMetadata.setDateTime(Instant.parse(reader.getElementText() + "Z"));
+    extractCoordinateSystem(reader, isoMetadata);
+    extractFromIso(reader, metadataCollection);
+    var list = servicesMap.get(metadataCollection.getMetadataId());
     if (list != null) {
-      list.forEach(file -> addService(file, json, client.getData(), technical.getData()));
+      list.forEach(file -> addService(file, metadataCollection));
     }
-    if (json.getTermsOfUseId() == null) {
-      log.info("Terms of use could not be mapped for {}, using standard.", metadata.getMetadataId());
-      json.setTermsOfUseId(BigInteger.ONE);
+    if (isoMetadata.getTermsOfUseId() == null) {
+      log.info("Terms of use could not be mapped for {}, using standard.", metadataCollection.getMetadataId());
+      isoMetadata.setTermsOfUseId(BigInteger.ONE);
     }
-    isoMetadataRepository.save(metadata);
-    clientMetadataRepository.save(client);
-    technicalMetadataRepository.save(technical);
+    metadataCollectionRepository.save(metadataCollection);
   }
 
   private static void extractCoordinateSystem(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException {
@@ -254,12 +243,11 @@ public class ImportService {
     }
   }
 
-  private static void extractFromIso(XMLStreamReader reader, IsoMetadata metadata, JsonIsoMetadata json, ClientMetadata client, TechnicalMetadata technical) throws XMLStreamException, ParseException {
+  private static void extractFromIso(XMLStreamReader reader, MetadataCollection metadataCollection) throws XMLStreamException, ParseException {
     skipToElement(reader, "MD_DataIdentification");
-    metadata.setMetadataId(reader.getAttributeValue(null, "uuid"));
-    client.setMetadataId(metadata.getMetadataId());
-    technical.setMetadataId(metadata.getMetadataId());
-    json.setPointsOfContact(new ArrayList<>());
+    metadataCollection.setMetadataId(reader.getAttributeValue(null, "uuid"));
+    var isoMetadata = metadataCollection.getIsoMetadata();
+    isoMetadata.setPointsOfContact(new ArrayList<>());
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("MD_Metadata"))) {
       reader.next();
       if (!reader.isStartElement()) {
@@ -267,41 +255,41 @@ public class ImportService {
       }
       if (reader.isStartElement() && reader.getLocalName().equals("identifier")) {
         skipToElement(reader, "CharacterString");
-        json.setIdentifier(reader.getElementText());
+        isoMetadata.setIdentifier(reader.getElementText());
       }
       if (reader.isStartElement() && reader.getLocalName().equals("abstract")) {
         skipToElement(reader, "CharacterString");
-        json.setDescription(reader.getElementText());
+        isoMetadata.setDescription(reader.getElementText());
       }
       if (reader.isStartElement() && reader.getLocalName().equals("pointOfContact")) {
         var contact = parseContact(reader, "pointOfContact");
-        json.getPointsOfContact().add(contact);
+        isoMetadata.getPointsOfContact().add(contact);
       }
       if (reader.isStartElement() && reader.getLocalName().equals("topicCategory")) {
         skipToElement(reader, "MD_TopicCategoryCode");
-        json.setTopicCategory(reader.getElementText());
+        isoMetadata.setTopicCategory(reader.getElementText());
       }
       if (reader.isStartElement() && reader.getLocalName().equals("graphicOverview")) {
         skipToElement(reader, "CharacterString");
-        json.setPreview(reader.getElementText());
+        isoMetadata.setPreview(reader.getElementText());
       }
-      extractConformanceResult(reader, json);
-      extractKeyword(reader, json);
+      extractConformanceResult(reader, isoMetadata);
+      extractKeyword(reader, isoMetadata);
       if (reader.isStartElement() && reader.getLocalName().equals("resourceMaintenance")) {
         skipToElement(reader, "MD_MaintenanceFrequencyCode");
-        json.setMaintenanceFrequency(MD_MaintenanceFrequencyCode.valueOf(reader.getAttributeValue(null, "codeListValue")));
+        isoMetadata.setMaintenanceFrequency(MD_MaintenanceFrequencyCode.valueOf(reader.getAttributeValue(null, "codeListValue")));
       }
-      extractExtent(reader, json);
-      extractSpatialResolution(reader, json);
-      extractGraphicOverview(reader, json);
-      extractTransferOptions(reader, json);
-      extractResourceConstraints(reader, json);
-      extractDistributionFormat(reader, json);
+      extractExtent(reader, isoMetadata);
+      extractSpatialResolution(reader, isoMetadata);
+      extractGraphicOverview(reader, isoMetadata);
+      extractTransferOptions(reader, isoMetadata);
+      extractResourceConstraints(reader, isoMetadata);
+      extractDistributionFormat(reader, isoMetadata);
       if (reader.isStartElement() && reader.getLocalName().equals("statement")) {
         skipToElement(reader, "CharacterString");
-        json.setLineage(reader.getElementText());
+        isoMetadata.setLineage(reader.getElementText());
       }
-      extractDate(reader, json);
+      extractDate(reader, isoMetadata);
     }
   }
 
@@ -594,14 +582,17 @@ public class ImportService {
     return contact;
   }
 
-  private void addService(Path file, JsonIsoMetadata json, JsonClientMetadata clientMetadata, JsonTechnicalMetadata technical) {
+  private void addService(Path file, MetadataCollection metadataCollection) {
     log.info("Adding service from {}", file.toString());
+    var isoMetadata = metadataCollection.getIsoMetadata();
+    var technicalMetadata = metadataCollection.getTechnicalMetadata();
+    var clientMetadata = metadataCollection.getClientMetadata();
     try {
       var service = new Service();
-      if (json.getServices() == null) {
-        json.setServices(new ArrayList<>());
+      if (isoMetadata.getServices() == null) {
+        isoMetadata.setServices(new ArrayList<>());
       }
-      json.getServices().add(service);
+      isoMetadata.getServices().add(service);
       service.setServiceDescriptions(new ArrayList<>());
       service.setDataBases(new ArrayList<>());
       service.setPublications(new ArrayList<>());
@@ -610,7 +601,7 @@ public class ImportService {
       nextElement(reader);
       List<Layer> layers = null;
       while (reader.hasNext() && !reader.getLocalName().equals("IsoMetadata") && !reader.getLocalName().equals("IsoMetadataWMTS")) {
-        var res = extractMetadataFields(reader, service, technical);
+        var res = extractMetadataFields(reader, service, technicalMetadata);
         if (!res.isEmpty()) {
           layers = res;
         }

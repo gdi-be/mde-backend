@@ -1,0 +1,65 @@
+package de.terrestris.mde.mde_backend.model;
+
+import de.terrestris.mde.mde_backend.enumeration.Role;
+import de.terrestris.mde.mde_backend.model.json.JsonClientMetadata;
+import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
+import de.terrestris.mde.mde_backend.model.json.JsonTechnicalMetadata;
+import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.Formula;
+import org.hibernate.annotations.Type;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
+
+import java.util.List;
+
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+@Entity
+@Table(name = "metadata_collection")
+@Data
+public class MetadataCollection extends BaseMetadata {
+
+  @Column
+  @Setter
+  private String metadataId;
+
+  @Formula("(iso_metadata->>'title')")
+  private String title;
+
+  @Column
+  @Setter
+  private List<String> responsibleUserIds;
+
+  @Column
+  @Setter
+  private Role responsibleRole;
+
+  @Column
+  @Type(JsonBinaryType.class)
+  @ToString.Exclude
+  @Setter
+  private JsonClientMetadata clientMetadata;
+
+  @Column
+  @Type(JsonBinaryType.class)
+  @ToString.Exclude
+  @Setter
+  @IndexedEmbedded
+  private JsonIsoMetadata isoMetadata;
+
+  @Column
+  @Type(JsonBinaryType.class)
+  @ToString.Exclude
+  @Setter
+  private JsonTechnicalMetadata technicalMetadata;
+
+  public MetadataCollection (String metadataId) {
+    super();
+    setMetadataId(metadataId);
+    setIsoMetadata(new JsonIsoMetadata());
+    setClientMetadata(new JsonClientMetadata());
+    setTechnicalMetadata(new JsonTechnicalMetadata());
+  }
+
+}

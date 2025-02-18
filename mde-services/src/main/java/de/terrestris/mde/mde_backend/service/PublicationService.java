@@ -40,13 +40,13 @@ public class PublicationService {
 
   private static final String CSW = "http://www.opengis.net/cat/csw/2.0.2";
 
-  @Value("${csw.server}")
+  @Value("${csw.server:}")
   private String cswServer;
 
-  @Value("${csw.user}")
+  @Value("${csw.user:}")
   private String cswUser;
 
-  @Value("${csw.password}")
+  @Value("${csw.password:}")
   private String cswPassword;
 
   private String publicationUrl;
@@ -60,7 +60,7 @@ public class PublicationService {
   private ServiceIsoGenerator serviceIsoGenerator;
 
   @Autowired
-  private IsoMetadataService metadataService;
+  private MetadataCollectionService metadataCollectionService;
 
   @PostConstruct
   public void completeCswUrl() {
@@ -186,19 +186,19 @@ public class PublicationService {
   }
 
   public void publishMetadata(String metadataId) throws XMLStreamException, IOException, URISyntaxException, InterruptedException {
-    var metadata = metadataService.findOneByMetadataId(metadataId);
+    var metadata = metadataCollectionService.findOneByMetadataId(metadataId);
     if (metadata.isEmpty()) {
       log.info("Metadata with ID {} is not available.", metadataId);
       return;
     }
     var entity = metadata.get();
-    var data = entity.getData();
+    var isoMetadata = entity.getIsoMetadata();
     var uuids = new ArrayList<String>();
-    var insert = data.getFileIdentifier() == null;
+    var insert = isoMetadata.getFileIdentifier() == null;
     if (log.isTraceEnabled()) {
       saveTransaction(writer -> {
         try {
-          datasetIsoGenerator.generateDatasetMetadata(data, metadataId, writer);
+          datasetIsoGenerator.generateDatasetMetadata(isoMetadata, metadataId, writer);
         } catch (IOException | XMLStreamException e) {
           log.warn("Unable to generate dataset metadata: {}", e.getMessage());
           log.trace("Stack trace:", e);
@@ -208,21 +208,21 @@ public class PublicationService {
     }
     sendTransaction(writer -> {
       try {
-        datasetIsoGenerator.generateDatasetMetadata(data, metadataId, writer);
-        uuids.add(data.getFileIdentifier());
+        datasetIsoGenerator.generateDatasetMetadata(isoMetadata, metadataId, writer);
+        uuids.add(isoMetadata.getFileIdentifier());
       } catch (IOException | XMLStreamException e) {
         log.warn("Unable to generate dataset metadata: {}", e.getMessage());
         log.trace("Stack trace:", e);
       }
       return null;
-    }, insert, data);
-    if (data.getServices() != null) {
-      data.getServices().forEach(service -> {
+    }, insert, isoMetadata);
+    if (isoMetadata.getServices() != null) {
+      isoMetadata.getServices().forEach(service -> {
         try {
           if (log.isTraceEnabled()) {
             saveTransaction(writer -> {
               try {
-                serviceIsoGenerator.generateServiceMetadata(data, service, writer);
+                serviceIsoGenerator.generateServiceMetadata(isoMetadata, service, writer);
               } catch (IOException | XMLStreamException e) {
                 log.warn("Unable to generate service metadata: {}", e.getMessage());
                 log.trace("Stack trace:", e);
@@ -232,7 +232,7 @@ public class PublicationService {
           }
           sendTransaction(writer -> {
             try {
-              serviceIsoGenerator.generateServiceMetadata(data, service, writer);
+              serviceIsoGenerator.generateServiceMetadata(isoMetadata, service, writer);
               uuids.add(service.getFileIdentifier());
             } catch (IOException | XMLStreamException e) {
               log.warn("Unable to generate service metadata: {}", e.getMessage());
@@ -246,7 +246,7 @@ public class PublicationService {
         }
       });
     }
-    metadataService.update(entity.getId(), entity);
+    metadataCollectionService.update(entity.getId(), entity);
     publishRecords(uuids);
   }
 

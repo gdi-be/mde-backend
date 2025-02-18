@@ -6,60 +6,59 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonpatch.JsonPatchException;
 import de.terrestris.mde.mde_backend.enumeration.Role;
-import de.terrestris.mde.mde_backend.jpa.ClientMetadataRepository;
-import de.terrestris.mde.mde_backend.jpa.IsoMetadataRepository;
-import de.terrestris.mde.mde_backend.jpa.TechnicalMetadataRepository;
-import de.terrestris.mde.mde_backend.model.ClientMetadata;
-import de.terrestris.mde.mde_backend.model.IsoMetadata;
-import de.terrestris.mde.mde_backend.model.TechnicalMetadata;
-import de.terrestris.mde.mde_backend.model.dto.MetadataCollection;
+import de.terrestris.mde.mde_backend.jpa.MetadataCollectionRepository;
+import de.terrestris.mde.mde_backend.model.MetadataCollection;
+import de.terrestris.mde.mde_backend.model.json.Comment;
 import de.terrestris.mde.mde_backend.model.json.JsonClientMetadata;
 import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
 import de.terrestris.mde.mde_backend.model.json.JsonTechnicalMetadata;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import org.hibernate.search.engine.search.query.SearchResult;
+import org.hibernate.search.mapper.orm.Search;
+import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
-public class MetadataCollectionService {
+public class MetadataCollectionService extends BaseMetadataService<MetadataCollectionRepository, MetadataCollection> {
 
-    @Autowired
-    private ClientMetadataRepository clientMetadataRepository;
-
-    @Autowired
-    private TechnicalMetadataRepository technicalMetadataRepository;
-
-    @Autowired
-    private IsoMetadataRepository isoMetadataRepository;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Autowired
     @Lazy
     ObjectMapper objectMapper;
 
+    @Transactional(readOnly = true)
+    public SearchResult<MetadataCollection> search(String searchTerm, Integer offset, Integer limit) {
+      SearchSession searchSession = Search.session(entityManager);
+
+      return searchSession.search(MetadataCollection.class)
+        .where(f -> f.simpleQueryString()
+          .fields("isoMetadata.title", "isoMetadata.description")
+          // title is tokenized with standard analyzer so a wildcard prefix is not necessary
+          .matching(searchTerm + "*")
+        )
+        .fetch(offset, limit);
+    }
+
     @PostAuthorize("hasRole('ROLE_ADMIN') or hasPermission(returnObject.orElse(null), 'READ')")
     @Transactional(readOnly = true)
     public Optional<MetadataCollection> findOneByMetadataId(String metadataId) {
-        MetadataCollection metadataCollection = new MetadataCollection();
-
-        ClientMetadata clientMetadata = clientMetadataRepository.findByMetadataId(metadataId)
-            .orElseThrow(() -> new NoSuchElementException("ClientMetadata not found for metadataId: " + metadataId));
-        TechnicalMetadata technicalMetadata = technicalMetadataRepository.findByMetadataId(metadataId)
-            .orElseThrow(() -> new NoSuchElementException("TechnicalMetadata not found for metadataId: " + metadataId));
-        IsoMetadata isoMetadata = isoMetadataRepository.findByMetadataId(metadataId)
-            .orElseThrow(() -> new NoSuchElementException("IsoMetadata not found for metadataId: " + metadataId));
-
-        metadataCollection.setClientMetadata(clientMetadata.getData());
-        metadataCollection.setTechnicalMetadata(technicalMetadata.getData());
-        metadataCollection.setIsoMetadata(isoMetadata.getData());
+        MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
+            .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
 
         return  Optional.of(metadataCollection);
     }
@@ -69,18 +68,15 @@ public class MetadataCollectionService {
     public String create(String title) {
         String metadataId = UUID.randomUUID().toString();
 
-        ClientMetadata clientMetadata = new ClientMetadata(metadataId);
-        TechnicalMetadata technicalMetadata = new TechnicalMetadata(metadataId);
-        IsoMetadata isoMetadata = new IsoMetadata(metadataId);
-        isoMetadata.getData().setTitle(title);
-        isoMetadata.getData().setIdentifier(metadataId);
-        isoMetadata.getData().setFileIdentifier(null);
+        MetadataCollection metadataCollection = new MetadataCollection(metadataId);
 
-        clientMetadataRepository.save(clientMetadata);
-        technicalMetadataRepository.save(technicalMetadata);
-        isoMetadataRepository.save(isoMetadata);
+        metadataCollection.getIsoMetadata().setTitle(title);
+        metadataCollection.getIsoMetadata().setIdentifier(metadataId);
+        metadataCollection.getIsoMetadata().setFileIdentifier(null);
 
-      return metadataId;
+        repository.save(metadataCollection);
+
+        return metadataId;
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'CREATE')")
@@ -88,174 +84,186 @@ public class MetadataCollectionService {
     public String create(String title, String cloneMetadataId) throws IOException {
       String metadataId = UUID.randomUUID().toString();
 
-      ClientMetadata clientMetadata = new ClientMetadata(metadataId);
-      TechnicalMetadata technicalMetadata = new TechnicalMetadata(metadataId);
-      IsoMetadata isoMetadata = new IsoMetadata(metadataId);
+      MetadataCollection metadataCollection = new MetadataCollection(metadataId);
 
-      IsoMetadata oIso = isoMetadataRepository.findByMetadataId(cloneMetadataId)
-        .orElseThrow(() -> new NoSuchElementException("IsoMetadata not found for metadataId: " + cloneMetadataId));
-      ClientMetadata oClient = clientMetadataRepository.findByMetadataId(cloneMetadataId)
-        .orElseThrow(() -> new NoSuchElementException("ClientMetadata not found for metadataId: " + cloneMetadataId));
-      TechnicalMetadata oTechnical = technicalMetadataRepository.findByMetadataId(cloneMetadataId)
-        .orElseThrow(() -> new NoSuchElementException("TechnicalMetadata not found for metadataId: " + cloneMetadataId));
+      MetadataCollection originalMetadataCollection = repository.findByMetadataId(cloneMetadataId)
+        .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + cloneMetadataId));
 
       JsonIsoMetadata clonedIsoData = objectMapper.readValue(
-        objectMapper.writeValueAsString(oIso.getData()),
+        objectMapper.writeValueAsString(originalMetadataCollection.getIsoMetadata()),
         new TypeReference<JsonIsoMetadata>() {}
       );
       clonedIsoData.setTitle(title);
 
       JsonClientMetadata clonedClientData = objectMapper.readValue(
-        objectMapper.writeValueAsString(oClient.getData()),
+        objectMapper.writeValueAsString(originalMetadataCollection.getClientMetadata()),
         new TypeReference<JsonClientMetadata>() {}
       );
 
       JsonTechnicalMetadata clonedTechnicalData = objectMapper.readValue(
-        objectMapper.writeValueAsString(oTechnical.getData()),
+        objectMapper.writeValueAsString(originalMetadataCollection.getTechnicalMetadata()),
         new TypeReference<JsonTechnicalMetadata>() {}
       );
       clonedIsoData.setIdentifier(metadataId);
       clonedIsoData.setFileIdentifier(null);
 
-      isoMetadata.setData(clonedIsoData);
-      clientMetadata.setData(clonedClientData);
-      technicalMetadata.setData(clonedTechnicalData);
+      metadataCollection.setIsoMetadata(clonedIsoData);
+      metadataCollection.setClientMetadata(clonedClientData);
+      metadataCollection.setTechnicalMetadata(clonedTechnicalData);
 
-      clientMetadataRepository.save(clientMetadata);
-      technicalMetadataRepository.save(technicalMetadata);
-      isoMetadataRepository.save(isoMetadata);
+      repository.save(metadataCollection);
 
       return metadataId;
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public IsoMetadata updateIsoJsonValue(String metadataId, String key, JsonNode value) throws IOException, IllegalArgumentException {
-        IsoMetadata isoMetadata = isoMetadataRepository.findByMetadataId(metadataId)
-            .orElseThrow(() -> new NoSuchElementException("IsoMetadata not found for metadataId: " + metadataId));
+    public MetadataCollection updateIsoJsonValue(String metadataId, String key, JsonNode value) throws IOException, IllegalArgumentException {
+      MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
+            .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
 
-        JsonIsoMetadata data = isoMetadata.getData();
+        JsonIsoMetadata data = metadataCollection.getIsoMetadata();
         String jsonString = objectMapper.writeValueAsString(data);
 
         ObjectNode jsonNode = (ObjectNode) objectMapper.readTree(jsonString);
         jsonNode.replace(key, value);
 
         JsonIsoMetadata updatedData = objectMapper.treeToValue(jsonNode, JsonIsoMetadata.class);
-        isoMetadata.setData(updatedData);
+        metadataCollection.setIsoMetadata(updatedData);
 
-        return isoMetadataRepository.save(isoMetadata);
+        return repository.save(metadataCollection);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public ClientMetadata updateClientJsonValue(String metadataId, String key, JsonNode value) throws IOException, JsonPatchException {
-        ClientMetadata clientMetadata = clientMetadataRepository.findByMetadataId(metadataId)
-            .orElseThrow(() -> new NoSuchElementException("ClientMetadata not found for metadataId: " + metadataId));
+    public MetadataCollection updateClientJsonValue(String metadataId, String key, JsonNode value) throws IOException, JsonPatchException {
+        MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
+            .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
 
-        JsonClientMetadata data = clientMetadata.getData();
+        JsonClientMetadata data = metadataCollection.getClientMetadata();
         String jsonString = objectMapper.writeValueAsString(data);
 
         ObjectNode jsonNode = (ObjectNode) objectMapper.readTree(jsonString);
         jsonNode.replace(key, value);
 
         JsonClientMetadata updatedData = objectMapper.treeToValue(jsonNode, JsonClientMetadata.class);
-        clientMetadata.setData(updatedData);
+        metadataCollection.setClientMetadata(updatedData);
 
-        return clientMetadataRepository.save(clientMetadata);
+        return repository.save(metadataCollection);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public TechnicalMetadata updateTechnicalJsonValue(String metadataId, String key, JsonNode value) throws IOException, JsonPatchException {
-        TechnicalMetadata technicalMetadata = technicalMetadataRepository.findByMetadataId(metadataId)
-            .orElseThrow(() -> new NoSuchElementException("TechnicalMetadata not found for metadataId: " + metadataId));
+    public MetadataCollection updateTechnicalJsonValue(String metadataId, String key, JsonNode value) throws IOException, JsonPatchException {
+        MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
+            .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
 
-        JsonTechnicalMetadata data = technicalMetadata.getData();
+        JsonTechnicalMetadata data = metadataCollection.getTechnicalMetadata();
         String jsonString = objectMapper.writeValueAsString(data);
 
         ObjectNode jsonNode = (ObjectNode) objectMapper.readTree(jsonString);
         jsonNode.replace(key, value);
 
         JsonTechnicalMetadata updatedData = objectMapper.treeToValue(jsonNode, JsonTechnicalMetadata.class);
-        technicalMetadata.setData(updatedData);
+        metadataCollection.setTechnicalMetadata(updatedData);
 
-        return technicalMetadataRepository.save(technicalMetadata);
+        return repository.save(metadataCollection);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void assignUser(String metadataId, String userId) {
-        IsoMetadata isoMetadata = isoMetadataRepository.findByMetadataId(metadataId)
-          .orElseThrow(() -> new NoSuchElementException("IsoMetadata not found for metadataId: " + metadataId));
-        ClientMetadata clientMetadata = clientMetadataRepository.findByMetadataId(metadataId)
-          .orElseThrow(() -> new NoSuchElementException("ClientMetadata not found for metadataId: " + metadataId));
-        TechnicalMetadata technicalMetadata = technicalMetadataRepository.findByMetadataId(metadataId)
-          .orElseThrow(() -> new NoSuchElementException("TechnicalMetadata not found for metadataId: " + metadataId));
+        MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
+          .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
 
-        isoMetadata.setResponsibleUserId(userId);
-        clientMetadata.setResponsibleUserId(userId);
-        technicalMetadata.setResponsibleUserId(userId);
+        List<String> responsibleUserIds = metadataCollection.getResponsibleUserIds();
+        if (responsibleUserIds == null) {
+          responsibleUserIds = new ArrayList<>();
+          metadataCollection.setResponsibleUserIds(responsibleUserIds);
+        }
+        responsibleUserIds.add(userId);
 
-        isoMetadataRepository.save(isoMetadata);
-        clientMetadataRepository.save(clientMetadata);
-        technicalMetadataRepository.save(technicalMetadata);
+        repository.save(metadataCollection);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void unassignUser(String metadataId) {
-        IsoMetadata isoMetadata = isoMetadataRepository.findByMetadataId(metadataId)
-          .orElseThrow(() -> new NoSuchElementException("IsoMetadata not found for metadataId: " + metadataId));
-        ClientMetadata clientMetadata = clientMetadataRepository.findByMetadataId(metadataId)
-          .orElseThrow(() -> new NoSuchElementException("ClientMetadata not found for metadataId: " + metadataId));
-        TechnicalMetadata technicalMetadata = technicalMetadataRepository.findByMetadataId(metadataId)
-          .orElseThrow(() -> new NoSuchElementException("TechnicalMetadata not found for metadataId: " + metadataId));
+    public void unassignUser(String metadataId, String userId) {
+        MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
+          .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
 
-        isoMetadata.setResponsibleUserId(null);
-        clientMetadata.setResponsibleUserId(null);
-        technicalMetadata.setResponsibleUserId(null);
+        List<String> responsibleUserIds = metadataCollection.getResponsibleUserIds();
 
-        isoMetadataRepository.save(isoMetadata);
-        clientMetadataRepository.save(clientMetadata);
-        technicalMetadataRepository.save(technicalMetadata);
+        if (responsibleUserIds == null) {
+          return;
+        }
+
+        metadataCollection.getResponsibleUserIds().remove(userId);
+        repository.save(metadataCollection);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void assignRole(String metadataId, String role) {
-        IsoMetadata isoMetadata = isoMetadataRepository.findByMetadataId(metadataId)
-          .orElseThrow(() -> new NoSuchElementException("IsoMetadata not found for metadataId: " + metadataId));
-        ClientMetadata clientMetadata = clientMetadataRepository.findByMetadataId(metadataId)
-          .orElseThrow(() -> new NoSuchElementException("ClientMetadata not found for metadataId: " + metadataId));
-        TechnicalMetadata technicalMetadata = technicalMetadataRepository.findByMetadataId(metadataId)
-          .orElseThrow(() -> new NoSuchElementException("TechnicalMetadata not found for metadataId: " + metadataId));
+      MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
+          .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
 
-        isoMetadata.setResponsibleRole(Role.valueOf(role));
-        clientMetadata.setResponsibleRole(Role.valueOf(role));
-        technicalMetadata.setResponsibleRole(Role.valueOf(role));
-
-        isoMetadataRepository.save(isoMetadata);
-        clientMetadataRepository.save(clientMetadata);
-        technicalMetadataRepository.save(technicalMetadata);
+        metadataCollection.setResponsibleRole(Role.valueOf(role));
+        repository.save(metadataCollection);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void unassignRole(String metadataId) {
-        IsoMetadata isoMetadata = isoMetadataRepository.findByMetadataId(metadataId)
-          .orElseThrow(() -> new NoSuchElementException("IsoMetadata not found for metadataId: " + metadataId));
-        ClientMetadata clientMetadata = clientMetadataRepository.findByMetadataId(metadataId)
-          .orElseThrow(() -> new NoSuchElementException("ClientMetadata not found for metadataId: " + metadataId));
-        TechnicalMetadata technicalMetadata = technicalMetadataRepository.findByMetadataId(metadataId)
-          .orElseThrow(() -> new NoSuchElementException("TechnicalMetadata not found for metadataId: " + metadataId));
+        MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
+          .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
 
-        isoMetadata.setResponsibleRole(null);
-        clientMetadata.setResponsibleRole(null);
-        technicalMetadata.setResponsibleRole(null);
-
-        isoMetadataRepository.save(isoMetadata);
-        clientMetadataRepository.save(clientMetadata);
-        technicalMetadataRepository.save(technicalMetadata);
+        metadataCollection.setResponsibleRole(null);
+        repository.save(metadataCollection);
     }
+
+  @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'CREATE')")
+  @Transactional(isolation = Isolation.SERIALIZABLE)
+  public Comment addComment(String metadataId, String text) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+    if (!authentication.isAuthenticated()) {
+      throw new IllegalStateException("User must be authenticated to add a comment");
+    }
+
+    MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
+      .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
+
+    JsonClientMetadata data = metadataCollection.getClientMetadata();
+
+    String userName = ((JwtAuthenticationToken) authentication).getTokenAttributes().get("preferred_username").toString();
+    Comment comment = new Comment(text, authentication.getName(), userName);
+
+    if (data.getComments() == null) {
+      data.setComments(new ArrayList<>());
+    }
+    data.getComments().add(comment);
+
+    repository.save(metadataCollection);
+
+    return comment;
+  }
+
+  @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'DELETE')")
+  @Transactional(isolation = Isolation.SERIALIZABLE)
+  public void deleteComment(String metadataId, UUID commentId) {
+    MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
+      .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
+
+    JsonClientMetadata data = metadataCollection.getClientMetadata();
+
+    if (data.getComments() == null) {
+      return;
+    }
+
+    data.getComments().removeIf(comment -> comment.getId().equals(commentId));
+
+    repository.save(metadataCollection);
+  }
 
 }

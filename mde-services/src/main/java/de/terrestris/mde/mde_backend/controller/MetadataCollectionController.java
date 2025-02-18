@@ -2,10 +2,11 @@ package de.terrestris.mde.mde_backend.controller;
 
 import de.terrestris.mde.mde_backend.enumeration.MetadataType;
 import de.terrestris.mde.mde_backend.model.BaseMetadata;
-import de.terrestris.mde.mde_backend.model.dto.MetadataCollection;
+import de.terrestris.mde.mde_backend.model.MetadataCollection;
 import de.terrestris.mde.mde_backend.model.dto.MetadataCreationData;
 import de.terrestris.mde.mde_backend.model.dto.MetadataCreationResponse;
 import de.terrestris.mde.mde_backend.model.dto.MetadataJsonPatch;
+import de.terrestris.mde.mde_backend.model.json.Comment;
 import de.terrestris.mde.mde_backend.service.DatasetIsoGenerator;
 import de.terrestris.mde.mde_backend.service.MetadataCollectionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.extern.log4j.Log4j2;
+import org.hibernate.search.engine.search.query.SearchResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -26,14 +28,15 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 
 @Log4j2
 @RestController
-@RequestMapping("/metadata/collection")
-public class MetadataCollectionController {
+@RequestMapping("/metadata")
+public class MetadataCollectionController extends BaseMetadataController<MetadataCollectionService, MetadataCollection> {
 
   @Autowired
   MetadataCollectionService service;
@@ -194,12 +197,12 @@ public class MetadataCollectionController {
 
   @GetMapping("/{metadataId}/autokeywords")
   public ResponseEntity<List<String>> getAutomaticKeywords(@PathVariable("metadataId") String metadataId) {
-    var maybeMetadata = service.findOneByMetadataId(metadataId);
-    if (maybeMetadata.isEmpty()) {
+    var metadataOptional = service.findOneByMetadataId(metadataId);
+    if (metadataOptional.isEmpty()) {
       return new ResponseEntity<>(NOT_FOUND);
     }
-    var metadata = maybeMetadata.get().getIsoMetadata();
-    return new ResponseEntity<>(DatasetIsoGenerator.getAutomaticKeywords(metadata), OK);
+    var isoMetadata = metadataOptional.get().getIsoMetadata();
+    return new ResponseEntity<>(DatasetIsoGenerator.getAutomaticKeywords(isoMetadata), OK);
   }
 
   @PostMapping("/{metadataId}/assignUser")
@@ -224,9 +227,9 @@ public class MetadataCollectionController {
   }
 
   @DeleteMapping("/{metadataId}/unassignUser")
-  public ResponseEntity<Void> unassignUser(@PathVariable("metadataId") String metadataId) {
+  public ResponseEntity<Void> unassignUser(@PathVariable("metadataId") String metadataId, @RequestBody String userId) {
     try {
-      service.unassignUser(metadataId);
+      service.unassignUser(metadataId, userId);
       return new ResponseEntity<Void>(OK);
     } catch (Exception e) {
       log.error("Error while unassigning user from metadata with id {}: \n {}", metadataId, e.getMessage());
@@ -272,6 +275,108 @@ public class MetadataCollectionController {
       return new ResponseEntity<Void>(OK);
     } catch (Exception e) {
       log.error("Error while unassigning role from metadata with id {}: \n {}", metadataId, e.getMessage());
+      log.trace("Full stack trace: ", e);
+
+      throw new ResponseStatusException(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        messageSource.getMessage(
+          "BASE_CONTROLLER.INTERNAL_SERVER_ERROR",
+          null,
+          LocaleContextHolder.getLocale()
+        ),
+        e
+      );
+    }
+  }
+
+  @GetMapping(
+    path = "/search",
+    produces = {
+      "application/json"
+    }
+  )
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(security = { @SecurityRequirement(name = "bearer-key") })
+  @ApiResponses(value = {
+    @ApiResponse(
+      responseCode = "200",
+      description = "Ok: The entity was successfully updated"
+    ),
+    @ApiResponse(
+      responseCode = "500",
+      description = "Internal Server Error: Something internal went wrong while updating the entity"
+    )
+  })
+  public List<MetadataCollection> search(@RequestParam String searchTerm, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit) {
+
+    log.trace("Search request for MetadataCollection with searchTerm: {}, offset: {}, limit: {}", searchTerm, offset, limit);
+    try {
+      SearchResult<MetadataCollection> result = this.service.search(searchTerm, offset, limit);
+      return result.hits();
+    } catch (Exception e) {
+      log.error("Error while searching for MetadataCollection with searchTerm: {}, offset: {}, limit: {}", searchTerm, offset, limit, e);
+
+      throw new ResponseStatusException(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        messageSource.getMessage(
+          "BASE_CONTROLLER.INTERNAL_SERVER_ERROR",
+          null,
+          LocaleContextHolder.getLocale()
+        ),
+        e
+      );
+    }
+  }
+
+  @PostMapping("/{metadataId}/comment")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(security = { @SecurityRequirement(name = "bearer-key") })
+  @ApiResponses(value = {
+    @ApiResponse(
+      responseCode = "200",
+      description = "Ok: The Comment was successfully added"
+    ),
+    @ApiResponse(
+      responseCode = "500",
+      description = "Internal Server Error: Something internal went wrong while adding the Comment"
+    )
+  })
+  public ResponseEntity<Comment> addComment(
+    @RequestBody String commentText,
+    @PathVariable("metadataId") String metadataId
+  ) {
+    try {
+      Comment comment = service.addComment(metadataId, commentText);
+      return ResponseEntity.status(OK).body(comment);
+      // TODO: Add more specific exception handling
+    } catch (Exception e) {
+      log.error("Error while add comment: {}", e.getMessage());
+      log.trace("Full stack trace: ", e);
+
+      throw new ResponseStatusException(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        messageSource.getMessage(
+          "BASE_CONTROLLER.INTERNAL_SERVER_ERROR",
+          null,
+          LocaleContextHolder.getLocale()
+        ),
+        e
+      );
+    }
+  }
+
+  @DeleteMapping("/{metadataId}/comment")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(security = { @SecurityRequirement(name = "bearer-key") })
+  public ResponseEntity<Void> deleteComment(
+    @RequestBody String commentId,
+    @PathVariable("metadataId") String metadataId
+  ) {
+    try {
+      service.deleteComment(metadataId, UUID.fromString(commentId));
+      return ResponseEntity.status(OK).build();
+    } catch (Exception e) {
+      log.error("Error while deleting comment: {}", e.getMessage());
       log.trace("Full stack trace: ", e);
 
       throw new ResponseStatusException(

@@ -5,7 +5,7 @@ import de.terrestris.bkgtestsuite.core.model.TestResult;
 import de.terrestris.bkgtestsuite.core.spi.TestRunner;
 import de.terrestris.bkgtestsuite.te.TeTestRunner;
 import de.terrestris.mde.mde_backend.enumeration.MetadataProfile;
-import de.terrestris.mde.mde_backend.jpa.IsoMetadataRepository;
+import de.terrestris.mde.mde_backend.jpa.MetadataCollectionRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FileUtils;
@@ -44,7 +44,7 @@ public class ValidatorService {
   private List<Resource> metadataResources;
 
   @Autowired
-  private IsoMetadataRepository isoMetadataRepository;
+  private MetadataCollectionRepository metadataCollectionRepository;
 
   @Autowired
   private IsoGenerator generator;
@@ -126,13 +126,13 @@ public class ValidatorService {
   }
 
   public List<String> validateMetadata(String metadataId) throws XMLStreamException, IOException {
-    var metadata = isoMetadataRepository.findByMetadataId(metadataId);
-    if (metadata.isEmpty()) {
+    var metadataCollection = metadataCollectionRepository.findByMetadataId(metadataId);
+    if (metadataCollection.isEmpty()) {
       log.info("Metadata with ID {} is not available.", metadataId);
       return null;
     }
-    var data = metadata.get().getData();
-    var inspire = !data.getMetadataProfile().equals(MetadataProfile.ISO);
+    var isoMetadata = metadataCollection.get().getIsoMetadata();
+    var inspire = !isoMetadata.getMetadataProfile().equals(MetadataProfile.ISO);
     var files = generator.generateMetadata(metadataId);
     var errors = new ArrayList<String>();
     files.forEach(f -> errors.addAll(validate(inspire, f)));

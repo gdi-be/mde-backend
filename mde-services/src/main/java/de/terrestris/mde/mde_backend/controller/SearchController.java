@@ -1,7 +1,5 @@
 package de.terrestris.mde.mde_backend.controller;
 
-import de.terrestris.mde.mde_backend.model.IsoMetadata;
-import de.terrestris.mde.mde_backend.service.IsoMetadataService;
 import de.terrestris.mde.mde_backend.service.SearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -9,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +16,10 @@ import org.springframework.web.server.ResponseStatusException;
 @Log4j2
 @RestController
 @RequestMapping("/search")
-public class SearchController extends BaseMetadataController<IsoMetadataService, IsoMetadata> {
+public class SearchController {
+
+  @Autowired
+  protected MessageSource messageSource;
 
   @Autowired
   private SearchService service;
