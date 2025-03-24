@@ -8,7 +8,9 @@ import de.terrestris.mde.mde_backend.model.json.codelists.MD_MaintenanceFrequenc
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.search.engine.backend.types.Sortable;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -72,10 +74,10 @@ public class JsonIsoMetadata implements FileIdentifier {
 
   private String identifier;
 
-  @FullTextField
+  @FullTextField()
+  @GenericField(name = "title_sort", sortable = Sortable.YES)
   private String title;
 
-  @FullTextField
   private String description;
 
   private List<Service> services;
@@ -95,6 +97,7 @@ public class JsonIsoMetadata implements FileIdentifier {
   @JsonFormat(shape = STRING)
   private Instant published;
 
+  @GenericField(name = "modified_sort", sortable = Sortable.YES)
   @JsonFormat(shape = STRING)
   private Instant modified;
 
@@ -128,6 +131,7 @@ public class JsonIsoMetadata implements FileIdentifier {
 
   private String lineage;
 
+  @GenericField
   private boolean valid;
 
   private String topicCategory;

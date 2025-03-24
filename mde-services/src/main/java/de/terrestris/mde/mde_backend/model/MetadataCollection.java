@@ -9,9 +9,12 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.Type;
+import org.hibernate.search.engine.backend.types.Sortable;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
 
-import java.util.List;
+import java.util.Set;
 
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
@@ -29,10 +32,19 @@ public class MetadataCollection extends BaseMetadata {
 
   @Column
   @Setter
-  private List<String> responsibleUserIds;
+  @FullTextField
+  @KeywordField(name = "team_member_sort", sortable = Sortable.YES)
+  private Set<String> teamMemberIds;
 
   @Column
   @Setter
+  @KeywordField
+  private String assignedUserId;
+
+  @Column
+  @Setter
+  @KeywordField
+  @Enumerated(EnumType.STRING)
   private Role responsibleRole;
 
   @Column

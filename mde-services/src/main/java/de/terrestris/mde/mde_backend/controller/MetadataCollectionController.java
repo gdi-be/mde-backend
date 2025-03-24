@@ -3,9 +3,7 @@ package de.terrestris.mde.mde_backend.controller;
 import de.terrestris.mde.mde_backend.enumeration.MetadataType;
 import de.terrestris.mde.mde_backend.model.BaseMetadata;
 import de.terrestris.mde.mde_backend.model.MetadataCollection;
-import de.terrestris.mde.mde_backend.model.dto.MetadataCreationData;
-import de.terrestris.mde.mde_backend.model.dto.MetadataCreationResponse;
-import de.terrestris.mde.mde_backend.model.dto.MetadataJsonPatch;
+import de.terrestris.mde.mde_backend.model.dto.*;
 import de.terrestris.mde.mde_backend.model.json.Comment;
 import de.terrestris.mde.mde_backend.service.DatasetIsoGenerator;
 import de.terrestris.mde.mde_backend.service.MetadataCollectionService;
@@ -247,6 +245,48 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
     }
   }
 
+  @DeleteMapping("/{metadataId}/addToTeam")
+  public ResponseEntity<Void> addToTeam(@PathVariable("metadataId") String metadataId, @RequestBody String userId) {
+    try {
+      service.addToTeam(metadataId, userId);
+      return new ResponseEntity<Void>(OK);
+    } catch (Exception e) {
+      log.error("Error while adding user to team of metadata with id {}: \n {}", metadataId, e.getMessage());
+      log.trace("Full stack trace: ", e);
+
+      throw new ResponseStatusException(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        messageSource.getMessage(
+          "BASE_CONTROLLER.INTERNAL_SERVER_ERROR",
+          null,
+          LocaleContextHolder.getLocale()
+        ),
+        e
+      );
+    }
+  }
+
+  @PostMapping("/{metadataId}/removeFromTeam")
+  public ResponseEntity<Void> removeFromTeam(@PathVariable("metadataId") String metadataId, @RequestBody String userId) {
+    try {
+      service.removeFromTeam(metadataId, userId);
+      return new ResponseEntity<Void>(OK);
+    } catch (Exception e) {
+      log.error("Error while removing user from team of metadata with id {}: \n {}", metadataId, e.getMessage());
+      log.trace("Full stack trace: ", e);
+
+      throw new ResponseStatusException(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        messageSource.getMessage(
+          "BASE_CONTROLLER.INTERNAL_SERVER_ERROR",
+          null,
+          LocaleContextHolder.getLocale()
+        ),
+        e
+      );
+    }
+  }
+
   @PostMapping("/{metadataId}/assignRole")
   public ResponseEntity<Void> assignRole(@PathVariable("metadataId") String metadataId, @RequestBody String role) {
     try {
@@ -289,7 +329,7 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
     }
   }
 
-  @GetMapping(
+  @PostMapping(
     path = "/search",
     produces = {
       "application/json"
@@ -307,14 +347,14 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
       description = "Internal Server Error: Something internal went wrong while updating the entity"
     )
   })
-  public List<MetadataCollection> search(@RequestParam String searchTerm, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit) {
+  public SearchResponse<MetadataCollection> search(@RequestBody SearchConfig searchConfig) {
 
-    log.trace("Search request for MetadataCollection with searchTerm: {}, offset: {}, limit: {}", searchTerm, offset, limit);
+    log.trace("Search request for MetadataCollection with searchConfig: {}", searchConfig);
     try {
-      SearchResult<MetadataCollection> result = this.service.search(searchTerm, offset, limit);
-      return result.hits();
+      SearchResult<MetadataCollection> result = this.service.search(searchConfig);
+      return new SearchResponse<MetadataCollection>(result.hits(), result.total().hitCount());
     } catch (Exception e) {
-      log.error("Error while searching for MetadataCollection with searchTerm: {}, offset: {}, limit: {}", searchTerm, offset, limit, e);
+      log.error("Error while searching for MetadataCollection with searchConfig: {}", searchConfig, e);
 
       throw new ResponseStatusException(
         HttpStatus.INTERNAL_SERVER_ERROR,
