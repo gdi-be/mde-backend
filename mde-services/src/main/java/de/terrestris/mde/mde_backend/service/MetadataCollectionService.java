@@ -8,12 +8,14 @@ import com.github.fge.jsonpatch.JsonPatchException;
 import de.terrestris.mde.mde_backend.enumeration.Role;
 import de.terrestris.mde.mde_backend.jpa.MetadataCollectionRepository;
 import de.terrestris.mde.mde_backend.model.MetadataCollection;
+import de.terrestris.mde.mde_backend.model.dto.SearchConfig;
 import de.terrestris.mde.mde_backend.model.json.Comment;
 import de.terrestris.mde.mde_backend.model.json.JsonClientMetadata;
 import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
 import de.terrestris.mde.mde_backend.model.json.JsonTechnicalMetadata;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import org.hibernate.search.engine.search.predicate.dsl.BooleanPredicateClausesStep;
 import org.hibernate.search.engine.search.query.SearchResult;
 import org.hibernate.search.mapper.orm.Search;
 import org.hibernate.search.mapper.orm.session.SearchSession;
@@ -42,16 +44,76 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
     ObjectMapper objectMapper;
 
     @Transactional(readOnly = true)
-    public SearchResult<MetadataCollection> search(String searchTerm, Integer offset, Integer limit) {
+    public SearchResult<MetadataCollection> search(SearchConfig config) {
       SearchSession searchSession = Search.session(entityManager);
 
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+      String myKeycloakId = ((JwtAuthenticationToken) authentication).getTokenAttributes().get("sub").toString();
+
       return searchSession.search(MetadataCollection.class)
-        .where(f -> f.simpleQueryString()
-          .fields("isoMetadata.title", "isoMetadata.description")
-          // title is tokenized with standard analyzer so a wildcard prefix is not necessary
-          .matching(searchTerm + "*")
+        .where(f -> {
+            BooleanPredicateClausesStep<?> query = f.bool();
+
+            if (config.getSearchTerm() != null && !config.getSearchTerm().isEmpty()) {
+              query.must(f.simpleQueryString()
+                .fields("isoMetadata.title")
+                .matching(config.getSearchTerm() + '*')
+              );
+            } else {
+              query.must(f.matchAll());
+            }
+
+            if (config.getIsValid() != null) {
+              query.must(f.match()
+                .field("isoMetadata.valid")
+                .matching(config.getIsValid())
+              );
+            }
+
+            if (config.getIsAssignedToMe() != null) {
+              if (config.getIsAssignedToMe()) {
+                query.must(f.match()
+                  .field("assignedUserId")
+                  .matching(myKeycloakId)
+                );
+              } else {
+                query.mustNot(f.match()
+                  .field("assignedUserId")
+                  .matching(myKeycloakId)
+                );
+              }
+            }
+
+            if (config.getIsTeamMember() != null) {
+              if (config.getIsTeamMember()) {
+                query.must(f.match()
+                  .field("teamMemberIds")
+                  .matching('*' + myKeycloakId  + '*')
+                );
+              } else {
+                query.mustNot(f.match()
+                  .field("teamMemberIds")
+                  .matching('*' + myKeycloakId  + '*')
+                );
+              }
+            }
+
+            if (config.getAssignedRoles() != null && !config.getAssignedRoles().isEmpty()) {
+              query.must(f.terms()
+                .field("responsibleRole")
+                .matchingAny(config.getAssignedRoles())
+              );
+            }
+
+            return query;
+          }
+
         )
-        .fetch(offset, limit);
+        // TODO: implement sorting by assignedUserId and teamMemberIds
+        // if myKeycloakId == assignedUserId = 1
+        // if myKeycloakId in teamMemberIds = 2
+        .sort(f -> f.field("isoMetadata.title_sort").asc())
+        .fetch(config.getOffset(), config.getLimit());
     }
 
     @PostAuthorize("hasRole('ROLE_ADMIN') or hasPermission(returnObject.orElse(null), 'READ')")
@@ -175,14 +237,7 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
     public void assignUser(String metadataId, String userId) {
         MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
           .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
-
-        List<String> responsibleUserIds = metadataCollection.getResponsibleUserIds();
-        if (responsibleUserIds == null) {
-          responsibleUserIds = new ArrayList<>();
-          metadataCollection.setResponsibleUserIds(responsibleUserIds);
-        }
-        responsibleUserIds.add(userId);
-
+        metadataCollection.setAssignedUserId(userId);
         repository.save(metadataCollection);
     }
 
@@ -191,14 +246,41 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
     public void unassignUser(String metadataId, String userId) {
         MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
           .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
+        if (metadataCollection.getAssignedUserId().equals(userId)) {
+          metadataCollection.setAssignedUserId(null);
+          repository.save(metadataCollection);
+        }
+    }
 
-        List<String> responsibleUserIds = metadataCollection.getResponsibleUserIds();
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void addToTeam(String metadataId, String userId) {
+        MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
+          .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
 
-        if (responsibleUserIds == null) {
+        Set<String> teamMemberIds = metadataCollection.getTeamMemberIds();
+        if (teamMemberIds == null) {
+          teamMemberIds = new HashSet<>();
+          metadataCollection.setTeamMemberIds(teamMemberIds);
+        }
+        teamMemberIds.add(userId);
+
+        repository.save(metadataCollection);
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void removeFromTeam(String metadataId, String userId) {
+        MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
+          .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
+
+        Set<String> teamMemberIds = metadataCollection.getTeamMemberIds();
+
+        if (teamMemberIds == null) {
           return;
         }
 
-        metadataCollection.getResponsibleUserIds().remove(userId);
+        metadataCollection.getTeamMemberIds().remove(userId);
         repository.save(metadataCollection);
     }
 
