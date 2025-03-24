@@ -3,10 +3,7 @@ package de.terrestris.mde.mde_backend.controller;
 import de.terrestris.mde.mde_backend.enumeration.MetadataType;
 import de.terrestris.mde.mde_backend.model.BaseMetadata;
 import de.terrestris.mde.mde_backend.model.MetadataCollection;
-import de.terrestris.mde.mde_backend.model.dto.MetadataCreationData;
-import de.terrestris.mde.mde_backend.model.dto.MetadataCreationResponse;
-import de.terrestris.mde.mde_backend.model.dto.MetadataJsonPatch;
-import de.terrestris.mde.mde_backend.model.dto.SearchConfig;
+import de.terrestris.mde.mde_backend.model.dto.*;
 import de.terrestris.mde.mde_backend.model.json.Comment;
 import de.terrestris.mde.mde_backend.service.DatasetIsoGenerator;
 import de.terrestris.mde.mde_backend.service.MetadataCollectionService;
@@ -350,12 +347,12 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
       description = "Internal Server Error: Something internal went wrong while updating the entity"
     )
   })
-  public List<MetadataCollection> search(@RequestBody SearchConfig searchConfig) {
+  public SearchResponse<MetadataCollection> search(@RequestBody SearchConfig searchConfig) {
 
     log.trace("Search request for MetadataCollection with searchConfig: {}", searchConfig);
     try {
       SearchResult<MetadataCollection> result = this.service.search(searchConfig);
-      return result.hits();
+      return new SearchResponse<MetadataCollection>(result.hits(), result.total().hitCount());
     } catch (Exception e) {
       log.error("Error while searching for MetadataCollection with searchConfig: {}", searchConfig, e);
 
