@@ -8,7 +8,7 @@ import java.util.List;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class SearchConfig {
+public class QueryConfig {
 
     private String searchTerm;
 
@@ -19,9 +19,5 @@ public class SearchConfig {
     private Boolean isValid;
 
     private List<Role> assignedRoles;
-
-    private Integer offset = 0;
-
-    private Integer limit = 10;
 
 }

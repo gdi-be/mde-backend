@@ -14,9 +14,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.extern.log4j.Log4j2;
 import org.hibernate.search.engine.search.query.SearchResult;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -41,6 +45,7 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
 
   @Autowired
   protected MessageSource messageSource;
+
 
   @GetMapping("/{metadataId}")
   @ResponseStatus(HttpStatus.OK)
@@ -329,7 +334,7 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
     }
   }
 
-  @PostMapping(
+  @GetMapping(
     path = "/search",
     produces = {
       "application/json"
@@ -347,14 +352,51 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
       description = "Internal Server Error: Something internal went wrong while updating the entity"
     )
   })
-  public SearchResponse<MetadataCollection> search(@RequestBody SearchConfig searchConfig) {
+  public List<MetadataCollection> search(@RequestParam String searchTerm, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit) {
 
-    log.trace("Search request for MetadataCollection with searchConfig: {}", searchConfig);
+    log.trace("Search request for MetadataCollection with searchTerm: {}, offset: {}, limit: {}", searchTerm, offset, limit);
     try {
-      SearchResult<MetadataCollection> result = this.service.search(searchConfig);
-      return new SearchResponse<MetadataCollection>(result.hits(), result.total().hitCount());
+      SearchResult<MetadataCollection> result = this.service.search(searchTerm, offset, limit);
+      return result.hits();
     } catch (Exception e) {
-      log.error("Error while searching for MetadataCollection with searchConfig: {}", searchConfig, e);
+      log.error("Error while searching for MetadataCollection with searchTerm: {}, offset: {}, limit: {}", searchTerm, offset, limit, e);
+
+      throw new ResponseStatusException(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        messageSource.getMessage(
+          "BASE_CONTROLLER.INTERNAL_SERVER_ERROR",
+          null,
+          LocaleContextHolder.getLocale()
+        ),
+        e
+      );
+    }
+  }
+
+  @PostMapping(
+    path = "/query",
+    produces = {
+      "application/json"
+    }
+  )
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(security = { @SecurityRequirement(name = "bearer-key") })
+  @ApiResponses(value = {
+    @ApiResponse(
+      responseCode = "200",
+      description = "Ok: MetadataCollections were successfully queried"
+    ),
+    @ApiResponse(
+      responseCode = "500",
+      description = "Internal Server Error: Something internal went wrong while querying MetadataCollections"
+    )
+  })
+  public Page<MetadataCollection> query(@RequestBody QueryConfig queryConfig, @PageableDefault(Integer.MAX_VALUE) @ParameterObject Pageable pageable) {
+    log.trace("Query MetadataCollections with queryConfig: {}", queryConfig);
+    try {
+      return this.service.query(queryConfig, pageable);
+    } catch (Exception e) {
+      log.error("Error while querying MetadataCollection with queryConfig: {}", queryConfig, e);
 
       throw new ResponseStatusException(
         HttpStatus.INTERNAL_SERVER_ERROR,

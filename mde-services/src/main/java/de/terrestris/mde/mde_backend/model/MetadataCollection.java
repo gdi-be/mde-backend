@@ -30,6 +30,9 @@ public class MetadataCollection extends BaseMetadata {
   @Formula("(iso_metadata->>'title')")
   private String title;
 
+  @Formula("(iso_metadata->>'valid')::boolean")
+  private Boolean valid;
+
   @Column
   @Setter
   @FullTextField
