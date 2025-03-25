@@ -16,6 +16,9 @@ import de.terrestris.mde.mde_backend.model.json.JsonTechnicalMetadata;
 import de.terrestris.mde.mde_backend.specification.MetadataCollectionSpecification;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import org.hibernate.search.engine.search.query.SearchResult;
+import org.hibernate.search.mapper.orm.Search;
+import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
@@ -60,6 +63,18 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
             .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
 
         return  Optional.of(metadataCollection);
+    }
+
+    @Transactional(readOnly = true)
+    public SearchResult<MetadataCollection> search(String searchTerm, Integer offset, Integer limit) {
+      SearchSession searchSession = Search.session(entityManager);
+
+      return searchSession.search(MetadataCollection.class)
+        .where(f -> f.simpleQueryString()
+          .fields("isoMetadata.title")
+          .matching(searchTerm + "*")
+        )
+        .fetch(offset, limit);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'CREATE')")

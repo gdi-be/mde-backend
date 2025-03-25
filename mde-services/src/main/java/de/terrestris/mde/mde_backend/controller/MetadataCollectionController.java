@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.extern.log4j.Log4j2;
+import org.hibernate.search.engine.search.query.SearchResult;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -320,6 +321,45 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
     } catch (Exception e) {
       log.error("Error while unassigning role from metadata with id {}: \n {}", metadataId, e.getMessage());
       log.trace("Full stack trace: ", e);
+
+      throw new ResponseStatusException(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        messageSource.getMessage(
+          "BASE_CONTROLLER.INTERNAL_SERVER_ERROR",
+          null,
+          LocaleContextHolder.getLocale()
+        ),
+        e
+      );
+    }
+  }
+
+  @GetMapping(
+    path = "/search",
+    produces = {
+      "application/json"
+    }
+  )
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(security = { @SecurityRequirement(name = "bearer-key") })
+  @ApiResponses(value = {
+    @ApiResponse(
+      responseCode = "200",
+      description = "Ok: The entity was successfully updated"
+    ),
+    @ApiResponse(
+      responseCode = "500",
+      description = "Internal Server Error: Something internal went wrong while updating the entity"
+    )
+  })
+  public List<MetadataCollection> search(@RequestParam String searchTerm, @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit) {
+
+    log.trace("Search request for MetadataCollection with searchTerm: {}, offset: {}, limit: {}", searchTerm, offset, limit);
+    try {
+      SearchResult<MetadataCollection> result = this.service.search(searchTerm, offset, limit);
+      return result.hits();
+    } catch (Exception e) {
+      log.error("Error while searching for MetadataCollection with searchTerm: {}, offset: {}, limit: {}", searchTerm, offset, limit, e);
 
       throw new ResponseStatusException(
         HttpStatus.INTERNAL_SERVER_ERROR,
