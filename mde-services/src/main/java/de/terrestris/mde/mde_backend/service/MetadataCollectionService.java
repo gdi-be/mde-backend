@@ -8,19 +8,19 @@ import com.github.fge.jsonpatch.JsonPatchException;
 import de.terrestris.mde.mde_backend.enumeration.Role;
 import de.terrestris.mde.mde_backend.jpa.MetadataCollectionRepository;
 import de.terrestris.mde.mde_backend.model.MetadataCollection;
-import de.terrestris.mde.mde_backend.model.dto.SearchConfig;
+import de.terrestris.mde.mde_backend.model.dto.QueryConfig;
 import de.terrestris.mde.mde_backend.model.json.Comment;
 import de.terrestris.mde.mde_backend.model.json.JsonClientMetadata;
 import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
 import de.terrestris.mde.mde_backend.model.json.JsonTechnicalMetadata;
+import de.terrestris.mde.mde_backend.specification.MetadataCollectionSpecification;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import org.hibernate.search.engine.search.predicate.dsl.BooleanPredicateClausesStep;
-import org.hibernate.search.engine.search.query.SearchResult;
-import org.hibernate.search.mapper.orm.Search;
-import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -44,76 +44,13 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
     ObjectMapper objectMapper;
 
     @Transactional(readOnly = true)
-    public SearchResult<MetadataCollection> search(SearchConfig config) {
-      SearchSession searchSession = Search.session(entityManager);
-
+    public Page<MetadataCollection> query(QueryConfig config, Pageable pageable) {
       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
       String myKeycloakId = ((JwtAuthenticationToken) authentication).getTokenAttributes().get("sub").toString();
 
-      return searchSession.search(MetadataCollection.class)
-        .where(f -> {
-            BooleanPredicateClausesStep<?> query = f.bool();
+      Specification<MetadataCollection> specification = MetadataCollectionSpecification.searchMetadata(config, myKeycloakId);
 
-            if (config.getSearchTerm() != null && !config.getSearchTerm().isEmpty()) {
-              query.must(f.simpleQueryString()
-                .fields("isoMetadata.title")
-                .matching(config.getSearchTerm() + '*')
-              );
-            } else {
-              query.must(f.matchAll());
-            }
-
-            if (config.getIsValid() != null) {
-              query.must(f.match()
-                .field("isoMetadata.valid")
-                .matching(config.getIsValid())
-              );
-            }
-
-            if (config.getIsAssignedToMe() != null) {
-              if (config.getIsAssignedToMe()) {
-                query.must(f.match()
-                  .field("assignedUserId")
-                  .matching(myKeycloakId)
-                );
-              } else {
-                query.mustNot(f.match()
-                  .field("assignedUserId")
-                  .matching(myKeycloakId)
-                );
-              }
-            }
-
-            if (config.getIsTeamMember() != null) {
-              if (config.getIsTeamMember()) {
-                query.must(f.match()
-                  .field("teamMemberIds")
-                  .matching('*' + myKeycloakId  + '*')
-                );
-              } else {
-                query.mustNot(f.match()
-                  .field("teamMemberIds")
-                  .matching('*' + myKeycloakId  + '*')
-                );
-              }
-            }
-
-            if (config.getAssignedRoles() != null && !config.getAssignedRoles().isEmpty()) {
-              query.must(f.terms()
-                .field("responsibleRole")
-                .matchingAny(config.getAssignedRoles())
-              );
-            }
-
-            return query;
-          }
-
-        )
-        // TODO: implement sorting by assignedUserId and teamMemberIds
-        // if myKeycloakId == assignedUserId = 1
-        // if myKeycloakId in teamMemberIds = 2
-        .sort(f -> f.field("isoMetadata.title_sort").asc())
-        .fetch(config.getOffset(), config.getLimit());
+      return findAllBy(specification, pageable);
     }
 
     @PostAuthorize("hasRole('ROLE_ADMIN') or hasPermission(returnObject.orElse(null), 'READ')")
