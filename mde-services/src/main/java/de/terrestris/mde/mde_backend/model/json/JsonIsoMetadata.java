@@ -68,6 +68,8 @@ public class JsonIsoMetadata implements FileIdentifier {
 
   private InspireTheme inspireTheme;
 
+  private String inspireAnnexVersion;
+
   private List<DistributionVersion> distributionVersions;
 
   private String fileIdentifier;
@@ -129,7 +131,13 @@ public class JsonIsoMetadata implements FileIdentifier {
 
   private List<ContentDescription> contentDescriptions;
 
-  private String lineage;
+  // TODO: update importer according to excel sheet
+  private String technicalDescription;
+
+  // TODO: update importer according to excel sheet
+  private String contentDescription;
+
+  private List<Lineage> lineage;
 
   @GenericField
   private boolean valid;
