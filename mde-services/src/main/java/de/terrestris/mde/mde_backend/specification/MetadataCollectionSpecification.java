@@ -5,6 +5,7 @@ import de.terrestris.mde.mde_backend.model.dto.QueryConfig;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,7 +63,17 @@ public class MetadataCollectionSpecification {
         .when(cb.isTrue(isTeamMember), 1)
         .otherwise(2);
 
-      query.orderBy(cb.asc(sortPriority), cb.asc(root.get("title")));
+      query.orderBy(
+        // first sort by priority (assigned to me, team member, not assigned)
+        cb.asc(sortPriority),
+        // sub sort by modified date if assigned to me
+        cb.desc(cb.selectCase()
+          .when(cb.equal(root.get("assignedUserId"), myKeycloakId), root.get("modified"))
+          .otherwise(cb.nullLiteral(Instant.class))
+        ),
+        // ... otherwise sort by title
+        cb.asc(root.get("title"))
+      );
 
       return cb.and(predicates.toArray(new Predicate[0]));
     };
