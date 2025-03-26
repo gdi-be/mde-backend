@@ -285,9 +285,14 @@ public class ImportService {
       extractTransferOptions(reader, isoMetadata);
       extractResourceConstraints(reader, isoMetadata);
       extractDistributionFormat(reader, isoMetadata);
+
       if (reader.isStartElement() && reader.getLocalName().equals("statement")) {
         skipToElement(reader, "CharacterString");
-        isoMetadata.setLineage(reader.getElementText());
+        List<Lineage> lineageList = new ArrayList<>();
+        Lineage lineage = new Lineage();
+        lineage.setTitle(reader.getElementText());
+        lineageList.add(lineage);
+        isoMetadata.setLineage(lineageList);
       }
       extractDate(reader, isoMetadata);
     }

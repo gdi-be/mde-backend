@@ -217,6 +217,10 @@ public class DatasetIsoGenerator {
 
   public static List<String> getAutomaticKeywords(JsonIsoMetadata isoMetadata) {
     var list = new ArrayList<String>();
+    if (isoMetadata.getMetadataProfile() == null) {
+      return list;
+    }
+
     if (!isoMetadata.getMetadataProfile().equals(ISO)) {
       list.add("inspireidentifiziert");
     }
@@ -350,13 +354,15 @@ public class DatasetIsoGenerator {
     if (!metadata.getMetadataProfile().equals(ISO)) {
       writeReport(writer, metadata, service);
     }
+
     writer.writeStartElement(GMD, "lineage");
     writer.writeStartElement(GMD, "LI_Lineage");
     writer.writeStartElement(GMD, "statement");
-    writeSimpleElement(writer, GCO, "CharacterString", metadata.getLineage());
+    writeSimpleElement(writer, GCO, "CharacterString", metadata.getLineage().getFirst().getTitle());
     writer.writeEndElement(); // statement
     writer.writeEndElement(); // LI_Lineage
     writer.writeEndElement(); // lineage
+
     writer.writeEndElement(); // DQ_DataQuality
     writer.writeEndElement(); // dataQualityInfo
   }
