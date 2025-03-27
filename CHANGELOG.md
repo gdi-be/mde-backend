@@ -1,3 +1,10 @@
+## [1.0.6](https://github.com/gdi-be/mde-backend/compare/v1.0.5...v1.0.6) (2025-03-27)
+
+
+### Bug Fixes
+
+* fix release workflow ([8543b2f](https://github.com/gdi-be/mde-backend/commit/8543b2fc1816e288fabc82fa212a4f3bd7f774a4))
+
 ## [1.0.5](https://github.com/gdi-be/mde-backend/compare/v1.0.4...v1.0.5) (2025-03-27)
 
 
