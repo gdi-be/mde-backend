@@ -63,4 +63,7 @@ public class Service implements FileIdentifier {
 
   private List<ColumnInfo> columns;
 
+  // TODO: update importer according to excel sheet
+  private List<DownloadInfo> downloads;
+
 }
