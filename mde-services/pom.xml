@@ -166,7 +166,7 @@
             <mainClass>de.terrestris.mde.mde_backend.MdeBackendApplication</mainClass>
           </container>
           <to>
-            <image>${env.REGISTRY}/${env.IMAGE_NAME}:{env.RELEASE_TAG}</image>
+            <image>${env.REGISTRY}/${env.IMAGE_NAME}:${env.RELEASE_TAG}</image>
           </to>
         </configuration>
       </plugin>
