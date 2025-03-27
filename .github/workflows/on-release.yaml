@@ -45,5 +45,5 @@ jobs:
         if: steps.semantic-release.outputs.new_release_published == 'true'
         run: mvn --batch-mode deploy
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_TAG: ${{ steps.release.outputs.new_release_version }}
