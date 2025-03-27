@@ -43,7 +43,7 @@ jobs:
 
       - name: Build and push Docker image with Jib
         if: steps.semantic-release.outputs.new_release_published == 'true'
-        run: mvn --batch-mode jib:build deploy
+        run: cd mde-services && mvn -B jib:build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_TAG: ${{ steps.release.outputs.new_release_version }}
