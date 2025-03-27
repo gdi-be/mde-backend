@@ -42,7 +42,7 @@ jobs:
             @semantic-release/release-notes-generator
 
       - name: Build and push Docker image with Jib
-        if: steps.semantic-release.outputs.new-release-published == 'true'
+        if: steps.semantic-release.outputs.new_release_published == 'true'
         run: mvn --batch-mode deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
