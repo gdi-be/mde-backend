@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/gdi-be/mde-backend/compare/v1.1.0...v1.1.1) (2025-03-27)
+
+
+### Bug Fixes
+
+* update on-release.yaml ([d306812](https://github.com/gdi-be/mde-backend/commit/d306812b7058d1b39e90505700df42adb594d681))
+
 # [1.1.0](https://github.com/gdi-be/mde-backend/compare/v1.0.7...v1.1.0) (2025-03-27)
 
 
