@@ -1,3 +1,10 @@
+## [1.1.3](https://github.com/gdi-be/mde-backend/compare/v1.1.2...v1.1.3) (2025-03-27)
+
+
+### Bug Fixes
+
+* update pipelines ([2eb6015](https://github.com/gdi-be/mde-backend/commit/2eb6015dd69a9db26e4c8cfba76fd07bc421eeb5))
+
 ## [1.1.2](https://github.com/gdi-be/mde-backend/compare/v1.1.1...v1.1.2) (2025-03-27)
 
 
