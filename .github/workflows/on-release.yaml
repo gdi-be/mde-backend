@@ -44,10 +44,10 @@ jobs:
       - name: Run the Maven install phase
         run: mvn -B install
         env:
-          RELEASE_TAG: ${{ steps.release.outputs.new_release_version }}
+          RELEASE_TAG: ${{ steps.semantic-release.outputs.new_release_version }}
       - name: Build and push Docker image with Jib
         if: steps.semantic-release.outputs.new_release_published == 'true'
         run: cd mde-services && mvn -B jib:build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TAG: ${{ steps.release.outputs.new_release_version }}
+          RELEASE_TAG: ${{ steps.semantic-release.outputs.new_release_version }}
