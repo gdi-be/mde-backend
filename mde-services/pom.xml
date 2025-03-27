@@ -14,6 +14,12 @@
   <name>mde-servics</name>
   <description>Services for metadata editor</description>
 
+  <properties>
+    <docker.registry>${env.REGISTRY}</docker.registry>
+    <docker.imageName>${env.IMAGE_NAME}</docker.imageName>
+    <docker.releaseTag>${env.RELEASE_TAG}</docker.releaseTag>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -166,7 +172,7 @@
             <mainClass>de.terrestris.mde.mde_backend.MdeBackendApplication</mainClass>
           </container>
           <to>
-            <image>${env.REGISTRY}/${env.IMAGE_NAME}:${env.RELEASE_TAG}</image>
+            <image>${docker.registry}/${docker.imageName}:${docker.releaseTag}</image>
           </to>
         </configuration>
       </plugin>
