@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/gdi-be/mde-backend/compare/v1.1.1...v1.1.2) (2025-03-27)
+
+
+### Bug Fixes
+
+* add missing env variables ([a0506f9](https://github.com/gdi-be/mde-backend/commit/a0506f932d3531a329bacbd3790cd36c8248edab))
+
 ## [1.1.1](https://github.com/gdi-be/mde-backend/compare/v1.1.0...v1.1.1) (2025-03-27)
 
 
