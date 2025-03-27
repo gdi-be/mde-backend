@@ -1,3 +1,15 @@
+# [1.1.0](https://github.com/gdi-be/mde-backend/compare/v1.0.7...v1.1.0) (2025-03-27)
+
+
+### Bug Fixes
+
+* fix release workflow ([faf66ac](https://github.com/gdi-be/mde-backend/commit/faf66ac8971ca284b323acdf2b6236c685b68487))
+
+
+### Features
+
+* add downloads field to Service ([9383525](https://github.com/gdi-be/mde-backend/commit/9383525ad6e488c7fcff46747269e122ce330e0d))
+
 ## [1.0.7](https://github.com/gdi-be/mde-backend/compare/v1.0.6...v1.0.7) (2025-03-27)
 
 
