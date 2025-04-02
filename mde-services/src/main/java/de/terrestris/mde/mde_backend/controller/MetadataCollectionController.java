@@ -352,9 +352,15 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
   }
 
   @PostMapping("/{metadataId}/assignRole")
-  public ResponseEntity<Void> assignRole(@PathVariable("metadataId") String metadataId, @RequestBody String role) {
+  public ResponseEntity<Void> assignRole(@PathVariable("metadataId") String metadataId, @RequestBody AssignRoleData data) {
     try {
-      service.assignRole(metadataId, role);
+      service.assignRole(metadataId, data.getRole());
+
+      if (data.isAssignUser()) {
+        // TODO: fetch all teammembers and find one with the corresponding role then assign the medata to the user
+//        service.assignUser(metadataId, data.getUserId());
+      }
+
       return new ResponseEntity<Void>(OK);
     } catch (Exception e) {
       log.error("Error while assigning role to metadata with id {}: \n {}", metadataId, e.getMessage());
