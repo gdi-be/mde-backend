@@ -224,7 +224,7 @@ public class DatasetIsoGenerator {
     if (!isoMetadata.getMetadataProfile().equals(ISO)) {
       list.add("inspireidentifiziert");
     }
-    if (TERMS_OF_USE_BY_ID.get(isoMetadata.getTermsOfUseId().intValue()).isOpenData()) {
+    if (isoMetadata.getTermsOfUseId() != null && TERMS_OF_USE_BY_ID.get(isoMetadata.getTermsOfUseId().intValue()).isOpenData()) {
       list.add("open data");
       list.add("opendata");
     }
