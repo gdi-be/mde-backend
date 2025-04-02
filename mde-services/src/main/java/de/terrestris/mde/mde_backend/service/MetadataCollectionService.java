@@ -27,6 +27,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
@@ -77,22 +78,51 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'CREATE')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public String create(String title) {
-        String metadataId = UUID.randomUUID().toString();
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+      String myKeycloakId = ((JwtAuthenticationToken) authentication).getTokenAttributes().get("sub").toString();
+      Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+      Role roleToSet = null;
+      List<String> roleNames = authorities.stream().map(GrantedAuthority::getAuthority).toList();
 
-        MetadataCollection metadataCollection = new MetadataCollection(metadataId);
+      if (roleNames.contains("Editor")) {
+        roleToSet = Role.Editor;
+      } else if (roleNames.contains("DataOwner")) {
+        roleToSet = Role.DataOwner;
+      }
 
-        metadataCollection.getIsoMetadata().setTitle(title);
-        metadataCollection.getIsoMetadata().setIdentifier(metadataId);
-        metadataCollection.getIsoMetadata().setFileIdentifier(null);
+      String metadataId = UUID.randomUUID().toString();
 
-        repository.save(metadataCollection);
+      MetadataCollection metadataCollection = new MetadataCollection(metadataId);
 
-        return metadataId;
+      metadataCollection.getIsoMetadata().setTitle(title);
+      metadataCollection.getIsoMetadata().setIdentifier(metadataId);
+
+      if (roleToSet != null) {
+        metadataCollection.setResponsibleRole(roleToSet);
+      }
+
+      metadataCollection.setAssignedUserId(myKeycloakId);
+
+      repository.save(metadataCollection);
+
+      return metadataId;
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'CREATE')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public String create(String title, String cloneMetadataId) throws IOException {
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+      String myKeycloakId = ((JwtAuthenticationToken) authentication).getTokenAttributes().get("sub").toString();
+      Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+      Role roleToSet = null;
+      List<String> roleNames = authorities.stream().map(GrantedAuthority::getAuthority).toList();
+
+      if (roleNames.contains("Editor")) {
+        roleToSet = Role.Editor;
+      } else if (roleNames.contains("DataOwner")) {
+        roleToSet = Role.DataOwner;
+      }
+
       String metadataId = UUID.randomUUID().toString();
 
       MetadataCollection metadataCollection = new MetadataCollection(metadataId);
@@ -121,6 +151,12 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
       metadataCollection.setIsoMetadata(clonedIsoData);
       metadataCollection.setClientMetadata(clonedClientData);
       metadataCollection.setTechnicalMetadata(clonedTechnicalData);
+
+      if (roleToSet != null) {
+        metadataCollection.setResponsibleRole(roleToSet);
+      }
+
+      metadataCollection.setAssignedUserId(myKeycloakId);
 
       repository.save(metadataCollection);
 
@@ -187,6 +223,10 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
         MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
           .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
         metadataCollection.setAssignedUserId(userId);
+
+        // everyone who is assigned to the metadata collection should be added to the team
+        addToTeam(metadataId, userId);
+
         repository.save(metadataCollection);
     }
 
