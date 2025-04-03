@@ -13,6 +13,7 @@ import java.time.format.DateTimeFormatter;
 
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode.information;
 import static de.terrestris.mde.mde_backend.model.json.codelists.MD_CharacterSetCode.utf8;
+import static de.terrestris.mde.mde_backend.model.json.codelists.MD_GeometricObjectTypeCode.complex;
 import static de.terrestris.mde.mde_backend.service.IsoGenerator.replaceValues;
 import static de.terrestris.utils.xml.MetadataNamespaceUtils.*;
 import static de.terrestris.utils.xml.XmlUtils.writeSimpleElement;
@@ -115,13 +116,28 @@ public class GeneratorUtils {
     writer.writeEndElement(); // dateStamp
   }
 
-  protected static void writeMetadataInfo(XMLStreamWriter writer) throws XMLStreamException {
+  protected static void writeMetadataInfo(XMLStreamWriter writer, boolean inspire) throws XMLStreamException {
     writer.writeStartElement(GMD, "metadataStandardName");
     writeSimpleElement(writer, GCO, "CharacterString", "ISO 19115/19119 ? BE");
     writer.writeEndElement(); // metadataStandardName
     writer.writeStartElement(GMD, "metadataStandardVersion");
     writeSimpleElement(writer, GCO, "CharacterString", "1.0.0");
     writer.writeEndElement(); // metadataStandardVersion
+    if (!inspire) {
+      return;
+    }
+    // TODO this is hardcoded for now, because details are not prompted in the ui
+    writer.writeStartElement(GMD, "spatialRepresentationInfo");
+    writer.writeStartElement(GMD, "MD_VectorSpatialRepresentation");
+    writer.writeStartElement(GMD, "geometricObjects");
+    writer.writeStartElement(GMD, "MD_GeometricObjects");
+    writer.writeStartElement(GMD, "geometricObjectType");
+    writeCodelistValue(writer, complex);
+    writer.writeEndElement(); // geometricObjectType
+    writer.writeEndElement(); // MD_GeometricObjects
+    writer.writeEndElement(); // geometricObjects
+    writer.writeEndElement(); // MD_VectorSpatialRepresentation
+    writer.writeEndElement(); // spatialRepresentationInfo
   }
 
   protected static void writeCrs(XMLStreamWriter writer, JsonIsoMetadata metadata) throws XMLStreamException {
@@ -145,7 +161,7 @@ public class GeneratorUtils {
     writer.writeStartElement(GMD, "date");
     writer.writeStartElement(GMD, "CI_Date");
     writer.writeStartElement(GMD, "date");
-    writeSimpleElement(writer, GCO, "Date", DateTimeFormatter.ISO_DATE_TIME.format(date.atOffset(ZoneOffset.UTC)));
+    writeSimpleElement(writer, GCO, "Date", DateTimeFormatter.ISO_DATE.format(date.atOffset(ZoneOffset.UTC).toLocalDate()));
     writer.writeEndElement(); // Date
     writer.writeStartElement(GMD, "dateType");
     writeCodelistValue(writer, type);

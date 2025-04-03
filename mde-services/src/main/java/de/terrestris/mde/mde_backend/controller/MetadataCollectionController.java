@@ -6,13 +6,17 @@ import de.terrestris.mde.mde_backend.model.MetadataCollection;
 import de.terrestris.mde.mde_backend.model.dto.*;
 import de.terrestris.mde.mde_backend.model.json.Comment;
 import de.terrestris.mde.mde_backend.service.DatasetIsoGenerator;
+import de.terrestris.mde.mde_backend.service.IsoGenerator;
 import de.terrestris.mde.mde_backend.service.MetadataCollectionService;
+import de.terrestris.mde.mde_backend.service.ValidatorService;
+import de.terrestris.utils.io.ZipUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.io.IOUtils;
 import org.hibernate.search.engine.search.query.SearchResult;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +31,10 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.xml.stream.XMLStreamException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -42,6 +50,12 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
 
   @Autowired
   MetadataCollectionService service;
+
+  @Autowired
+  ValidatorService validatorService;
+
+  @Autowired
+  IsoGenerator isoGenerator;
 
   @Autowired
   protected MessageSource messageSource;
@@ -206,6 +220,52 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
     }
     var isoMetadata = metadataOptional.get().getIsoMetadata();
     return new ResponseEntity<>(DatasetIsoGenerator.getAutomaticKeywords(isoMetadata), OK);
+  }
+
+  @GetMapping("/{metadataId}/validate")
+  public ResponseEntity<List<String>> validate(@PathVariable("metadataId") String metadataId) {
+    try {
+      var errors = validatorService.validateMetadata(metadataId);
+      return new ResponseEntity<>(errors, OK);
+    } catch (XMLStreamException | IOException e) {
+      log.error("Error while validating metadata with id {}: \n {}", metadataId, e.getMessage());
+      log.trace("Full stack trace: ", e);
+
+      throw new ResponseStatusException(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        messageSource.getMessage(
+          "BASE_CONTROLLER.INTERNAL_SERVER_ERROR",
+          null,
+          LocaleContextHolder.getLocale()
+        ),
+        e
+      );
+    }
+  }
+
+  @GetMapping("/{metadataId}/download")
+  public ResponseEntity<byte[]> download(@PathVariable("metadataId") String metadataId) {
+    try {
+      var files = isoGenerator.generateMetadata(metadataId);
+      Path tmp = Files.createTempFile(null, null);
+      ZipUtils.zip(tmp.toFile(), files.getFirst().getParent().toFile(), true);
+      var bs = IOUtils.toByteArray(Files.newInputStream(tmp));
+      Files.delete(tmp);
+      return new ResponseEntity<>(bs, OK);
+    } catch (XMLStreamException | IOException e) {
+      log.error("Error while downloading/generating metadata with id {}: \n {}", metadataId, e.getMessage());
+      log.trace("Full stack trace: ", e);
+
+      throw new ResponseStatusException(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        messageSource.getMessage(
+          "BASE_CONTROLLER.INTERNAL_SERVER_ERROR",
+          null,
+          LocaleContextHolder.getLocale()
+        ),
+        e
+      );
+    }
   }
 
   @PostMapping("/{metadataId}/assignUser")

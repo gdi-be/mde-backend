@@ -1,6 +1,7 @@
 package de.terrestris.mde.mde_backend.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import de.terrestris.mde.mde_backend.enumeration.MetadataProfile;
 import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
 import de.terrestris.mde.mde_backend.model.json.Service;
 import de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode;
@@ -19,6 +20,7 @@ import static de.terrestris.mde.mde_backend.model.json.codelists.CI_Presentation
 import static de.terrestris.mde.mde_backend.service.DatasetIsoGenerator.*;
 import static de.terrestris.mde.mde_backend.service.GeneratorUtils.*;
 import static de.terrestris.mde.mde_backend.service.IsoGenerator.TERMS_OF_USE_BY_ID;
+import static de.terrestris.mde.mde_backend.service.IsoGenerator.replaceValues;
 import static de.terrestris.utils.xml.MetadataNamespaceUtils.*;
 import static de.terrestris.utils.xml.XmlUtils.writeSimpleElement;
 
@@ -37,7 +39,8 @@ public class ServiceIsoGenerator {
     writer.writeEndElement(); // SV_CouplingType
     writer.writeEndElement(); // containsOperations
     writer.writeStartElement(SRV, "operatesOn");
-    writer.writeAttribute(XLINK, "href", String.format("https://registry.gdi-de.org/de.be.csw/%s", metadata.getIdentifier()));
+    writer.writeAttribute("uuidref", metadata.getIdentifier());
+    writer.writeAttribute(XLINK, "href", "https://registry.gdi-de.org/id/de.be.csw/" + metadata.getIdentifier());
     writer.writeEndElement(); // operatesOn
   }
 
@@ -54,8 +57,17 @@ public class ServiceIsoGenerator {
     writer.writeStartElement(SRV, "connectPoint");
     writer.writeStartElement(GMD, "CI_OnlineResource");
     writer.writeStartElement(GMD, "linkage");
-    writeSimpleElement(writer, GMD, "URL", service.getUrl());
+    writeSimpleElement(writer, GMD, "URL", replaceValues(service.getUrl()));
     writer.writeEndElement(); // linkage
+    writer.writeStartElement(GMD, "protocol");
+    writeSimpleElement(writer, GCO, "CharacterString", "WWW:LINK-1.0-http--link");
+    writer.writeEndElement(); // protocol
+    writer.writeStartElement(GMD, "description");
+    writer.writeStartElement(GMX, "Anchor");
+    writer.writeAttribute(XLINK, "href", "http://inspire.ec.europa.eu/metadata-codelist/OnLineDescriptionCode/accessPoint");
+    writer.writeCharacters("http://inspire.ec.europa.eu/metadata-codelist/OnLineDescriptionCode/accessPoint");
+    writer.writeEndElement(); // Anchor
+    writer.writeEndElement(); // description
     writer.writeStartElement(GMD, "function");
     writeCodelistValue(writer, information);
     writer.writeEndElement(); // function
@@ -107,6 +119,9 @@ public class ServiceIsoGenerator {
     writer.writeStartElement(SRV, "serviceType");
     writer.writeStartElement(GCO, "LocalName");
     writer.writeAttribute("codeSpace", "http://inspire.ec.europa.eu/metadata-codelist/SpatialDataServiceType");
+    // HBD: using download/view here may seem correct, however, the invocable spatial data services class tests for 'other'
+    // whereas the network services tests check for download/view
+    //    writer.writeCharacters("other");
     switch (service.getServiceType()) {
       case WFS, ATOM -> writer.writeCharacters("download");
       case WMS, WMTS -> writer.writeCharacters("view");
@@ -163,15 +178,22 @@ public class ServiceIsoGenerator {
     writeLanguage(writer);
     writeCharacterSet(writer);
     writeHierarchyLevel(writer, MD_ScopeCode.service);
+    writeHierarchyLevelName(writer, metadata.getTitle());
     for (var contact : metadata.getContacts()) {
       writeContact(writer, contact, "contact");
     }
     writeDateStamp(writer, metadata);
-    writeMetadataInfo(writer);
+    writeMetadataInfo(writer, !metadata.getMetadataProfile().equals(MetadataProfile.ISO));
     writeCrs(writer, metadata);
     writeServiceIdentification(writer, service, metadata);
     writeDistributionInfo(writer, metadata);
     writeDataQualityInfo(writer, metadata, true);
+  }
+
+  private void writeHierarchyLevelName(XMLStreamWriter writer, String title) throws XMLStreamException {
+    writer.writeStartElement(GMD, "hierarchyLevelName");
+    writeSimpleElement(writer, GCO, "CharacterString", String.format("%s Dienst", title));
+    writer.writeEndElement(); // hierarchyLevelName
   }
 
   public void generateServiceMetadata(JsonIsoMetadata metadata, Service service, OutputStream out) throws IOException, XMLStreamException {

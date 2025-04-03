@@ -150,6 +150,10 @@
     </dependency>
     <dependency>
       <groupId>de.terrestris</groupId>
+      <artifactId>bkg-testsuite-etf</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>de.terrestris</groupId>
       <artifactId>bkg-scripts</artifactId>
     </dependency>
   </dependencies>

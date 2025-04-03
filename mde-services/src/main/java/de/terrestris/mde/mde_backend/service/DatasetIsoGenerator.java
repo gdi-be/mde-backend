@@ -4,7 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.terrestris.mde.mde_backend.model.json.Extent;
 import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
+import de.terrestris.mde.mde_backend.model.json.Service;
 import de.terrestris.mde.mde_backend.model.json.codelists.MD_MaintenanceFrequencyCode;
+import de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode;
 import de.terrestris.mde.mde_backend.model.json.termsofuse.TermsOfUse;
 import lombok.extern.log4j.Log4j2;
 import org.codehaus.stax2.XMLOutputFactory2;
@@ -24,6 +26,7 @@ import static de.terrestris.mde.mde_backend.enumeration.MetadataProfile.ISO;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_DateTypeCode.*;
 import static de.terrestris.mde.mde_backend.model.json.codelists.MD_RestrictionCode.otherRestrictions;
 import static de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode.dataset;
+import static de.terrestris.mde.mde_backend.model.json.codelists.MD_SpatialRepresentationTypeCode.vector;
 import static de.terrestris.mde.mde_backend.service.GeneratorUtils.*;
 import static de.terrestris.mde.mde_backend.service.IsoGenerator.TERMS_OF_USE_BY_ID;
 import static de.terrestris.mde.mde_backend.service.IsoGenerator.replaceValues;
@@ -42,7 +45,7 @@ public class DatasetIsoGenerator {
     writer.writeStartElement(GMD, "identifier");
     writer.writeStartElement(GMD, "MD_Identifier");
     writer.writeStartElement(GMD, "code");
-    writeSimpleElement(writer, GCO, "CharacterString", identifier);
+    writeSimpleElement(writer, GCO, "CharacterString", String.format("https://registry.gdi-de.org/id/de.be.csw/%s", identifier));
     writer.writeEndElement(); // code
     writer.writeEndElement(); // MD_Identifier
     writer.writeEndElement(); // identifier
@@ -200,6 +203,7 @@ public class DatasetIsoGenerator {
     writePreview(writer, metadata.getPreview());
     writeKeywords(writer, metadata);
     writeResourceConstraints(writer, TERMS_OF_USE_BY_ID.get(metadata.getTermsOfUseId().intValue()));
+    writeSpatialRepresentationType(writer);
     writeSpatialResolution(writer, metadata);
     writeLanguage(writer);
     writeCharacterSet(writer);
@@ -207,6 +211,13 @@ public class DatasetIsoGenerator {
     writeExtent(writer, metadata.getExtent(), GMD);
     writer.writeEndElement(); // MD_DataIdentification
     writer.writeEndElement(); // identificationInfo
+  }
+
+  static void writeSpatialRepresentationType(XMLStreamWriter writer) throws XMLStreamException {
+    // TODO hardcoded for now, since info is not prompted for in the ui
+    writer.writeStartElement(GMD, "spatialRepresentationType");
+    writeCodelistValue(writer, vector);
+    writer.writeEndElement(); // spatialRepresentationType
   }
 
   private static void writeKeyword(XMLStreamWriter writer, String keyword) throws XMLStreamException {
@@ -287,8 +298,7 @@ public class DatasetIsoGenerator {
         writer.writeStartElement(GMD, "date");
         writer.writeStartElement(GMD, "CI_Date");
         writer.writeStartElement(GMD, "date");
-        // this hack is necessary because the INSPIRE tests seem to check for string equality instead of properly testing for date equality
-        writeSimpleElement(writer, GCO, "Date", DateTimeFormatter.ISO_DATE.format(thesaurus.getDate().atOffset(ZoneOffset.UTC)).substring(0, 10));
+        writeSimpleElement(writer, GCO, "Date", DateTimeFormatter.ISO_DATE.format(thesaurus.getDate().atOffset(ZoneOffset.UTC).toLocalDate()));
         writer.writeEndElement(); // date
         writer.writeStartElement(GMD, "dateType");
         writeCodelistValue(writer, thesaurus.getCode());
@@ -316,6 +326,55 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // version
     writer.writeEndElement(); // MD_Format
     writer.writeEndElement(); // distributionFormat
+    for (var service : metadata.getServices()) {
+      writer.writeStartElement(GMD, "transferOptions");
+      writer.writeStartElement(GMD, "MD_DigitalTransferOptions");
+      writer.writeStartElement(GMD, "onLine");
+      writer.writeStartElement(GMD, "CI_OnlineResource");
+      writer.writeStartElement(GMD, "linkage");
+      var capas = service.getCapabilitiesUrl();
+      if (!service.getServiceType().equals(Service.ServiceType.ATOM)) {
+        capas += "?request=GetCapabilities&service=" + service.getServiceType();
+      }
+      writeSimpleElement(writer, GMD, "URL", replaceValues(capas));
+      writer.writeEndElement(); // linkage
+      writer.writeStartElement(GMD, "protocol");
+      writer.writeStartElement(GMX, "Anchor");
+      var type = switch (service.getServiceType()) {
+        case WFS -> "http://www.opengis.net/def/serviceType/ogc/wfs";
+        case WMS -> "http://www.opengis.net/def/serviceType/ogc/wms";
+        case ATOM -> "https://tools.ietf.org/html/rfc4287";
+        case WMTS -> "http://www.opengis.net/def/serviceType/ogc/wmts";
+      };
+      var text = switch (service.getServiceType()) {
+        case WFS -> "OGC Web Feature Service";
+        case WMS -> "OGC Web Map Service";
+        case ATOM -> "ATOM Syndication Format";
+        case WMTS -> "OGC Web Map Tile Service";
+      };
+      writer.writeAttribute(XLINK, "href", type);
+      writer.writeCharacters(text);
+      writer.writeEndElement(); // Anchor
+      writer.writeEndElement(); // protocol
+      writer.writeStartElement(GMD, "applicationProfile");
+      writer.writeStartElement(GMX, "Anchor");
+      var inspireType = switch (service.getServiceType()) {
+        case WFS, ATOM -> "http://inspire.ec.europa.eu/metadata-codelist/SpatialDataServiceType/download";
+        case WMS, WMTS -> "http://inspire.ec.europa.eu/metadata-codelist/SpatialDataServiceType/view";
+      };
+      var inspireText = switch (service.getServiceType()) {
+        case WFS, ATOM -> "Download Service";
+        case WMS, WMTS -> "View Service";
+      };
+      writer.writeAttribute(XLINK, "href", inspireType);
+      writer.writeCharacters(inspireText);
+      writer.writeEndElement(); // Anchor
+      writer.writeEndElement(); // applicationProfile
+      writer.writeEndElement(); // CI_OnlineResource
+      writer.writeEndElement(); // onLine
+      writer.writeEndElement(); // MD_DigitalTransferOptions
+      writer.writeEndElement(); // transferOptions
+    }
     writer.writeStartElement(GMD, "transferOptions");
     writer.writeStartElement(GMD, "MD_DigitalTransferOptions");
     if (metadata.getContentDescriptions() != null) {
@@ -326,7 +385,10 @@ public class DatasetIsoGenerator {
         writeSimpleElement(writer, GMD, "URL", replaceValues(content.getUrl()));
         writer.writeEndElement(); // linkage
         writer.writeStartElement(GMD, "description");
-        writeSimpleElement(writer, GCO, "CharacterString", content.getDescription() == null ? "" : content.getDescription());
+        writer.writeStartElement(GMX, "Anchor");
+        writer.writeAttribute(XLINK, "href", "http://inspire.ec.europa.eu/metadata-codelist/OnLineDescriptionCode/accessPoint");
+        writer.writeCharacters("http://inspire.ec.europa.eu/metadata-codelist/OnLineDescriptionCode/accessPoint");
+        writer.writeEndElement(); // Anchor
         writer.writeEndElement(); // description
         writer.writeStartElement(GMD, "function");
         writeCodelistValue(writer, content.getCode());
@@ -347,12 +409,21 @@ public class DatasetIsoGenerator {
     writer.writeStartElement(GMD, "scope");
     writer.writeStartElement(GMD, "DQ_Scope");
     writer.writeStartElement(GMD, "level");
-    writeCodelistValue(writer, dataset);
+    writeCodelistValue(writer, service ? MD_ScopeCode.service : dataset);
     writer.writeEndElement(); // level
+    if (service) {
+      writer.writeStartElement(GMD, "levelDescription");
+      writer.writeStartElement(GMD, "MD_ScopeDescription");
+      writer.writeStartElement(GMD, "other");
+      writeSimpleElement(writer, GCO, "CharacterString", "Dienst");
+      writer.writeEndElement(); // other
+      writer.writeEndElement(); // MD_ScopeDescription
+      writer.writeEndElement(); // levelDescription
+    }
     writer.writeEndElement(); // DQ_Scope
     writer.writeEndElement(); // scope
     if (!metadata.getMetadataProfile().equals(ISO)) {
-      writeReport(writer, metadata, service);
+      writeReport(writer, metadata);
     }
 
     writer.writeStartElement(GMD, "lineage");
@@ -367,13 +438,22 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // dataQualityInfo
   }
 
-  protected static void writeReport(XMLStreamWriter writer, JsonIsoMetadata metadata, boolean service) throws XMLStreamException {
+  protected static void writeReport(XMLStreamWriter writer, JsonIsoMetadata metadata) throws XMLStreamException {
     var text = "VERORDNUNG (EG) Nr. 1089/2010 DER KOMMISSION vom 23. November 2010 zur Durchführung der Richtlinie 2007/2/EG des Europäischen Parlaments und des Rates hinsichtlich der Interoperabilität von Geodatensätzen und -diensten";
     var date = "2010-12-08";
-    if (service) {
-      text = "VERORDNUNG (EG) Nr. 976/2009 DER KOMMISSION vom 19. Oktober 2009 zur Durchführung der Richtlinie 2007/2/EG des Europäischen Parlaments und des Rates hinsichtlich der Netzdienste";
-      date = "2009-10-20";
-    }
+    // HBD: the 1089/2010 has been replaced with (s.o.), else the invocable spatial data services test class fails
+    // also, we need at least 3 reports, else the tests will also fail
+    var text2 = "VERORDNUNG (EU) Nr. 102/2011 DER KOMMISSION vom 4. Februar 2011 zur Änderung der Verordnung (EU) Nr. (s.o.) zur Durchführung der Richtlinie 2007/2/EG des Europäischen Parlaments und des Rates hinsichtlich der Interoperabilität von Geodatensätzen und -diensten";
+    var date2 = "2011-02-05";
+    var text3 = "VERORDNUNG (EG) Nr. 976/2009 DER KOMMISSION vom 19. Oktober 2009 zur Durchführung der Richtlinie 2007/2/EG des Europäischen Parlaments und des Rates hinsichtlich der Netzdienste";
+    var date3 = "2009-10-20";
+    writeReport(writer, metadata, text, date, "http://data.europa.eu/eli/reg/2010/1089");
+    writeReport(writer, metadata, text2, date2, "http://data.europa.eu/eli/reg/2010/1089");
+    writeReport(writer, metadata, text3, date3, "http://data.europa.eu/eli/reg/2010/1089");
+    writeReport(writer, metadata, "invocable", date, "http://inspire.ec.europa.eu/id/ats/metadata/2.0/sds-invocable");
+  }
+
+  private static void writeReport(XMLStreamWriter writer, JsonIsoMetadata metadata, String text, String date, String url) throws XMLStreamException {
     writer.writeStartElement(GMD, "report");
     writer.writeStartElement(GMD, "DQ_DomainConsistency");
     writer.writeStartElement(GMD, "result");
@@ -382,7 +462,7 @@ public class DatasetIsoGenerator {
     writer.writeStartElement(GMD, "CI_Citation");
     writer.writeStartElement(GMD, "title");
     writer.writeStartElement(GMX, "Anchor");
-    writer.writeAttribute(XLINK, "href", "http://data.europa.eu/eli/reg/2010/1089");
+    writer.writeAttribute(XLINK, "href", url);
     writer.writeCharacters(text);
     writer.writeEndElement(); // Anchor
     writer.writeEndElement(); // title
@@ -429,7 +509,7 @@ public class DatasetIsoGenerator {
       }
     }
     writeDateStamp(writer, metadata);
-    writeMetadataInfo(writer);
+    writeMetadataInfo(writer, !metadata.getMetadataProfile().equals(ISO));
     writeCrs(writer, metadata);
     writeIdentificationInfo(writer, metadata, id);
     writeDistributionInfo(writer, metadata);
@@ -441,8 +521,8 @@ public class DatasetIsoGenerator {
     setNamespaceBindings(writer);
     writer.writeStartDocument();
     writer.writeStartElement(GMD, "MD_Metadata");
-    generateDatasetMetadata(metadata, id, writer);
     writeNamespaceBindings(writer);
+    generateDatasetMetadata(metadata, id, writer);
     writer.writeEndElement(); // MD_Metadata
     writer.writeEndDocument();
     writer.close();

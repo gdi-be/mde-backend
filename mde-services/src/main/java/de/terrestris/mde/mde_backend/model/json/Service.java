@@ -42,6 +42,8 @@ public class Service implements FileIdentifier {
 
   private String url;
 
+  private String capabilitiesUrl;
+
   private List<ServiceDescription> serviceDescriptions;
 
   private LegendImage legendImage;
