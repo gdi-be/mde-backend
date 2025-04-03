@@ -28,7 +28,7 @@
     <spring-boot.version>3.4.0</spring-boot.version>
     <log4j.version>2.24.1</log4j.version>
     <hibernate-search.version>7.2.2.Final</hibernate-search.version>
-    <testsuite.version>1.1.18</testsuite.version>
+    <testsuite.version>1.1.20</testsuite.version>
   </properties>
 
   <repositories>
@@ -363,6 +363,11 @@
       <dependency>
         <groupId>de.terrestris</groupId>
         <artifactId>bkg-testsuite-te</artifactId>
+        <version>${testsuite.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>de.terrestris</groupId>
+        <artifactId>bkg-testsuite-etf</artifactId>
         <version>${testsuite.version}</version>
       </dependency>
       <dependency>

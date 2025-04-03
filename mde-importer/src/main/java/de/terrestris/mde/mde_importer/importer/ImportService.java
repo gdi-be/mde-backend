@@ -247,15 +247,12 @@ public class ImportService {
     skipToElement(reader, "MD_DataIdentification");
     metadataCollection.setMetadataId(reader.getAttributeValue(null, "uuid"));
     var isoMetadata = metadataCollection.getIsoMetadata();
+    isoMetadata.setIdentifier(metadataCollection.getMetadataId());
     isoMetadata.setPointsOfContact(new ArrayList<>());
     while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("MD_Metadata"))) {
       reader.next();
       if (!reader.isStartElement()) {
         continue;
-      }
-      if (reader.isStartElement() && reader.getLocalName().equals("identifier")) {
-        skipToElement(reader, "CharacterString");
-        isoMetadata.setIdentifier(reader.getElementText());
       }
       if (reader.isStartElement() && reader.getLocalName().equals("abstract")) {
         skipToElement(reader, "CharacterString");
@@ -762,6 +759,9 @@ public class ImportService {
         break;
       case "Title":
         service.setTitle(reader.getElementText());
+        break;
+      case "CapabilitiesUrl":
+        service.setCapabilitiesUrl(reader.getElementText());
         break;
       case "Kurzbeschreibung":
         service.setShortDescription(reader.getElementText());

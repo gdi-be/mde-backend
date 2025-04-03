@@ -1,0 +1,15 @@
+{
+  "url": "https://inspire.ec.europa.eu/validator/",
+  "sort": "20102",
+  "testClassName": {
+    "de": "INSPIRE Metadata TG 2.0 - network services",
+    "en": "INSPIRE Metadata TG 2.0 - network services"
+  },
+  "helpTextDe": "Hier können Sie ggf. weitere optionale Konformitätsklassen hinzuwählen, bspw. für die Prüfung der Konformität zu bestimmten Applikationsschemata oder spezifischen Metadaten-Anforderungen.",
+  "helpTextEn": "If necessary, you can add further optional conformance classes here, e.g. for checking conformance to certain application schemas or specific metadata requirements.",
+  "conformanceClasses": {
+    "EID59692c11-df86-49ad-be7f-94a1e1ddd8da": true,
+    "EID8f869e23-c9e9-4e86-8dca-be30ff421229": true,
+    "EID606587df-65a8-4b7b-9eee-e0d94daaa42a": true
+  }
+}
