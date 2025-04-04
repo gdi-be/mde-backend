@@ -13,7 +13,9 @@ You can also modify your lucene directory to point somewhere else, it will be re
 
 Example call:
 
+```bash
 CODELISTS_DIR=../../mde-docker/codelists/ VARIABLE_FILE=../../mde-docker/mde-backend/variables.json $JAVA_HOME/bin/java --add-modules jdk.incubator.vector -Dhibernate.search.backend.directory.root=/tmp/lucene -jar target/mde-importer-0.0.1-SNAPSHOT-spring-boot.jar -d ~/geodata/berlin/export/
+```
 
 Please note that the importer expects the postgres database to live on localhost port 5432, so you might need to
 temporarily expose the postgres port to your machine, for example by adding a ports section to your compose file:
