@@ -59,10 +59,7 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
     @PostAuthorize("hasRole('ROLE_ADMIN') or hasPermission(returnObject.orElse(null), 'READ')")
     @Transactional(readOnly = true)
     public Optional<MetadataCollection> findOneByMetadataId(String metadataId) {
-        MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
-            .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
-
-        return  Optional.of(metadataCollection);
+        return repository.findByMetadataId(metadataId);
     }
 
     @Transactional(readOnly = true)
