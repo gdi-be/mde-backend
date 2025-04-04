@@ -60,7 +60,6 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
   @Autowired
   protected MessageSource messageSource;
 
-
   @GetMapping("/{metadataId}")
   @ResponseStatus(HttpStatus.OK)
   @Operation(security = {@SecurityRequirement(name = "bearer-key")})
@@ -292,7 +291,7 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
   @DeleteMapping("/{metadataId}/unassignUser")
   public ResponseEntity<Void> unassignUser(@PathVariable("metadataId") String metadataId, @RequestBody String userId) {
     try {
-      service.unassignUser(metadataId, userId);
+      service.unassignUser(metadataId);
       return new ResponseEntity<Void>(OK);
     } catch (Exception e) {
       log.error("Error while unassigning user from metadata with id {}: \n {}", metadataId, e.getMessage());
@@ -353,9 +352,15 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
   }
 
   @PostMapping("/{metadataId}/assignRole")
-  public ResponseEntity<Void> assignRole(@PathVariable("metadataId") String metadataId, @RequestBody String role) {
+  public ResponseEntity<Void> assignRole(@PathVariable("metadataId") String metadataId, @RequestBody AssignRoleData data) {
     try {
-      service.assignRole(metadataId, role);
+      service.assignRole(metadataId, data.getRole());
+
+      if (data.isAssignUser()) {
+        // TODO: fetch all teammembers and find one with the corresponding role then assign the medata to the user
+//        service.assignUser(metadataId, data.getUserId());
+      }
+
       return new ResponseEntity<Void>(OK);
     } catch (Exception e) {
       log.error("Error while assigning role to metadata with id {}: \n {}", metadataId, e.getMessage());
@@ -531,6 +536,12 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
         e
       );
     }
+  }
+
+  @GetMapping("/{metadataId}/team")
+  public ResponseEntity<List<UserData>> getTeam(@PathVariable("metadataId") String metadataId) {
+    List<UserData> teamWithRoles = service.getTeamWithRoles(metadataId);
+    return new ResponseEntity<>(teamWithRoles, OK);
   }
 
 }

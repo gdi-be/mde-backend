@@ -30,6 +30,8 @@ public class MetadataCollection extends BaseMetadata {
   @Formula("(iso_metadata->>'title')")
   private String title;
 
+  // TODO: THIS SHOULD NOT BE FORMULA! The valid property in the iso_metadata is
+  //  not the same as the validation state of the metadata collection
   @Formula("(iso_metadata->>'valid')::boolean")
   private Boolean valid;
 
@@ -38,6 +40,11 @@ public class MetadataCollection extends BaseMetadata {
   @FullTextField
   @KeywordField(name = "team_member_sort", sortable = Sortable.YES)
   private Set<String> teamMemberIds;
+
+  @Column
+  @Setter
+  @KeywordField
+  private String ownerId;
 
   @Column
   @Setter
