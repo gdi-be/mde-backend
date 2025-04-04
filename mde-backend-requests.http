@@ -1,0 +1,64 @@
+# Requests
+
+## Keycloak
+
+### Get access token
+# @name login
+POST https://{{auth_url}}/auth/realms/metadata-editor/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+client_id=mde&client_secret={{client_secret}}&grant_type=client_credentials
+
+## MDE Backend
+
+### Delete record
+@token = {{login.response.body.access_token}}
+DELETE https://{{backend_url}}/api/metadata/123
+Authorization: Bearer {{token}}
+
+## Geonetwork
+
+### Get all records
+POST https://{{gnos_url}}/geonetwork/srv/eng/csw
+Content-Type: application/xml
+Authorization: {{gnos_user}}:{{gnos_password}}
+
+<?xml version="1.0" encoding="UTF-8"?>
+<csw:GetRecords
+  xmlns:csw="http://www.opengis.net/cat/csw/2.0.2"
+  service="CSW"
+  version="2.0.2"
+  resultType="results"
+  maxRecords="10"
+>
+  <csw:Query typeNames="csw:Record">
+    <csw:ElementSetName>full</csw:ElementSetName>
+  </csw:Query>
+</csw:GetRecords>
+
+### Get record by id
+POST https://{{gnos_url}}/geonetwork/srv/eng/csw
+Content-Type: application/xml
+Authorization: {{gnos_user}}:{{gnos_password}}
+
+<?xml version="1.0" encoding="UTF-8"?>
+<csw:GetRecords
+  xmlns:csw="http://www.opengis.net/cat/csw/2.0.2"
+  xmlns:ogc="http://www.opengis.net/ogc"
+  service="CSW"
+  version="2.0.2"
+  resultType="results"
+  maxRecords="100"
+>
+  <csw:Query typeNames="csw:Record">
+    <csw:ElementSetName>full</csw:ElementSetName>
+    <csw:Constraint version="1.1.0">
+      <ogc:Filter>
+        <ogc:PropertyIsEqualTo>
+          <ogc:PropertyName>dc:identifier</ogc:PropertyName>
+          <ogc:Literal>20619733-2ab7-4b23-ac2f-a9a0afdee618</ogc:Literal>
+        </ogc:PropertyIsEqualTo>
+      </ogc:Filter>
+    </csw:Constraint>
+  </csw:Query>
+</csw:GetRecords>
