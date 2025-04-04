@@ -5,13 +5,13 @@ import de.terrestris.mde.mde_backend.model.BaseMetadata;
 import de.terrestris.mde.mde_backend.model.MetadataCollection;
 import de.terrestris.mde.mde_backend.model.dto.*;
 import de.terrestris.mde.mde_backend.model.json.Comment;
-import de.terrestris.mde.mde_backend.service.DatasetIsoGenerator;
-import de.terrestris.mde.mde_backend.service.IsoGenerator;
-import de.terrestris.mde.mde_backend.service.MetadataCollectionService;
-import de.terrestris.mde.mde_backend.service.ValidatorService;
+import de.terrestris.mde.mde_backend.model.json.Service;
+import de.terrestris.mde.mde_backend.service.*;
 import de.terrestris.utils.io.ZipUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -35,10 +35,7 @@ import javax.xml.stream.XMLStreamException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
@@ -58,8 +55,10 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
   IsoGenerator isoGenerator;
 
   @Autowired
-  protected MessageSource messageSource;
+  PublicationService publicationService;
 
+  @Autowired
+  protected MessageSource messageSource;
 
   @GetMapping("/{metadataId}")
   @ResponseStatus(HttpStatus.OK)
@@ -533,4 +532,101 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
     }
   }
 
+  @DeleteMapping("/{metadataId}")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(
+    summary = "Delete a metadata collection by its ID",
+    description = "Removes the given metadata collection from the database and all its referenced records " +
+      "in the catalog (Geonetwork).",
+    security = { @SecurityRequirement(name = "Bearer Authentication") }
+  )
+  @ApiResponses(value = {
+    @ApiResponse(
+      responseCode = "200",
+      description = "Ok: The metadata collection was successfully deleted",
+      content = @Content(
+        mediaType = "application/json",
+        schema = @Schema(
+          implementation = MetadataDeletionResponse.class
+        ),
+        examples = {
+          @ExampleObject(
+            name = "MetadataDeletionResponse",
+            description = "The response contains the deleted metadata collection ID and the deleted catalog records.",
+            value = "{ " +
+              "\"deletedMetadataCollection\": \"87e4d4b4-412d-46a6-ac82-184941128aab\", " +
+              "\"deletedCatalogRecords\": [" +
+                "\"7a34c154-6cdc-40fe-a338-db546d60155f\", " +
+                "\"73a1ce13-da31-4395-8b2a-c961794fd112\"" +
+              "]" +
+            "}"
+          )
+        }
+      )
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "Unauthorized: You need to provide a bearer token",
+      content = @Content
+    ),
+    @ApiResponse(
+      responseCode = "404",
+      description = "Not found: The provided metadata collection does not exist (or you don't have the permission to delete it)",
+      content = @Content
+    ),
+    @ApiResponse(
+      responseCode = "500",
+      description = "Internal Server Error: Something internal went wrong while deleting the metadata collection",
+      content = @Content
+    )
+  })
+  public ResponseEntity<?> delete(@PathVariable("metadataId") String metadataId) {
+    try {
+      Optional<MetadataCollection> metadataCollection = service.findOneByMetadataId(metadataId);
+
+      if (metadataCollection.isEmpty()) {
+        log.warn("Could not find metadata collection with ID {}", metadataId);
+        return new ResponseEntity<>(NOT_FOUND);
+      }
+
+      var response = new MetadataDeletionResponse();
+      var catalogRecords = new ArrayList<String>();
+
+      List<Service> services = metadataCollection.get().getIsoMetadata().getServices();
+      if (services != null) {
+        services.forEach(service -> {
+          var fileIdentifier = service.getFileIdentifier();
+          try {
+            publicationService.removeMetadata(fileIdentifier);
+            catalogRecords.add(fileIdentifier);
+          } catch (Exception e) {
+            log.error("Error while removing catalog entry with id {}: \n {}", fileIdentifier, e.getMessage());
+            log.trace("Full stack trace: ", e);
+          }
+        });
+      } else {
+        log.warn("No services found for metadata collection with ID {}", metadataId);
+      }
+
+      service.delete(metadataCollection.get());
+
+      response.setDeletedCatalogRecords(catalogRecords);
+      response.setDeletedMetadataCollection(metadataId);
+
+      return new ResponseEntity<>(response, OK);
+    } catch (Exception e) {
+      log.error("Error while removing metadata collection with id {}: \n {}", metadataId, e.getMessage());
+      log.trace("Full stack trace: ", e);
+
+      throw new ResponseStatusException(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        messageSource.getMessage(
+          "BASE_CONTROLLER.INTERNAL_SERVER_ERROR",
+          null,
+          LocaleContextHolder.getLocale()
+        ),
+        e
+      );
+    }
+  }
 }

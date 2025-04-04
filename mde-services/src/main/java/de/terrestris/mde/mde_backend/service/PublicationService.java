@@ -9,6 +9,7 @@ import org.codehaus.stax2.XMLInputFactory2;
 import org.codehaus.stax2.XMLOutputFactory2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import javax.xml.stream.XMLInputFactory;
@@ -39,6 +40,8 @@ public class PublicationService {
   private static final XMLInputFactory INPUT_FACTORY = XMLInputFactory2.newFactory();
 
   private static final String CSW = "http://www.opengis.net/cat/csw/2.0.2";
+
+  private static final String OGC = "http://www.opengis.net/ogc";
 
   @Value("${csw.server:}")
   private String cswServer;
@@ -250,4 +253,90 @@ public class PublicationService {
     publishRecords(uuids);
   }
 
+  /**
+   * Removes the given record from the catalog server.
+   *
+   * @param metadataId The identifier of the metadata to be removed.
+   * @throws URISyntaxException
+   * @throws IOException
+   * @throws InterruptedException
+   * @throws XMLStreamException
+   */
+  public void removeMetadata(String metadataId) throws URISyntaxException, IOException, InterruptedException, XMLStreamException {
+    StringWriter stringWriter = new StringWriter();
+    var writer = FACTORY.createXMLStreamWriter(stringWriter);
+    setNamespaceBindings(writer);
+    writer.setPrefix("csw", CSW);
+    writer.writeStartDocument();
+    writer.writeStartElement(CSW, "Transaction");
+    writeNamespaceBindings(writer);
+    writer.writeNamespace("csw", CSW);
+    writer.writeNamespace("ogc", OGC);
+    writer.writeAttribute("service", "CSW");
+    writer.writeAttribute("version", "2.0.2");
+    writer.writeStartElement(CSW, "Delete");
+    writer.writeStartElement(CSW, "Constraint");
+    writer.writeAttribute("version", "1.1.0");
+    writer.writeStartElement(OGC, "Filter");
+    writer.writeStartElement(OGC, "PropertyIsEqualTo");
+    writer.writeStartElement(OGC, "PropertyName");
+    writer.writeCharacters("dc:identifier");
+    writer.writeEndElement(); // PropertyName
+    writer.writeStartElement(OGC, "Literal");
+    writer.writeCharacters(metadataId);
+    writer.writeEndElement(); // Literal
+    writer.writeEndElement(); // PropertyIsEqualTo
+    writer.writeEndElement(); // Filter
+    writer.writeEndElement(); // Constraint
+    writer.writeEndElement(); // Delete
+    writer.writeEndElement(); // Transaction
+    writer.flush();
+    writer.close();
+    String xmlString = stringWriter.toString();
+
+    try (var client = HttpClient.newHttpClient()) {
+      var builder = HttpRequest.newBuilder(new URI(cswServer));
+      var body = HttpRequest.BodyPublishers.ofString(xmlString);
+      var req = builder.POST(body);
+      var encoded = Base64.encode(String.format("%s:%s", cswUser, cswPassword)).toString();
+      req.header("Authorization", "Basic " + encoded)
+        .header("Content-Type", "application/xml");
+
+      log.debug("Sending authenticated request to CSW server at {}", cswServer);
+
+      var response = client.send(req.build(), HttpResponse.BodyHandlers.ofInputStream());
+
+      var in = response.body();
+
+      if (log.isTraceEnabled()) {
+        var bs = IOUtils.toByteArray(in);
+        in = new ByteArrayInputStream(bs);
+        log.trace("Response is: {}", new String(bs, UTF_8));
+      }
+
+      if (!HttpStatus.valueOf(response.statusCode()).is2xxSuccessful()) {
+        throw new IOException("Catalog server returned status code " + response.statusCode());
+      }
+
+      var reader = INPUT_FACTORY.createXMLStreamReader(in);
+      var deletedRecords = 0;
+      while (reader.hasNext()) {
+        reader.next();
+        if (!reader.isStartElement()) {
+          continue;
+        }
+        if (reader.getLocalName().equals("totalDeleted")) {
+          deletedRecords = Integer.parseInt(reader.getElementText());
+          break;
+        }
+      }
+
+      if (deletedRecords == 0) {
+        throw new IOException("No records deleted for metadata with ID " + metadataId + ". This is probably due to " +
+          "a wrong or non existing metadata ID.");
+      } else {
+        log.debug("Deleted {} records for metadata with ID {}", deletedRecords, metadataId);
+      }
+    }
+  }
 }
