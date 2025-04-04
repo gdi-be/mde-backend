@@ -291,7 +291,7 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
   @DeleteMapping("/{metadataId}/unassignUser")
   public ResponseEntity<Void> unassignUser(@PathVariable("metadataId") String metadataId, @RequestBody String userId) {
     try {
-      service.unassignUser(metadataId, userId);
+      service.unassignUser(metadataId);
       return new ResponseEntity<Void>(OK);
     } catch (Exception e) {
       log.error("Error while unassigning user from metadata with id {}: \n {}", metadataId, e.getMessage());
@@ -635,4 +635,11 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
       );
     }
   }
+
+  @GetMapping("/{metadataId}/team")
+  public ResponseEntity<List<UserData>> getTeam(@PathVariable("metadataId") String metadataId) {
+    List<UserData> teamWithRoles = service.getTeamWithRoles(metadataId);
+    return new ResponseEntity<>(teamWithRoles, OK);
+  }
+
 }
