@@ -23,18 +23,18 @@ public class KeycloakService  {
   }
 
   /**
-   * Get the Keycloak RoleRepresentations (for the specified client) from a user instance.
+   * Get the effective user's realm roles.
    *
-   * @return List of RoleRepresentations
+   * @return List of RoleRepresentation
    */
-  public List<RoleRepresentation> getKeycloakUserRoles(String userId) {
+  public List<RoleRepresentation> getRealmRoles(String userId) {
     UserResource userResource = this.getUserResource(userId);
     List<RoleRepresentation> roles = new ArrayList<>();
 
     try {
       roles = userResource.roles().realmLevel().listEffective();
     } catch (Exception e) {
-      log.warn("Could not get the RoleMappingResource for the user with Keycloak ID {}. " +
+      log.warn("Could not get the realm roles for the user with Keycloak ID {}. " +
           "This may happen if the user is not available in Keycloak.",
         userId);
       log.trace("Full stack trace: ", e);

@@ -638,8 +638,24 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
 
   @GetMapping("/{metadataId}/team")
   public ResponseEntity<List<UserData>> getTeam(@PathVariable("metadataId") String metadataId) {
-    List<UserData> teamWithRoles = service.getTeamWithRoles(metadataId);
-    return new ResponseEntity<>(teamWithRoles, OK);
+    try {
+      List<UserData> teamWithRoles = service.getTeamWithRoles(metadataId);
+
+      return new ResponseEntity<>(teamWithRoles, OK);
+    } catch (Exception e) {
+      log.error("Error while getting the team members of the metadata collection with id {}: {}", metadataId, e.getMessage());
+      log.trace("Full stack trace: ", e);
+
+      throw new ResponseStatusException(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        messageSource.getMessage(
+          "BASE_CONTROLLER.INTERNAL_SERVER_ERROR",
+          null,
+          LocaleContextHolder.getLocale()
+        ),
+        e
+      );
+    }
   }
 
 }
