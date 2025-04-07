@@ -1,3 +1,20 @@
+# [1.2.0](https://github.com/gdi-be/mde-backend/compare/v1.1.3...v1.2.0) (2025-04-07)
+
+
+### Bug Fixes
+
+* update automatic keyword generation ([035633e](https://github.com/gdi-be/mde-backend/commit/035633ecb7e621f38f0554c1a00ca6a3f451a5ea))
+
+
+### Features
+
+* add DELETE /metadata/{metadataId} interface ([d257af2](https://github.com/gdi-be/mde-backend/commit/d257af28f6f58282b852ae1a18c02e3aebd507ea))
+* add INSPIRE validator test classes ([61c7d09](https://github.com/gdi-be/mde-backend/commit/61c7d09d3db4e37d7119312b882a3badfad6cf57))
+* add keycloak client and role handling ([691b57b](https://github.com/gdi-be/mde-backend/commit/691b57ba893ba77600a74f462f1738008ee10688))
+* add ownerId To MetadataCollection ([1e21648](https://github.com/gdi-be/mde-backend/commit/1e216484769e7f21266f084b2326160f42a2dee2))
+* assign creator to metadata and add to team ([38f457d](https://github.com/gdi-be/mde-backend/commit/38f457d3e91bdca12ad55c4dce0d3af9de10d781))
+* introduces AssignRoleData dto ([5ee5ff5](https://github.com/gdi-be/mde-backend/commit/5ee5ff5bbdc50f67d33ed255d5842d87c0f9a786))
+
 ## [1.1.3](https://github.com/gdi-be/mde-backend/compare/v1.1.2...v1.1.3) (2025-03-27)
 
 
