@@ -291,7 +291,7 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
   @DeleteMapping("/{metadataId}/unassignUser")
   public ResponseEntity<Void> unassignUser(@PathVariable("metadataId") String metadataId, @RequestBody String userId) {
     try {
-      service.unassignUser(metadataId, userId);
+      service.unassignUser(metadataId);
       return new ResponseEntity<Void>(OK);
     } catch (Exception e) {
       log.error("Error while unassigning user from metadata with id {}: \n {}", metadataId, e.getMessage());
@@ -352,9 +352,10 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
   }
 
   @PostMapping("/{metadataId}/assignRole")
-  public ResponseEntity<Void> assignRole(@PathVariable("metadataId") String metadataId, @RequestBody String role) {
+  public ResponseEntity<Void> assignRole(@PathVariable("metadataId") String metadataId, @RequestBody AssignRoleData data) {
     try {
-      service.assignRole(metadataId, role);
+      service.assignRole(metadataId, data.getRole());
+
       return new ResponseEntity<Void>(OK);
     } catch (Exception e) {
       log.error("Error while assigning role to metadata with id {}: \n {}", metadataId, e.getMessage());
@@ -629,4 +630,27 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
       );
     }
   }
+
+  @GetMapping("/{metadataId}/team")
+  public ResponseEntity<List<UserData>> getTeam(@PathVariable("metadataId") String metadataId) {
+    try {
+      List<UserData> teamWithRoles = service.getTeamWithRoles(metadataId);
+
+      return new ResponseEntity<>(teamWithRoles, OK);
+    } catch (Exception e) {
+      log.error("Error while getting the team members of the metadata collection with id {}: {}", metadataId, e.getMessage());
+      log.trace("Full stack trace: ", e);
+
+      throw new ResponseStatusException(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        messageSource.getMessage(
+          "BASE_CONTROLLER.INTERNAL_SERVER_ERROR",
+          null,
+          LocaleContextHolder.getLocale()
+        ),
+        e
+      );
+    }
+  }
+
 }

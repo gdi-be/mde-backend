@@ -9,6 +9,7 @@ import de.terrestris.mde.mde_backend.enumeration.Role;
 import de.terrestris.mde.mde_backend.jpa.MetadataCollectionRepository;
 import de.terrestris.mde.mde_backend.model.MetadataCollection;
 import de.terrestris.mde.mde_backend.model.dto.QueryConfig;
+import de.terrestris.mde.mde_backend.model.dto.UserData;
 import de.terrestris.mde.mde_backend.model.json.Comment;
 import de.terrestris.mde.mde_backend.model.json.JsonClientMetadata;
 import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
@@ -19,6 +20,8 @@ import jakarta.persistence.PersistenceContext;
 import org.hibernate.search.engine.search.query.SearchResult;
 import org.hibernate.search.mapper.orm.Search;
 import org.hibernate.search.mapper.orm.session.SearchSession;
+import org.keycloak.admin.client.resource.UserResource;
+import org.keycloak.representations.idm.RoleRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
@@ -27,6 +30,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
@@ -45,6 +49,9 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
     @Autowired
     @Lazy
     ObjectMapper objectMapper;
+
+    @Autowired
+    KeycloakService keycloakService;
 
     @Transactional(readOnly = true)
     public Page<MetadataCollection> query(QueryConfig config, Pageable pageable) {
@@ -77,22 +84,45 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'CREATE')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public String create(String title) {
-        String metadataId = UUID.randomUUID().toString();
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+      String myKeycloakId = ((JwtAuthenticationToken) authentication).getTokenAttributes().get("sub").toString();
+      Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
 
-        MetadataCollection metadataCollection = new MetadataCollection(metadataId);
+      String metadataId = UUID.randomUUID().toString();
 
-        metadataCollection.getIsoMetadata().setTitle(title);
-        metadataCollection.getIsoMetadata().setIdentifier(metadataId);
-        metadataCollection.getIsoMetadata().setFileIdentifier(null);
+      MetadataCollection metadataCollection = new MetadataCollection(metadataId);
 
-        repository.save(metadataCollection);
+      metadataCollection.getIsoMetadata().setTitle(title);
+      metadataCollection.getIsoMetadata().setIdentifier(metadataId);
 
-        return metadataId;
+      // User and role assignment. Set responsibleRole, ownerId, assignedUserId, teamMemberIds.
+      Role roleToSet = null;
+      List<String> roleNames = authorities.stream().map(GrantedAuthority::getAuthority).toList();
+      if (roleNames.contains("Editor")) {
+        roleToSet = Role.Editor;
+      } else if (roleNames.contains("DataOwner")) {
+        roleToSet = Role.DataOwner;
+      }
+      if (roleToSet != null) {
+        metadataCollection.setResponsibleRole(roleToSet);
+      }
+      metadataCollection.setAssignedUserId(myKeycloakId);
+      metadataCollection.setOwnerId(myKeycloakId);
+
+      repository.save(metadataCollection);
+
+      addToTeam(metadataId, myKeycloakId);
+
+      return metadataId;
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'CREATE')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public String create(String title, String cloneMetadataId) throws IOException {
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+      String myKeycloakId = ((JwtAuthenticationToken) authentication).getTokenAttributes().get("sub").toString();
+      Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+
       String metadataId = UUID.randomUUID().toString();
 
       MetadataCollection metadataCollection = new MetadataCollection(metadataId);
@@ -122,7 +152,23 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
       metadataCollection.setClientMetadata(clonedClientData);
       metadataCollection.setTechnicalMetadata(clonedTechnicalData);
 
+      // User and role assignment. Set responsibleRole, ownerId, assignedUserId, teamMemberIds.
+      Role roleToSet = null;
+      List<String> roleNames = authorities.stream().map(GrantedAuthority::getAuthority).toList();
+      if (roleNames.contains("Editor")) {
+        roleToSet = Role.Editor;
+      } else if (roleNames.contains("DataOwner")) {
+        roleToSet = Role.DataOwner;
+      }
+      if (roleToSet != null) {
+        metadataCollection.setResponsibleRole(roleToSet);
+      }
+      metadataCollection.setAssignedUserId(myKeycloakId);
+      metadataCollection.setOwnerId(myKeycloakId);
+
       repository.save(metadataCollection);
+
+      addToTeam(metadataId, myKeycloakId);
 
       return metadataId;
     }
@@ -187,18 +233,33 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
         MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
           .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
         metadataCollection.setAssignedUserId(userId);
+
+        // everyone who is assigned to the metadata collection should be added to the team
+        addToTeam(metadataId, userId);
+
+        // set the responsible role of the assigned user
+        List<String> possibleRolesNames = Arrays.stream(Role.values()).map(Enum::name).toList();
+        List<RoleRepresentation> keycloakUserRoles = keycloakService.getRealmRoles(userId);
+        List<String> keycloakUserRoleNames = keycloakUserRoles.stream().map(RoleRepresentation::getName).toList();
+
+        for (String keycloakUserRoleName : keycloakUserRoleNames) {
+          if (possibleRolesNames.contains(keycloakUserRoleName)) {
+              metadataCollection.setResponsibleRole(Role.valueOf(keycloakUserRoleName));
+            break;
+          }
+        }
+
         repository.save(metadataCollection);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void unassignUser(String metadataId, String userId) {
+    public void unassignUser(String metadataId) {
         MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
           .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
-        if (metadataCollection.getAssignedUserId().equals(userId)) {
-          metadataCollection.setAssignedUserId(null);
-          repository.save(metadataCollection);
-        }
+
+        metadataCollection.setAssignedUserId(null);
+        repository.save(metadataCollection);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
@@ -237,9 +298,17 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void assignRole(String metadataId, String role) {
       MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
-          .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
+        .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
 
-        metadataCollection.setResponsibleRole(Role.valueOf(role));
+      String assignedUserId = metadataCollection.getAssignedUserId();
+      List<RoleRepresentation> keycloakUserRoles = keycloakService.getRealmRoles(assignedUserId);
+      List<String> keycloakUserRoleNames = keycloakUserRoles.stream().map(RoleRepresentation::getName).toList();
+
+      if (!keycloakUserRoleNames.contains(role)) {
+        this.unassignUser(metadataId);
+      }
+
+      metadataCollection.setResponsibleRole(Role.valueOf(role));
         repository.save(metadataCollection);
     }
 
@@ -295,6 +364,46 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
     data.getComments().removeIf(comment -> comment.getId().equals(commentId));
 
     repository.save(metadataCollection);
+  }
+
+  @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'READ')")
+  @Transactional(readOnly = true)
+  public List<UserData> getTeamWithRoles(String metadataId) {
+    MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
+      .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
+
+    Set<String> teamMemberIds = metadataCollection.getTeamMemberIds();
+
+    if (teamMemberIds == null) {
+      return Collections.emptyList();
+    }
+
+    return teamMemberIds.stream()
+      .map(userId -> {
+        UserData userData = new UserData();
+        userData.setKeycloakId(userId);
+
+
+        // set the responsible role of the assigned user
+        List<String> possibleRolesNames = Arrays.stream(Role.values()).map(Enum::name).toList();
+        List<RoleRepresentation> keycloakUserRoles = keycloakService.getRealmRoles(userId);
+        List<String> keycloakUserRoleNames = keycloakUserRoles.stream().map(RoleRepresentation::getName).toList();
+
+        for (String keycloakUserRoleName : keycloakUserRoleNames) {
+          if (possibleRolesNames.contains(keycloakUserRoleName)) {
+            userData.setRole(keycloakUserRoleName);
+            break;
+          }
+        }
+
+        UserResource userResource = keycloakService.getUserResource(userId);
+        if (userResource != null) {
+          userData.setDisplayName(userResource.toRepresentation().getFirstName() + " " + userResource.toRepresentation().getLastName());
+        }
+
+        return userData;
+      })
+      .toList();
   }
 
 }
