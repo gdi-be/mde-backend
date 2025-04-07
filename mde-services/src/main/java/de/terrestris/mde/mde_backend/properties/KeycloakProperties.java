@@ -11,30 +11,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class KeycloakProperties {
 
-  private Boolean enabled;
-
   private String serverUrl;
 
   private String clientSecret;
 
-  private String username;
-
-  private String password;
-
-  private String masterRealm;
-
-  private String adminClientId;
-
   private String realm;
 
   private String clientId;
-
-  private String principalAttribute;
-
-  private Boolean disableHostnameVerification;
-
-  private Boolean extractRolesFromResource = true;
-
-  private Boolean extractRolesFromRealm = false;
 
 }

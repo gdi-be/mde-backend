@@ -239,7 +239,7 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
 
         // set the responsible role of the assigned user
         List<String> possibleRolesNames = Arrays.stream(Role.values()).map(Enum::name).toList();
-        List<RoleRepresentation> keycloakUserRoles = keycloakService.getKeycloakUserRoles(userId);
+        List<RoleRepresentation> keycloakUserRoles = keycloakService.getRealmRoles(userId);
         List<String> keycloakUserRoleNames = keycloakUserRoles.stream().map(RoleRepresentation::getName).toList();
 
         for (String keycloakUserRoleName : keycloakUserRoleNames) {
@@ -301,7 +301,7 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
         .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
 
       String assignedUserId = metadataCollection.getAssignedUserId();
-      List<RoleRepresentation> keycloakUserRoles = keycloakService.getKeycloakUserRoles(assignedUserId);
+      List<RoleRepresentation> keycloakUserRoles = keycloakService.getRealmRoles(assignedUserId);
       List<String> keycloakUserRoleNames = keycloakUserRoles.stream().map(RoleRepresentation::getName).toList();
 
       if (!keycloakUserRoleNames.contains(role)) {
@@ -386,7 +386,7 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
 
         // set the responsible role of the assigned user
         List<String> possibleRolesNames = Arrays.stream(Role.values()).map(Enum::name).toList();
-        List<RoleRepresentation> keycloakUserRoles = keycloakService.getKeycloakUserRoles(userId);
+        List<RoleRepresentation> keycloakUserRoles = keycloakService.getRealmRoles(userId);
         List<String> keycloakUserRoleNames = keycloakUserRoles.stream().map(RoleRepresentation::getName).toList();
 
         for (String keycloakUserRoleName : keycloakUserRoleNames) {

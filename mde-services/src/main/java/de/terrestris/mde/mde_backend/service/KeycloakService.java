@@ -1,11 +1,9 @@
 package de.terrestris.mde.mde_backend.service;
 
-import de.terrestris.mde.mde_backend.properties.KeycloakProperties;
 import lombok.extern.log4j.Log4j2;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
-import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,9 +13,6 @@ import java.util.*;
 @Service
 @Log4j2
 public class KeycloakService  {
-
-  @Autowired
-  private KeycloakProperties keycloakProperties;
 
   @Autowired
   protected RealmResource keycloakRealm;

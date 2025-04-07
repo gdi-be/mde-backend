@@ -30,9 +30,9 @@ public class KeycloakConfig {
 
     return KeycloakBuilder.builder()
       .serverUrl(keycloakProperties.getServerUrl())
-      .realm(keycloakProperties.getMasterRealm())
+      .realm(keycloakProperties.getRealm())
       .clientSecret(keycloakProperties.getClientSecret())
-      .clientId(keycloakProperties.getAdminClientId())
+      .clientId(keycloakProperties.getClientId())
       .grantType(CLIENT_CREDENTIALS)
       .resteasyClient(restClient)
       .build();
