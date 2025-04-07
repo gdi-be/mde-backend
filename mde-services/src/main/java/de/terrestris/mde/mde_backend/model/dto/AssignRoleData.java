@@ -9,6 +9,4 @@ public class AssignRoleData {
 
     private String role;
 
-    private boolean assignUser = false;
-
 }
