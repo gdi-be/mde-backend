@@ -57,7 +57,7 @@ public class ServiceIsoGenerator {
     writer.writeStartElement(SRV, "connectPoint");
     writer.writeStartElement(GMD, "CI_OnlineResource");
     writer.writeStartElement(GMD, "linkage");
-    writeSimpleElement(writer, GMD, "URL", replaceValues(service.getUrl()));
+    writeSimpleElement(writer, GMD, "URL", replaceValues(service.getCapabilitiesUrl()));
     writer.writeEndElement(); // linkage
     writer.writeStartElement(GMD, "protocol");
     writeSimpleElement(writer, GCO, "CharacterString", "WWW:LINK-1.0-http--link");
@@ -187,7 +187,7 @@ public class ServiceIsoGenerator {
     writeCrs(writer, metadata);
     writeServiceIdentification(writer, service, metadata);
     writeDistributionInfo(writer, metadata);
-    writeDataQualityInfo(writer, metadata, true);
+    writeDataQualityInfo(writer, metadata, service);
   }
 
   private void writeHierarchyLevelName(XMLStreamWriter writer, String title) throws XMLStreamException {

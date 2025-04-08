@@ -131,10 +131,8 @@ public class JsonIsoMetadata implements FileIdentifier {
 
   private List<ContentDescription> contentDescriptions;
 
-  // TODO: update importer according to excel sheet
   private String technicalDescription;
 
-  // TODO: update importer according to excel sheet
   private String contentDescription;
 
   private List<Lineage> lineage;
