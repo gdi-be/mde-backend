@@ -202,8 +202,6 @@ public class ImportService {
     if (type.equals("INSPIRE")) {
       isoMetadata.setMetadataProfile(MetadataProfile.INSPIRE_IDENTIFIED);
     }
-    skipToElement(reader, "Titel");
-    isoMetadata.setTitle(reader.getElementText());
     skipToElement(reader, "fileIdentifier");
     skipToElement(reader, "CharacterString");
     isoMetadata.setFileIdentifier(reader.getElementText());
@@ -221,6 +219,17 @@ public class ImportService {
     var list = servicesMap.get(metadataCollection.getMetadataId());
     if (list != null) {
       list.forEach(file -> addService(file, metadataCollection));
+    }
+    // replace content and technical description with values from a service if not set
+    if (isoMetadata.getServices() != null) {
+      for (var service : isoMetadata.getServices()) {
+        if (isoMetadata.getContentDescription() == null && service.getContentDescription() != null) {
+          isoMetadata.setContentDescription(service.getContentDescription());
+        }
+        if (isoMetadata.getTechnicalDescription() == null && service.getTechnicalDescription() != null) {
+          isoMetadata.setTechnicalDescription(service.getTechnicalDescription());
+        }
+      }
     }
     if (isoMetadata.getTermsOfUseId() == null) {
       log.info("Terms of use could not be mapped for {}, using standard.", metadataCollection.getMetadataId());
@@ -253,6 +262,10 @@ public class ImportService {
       reader.next();
       if (!reader.isStartElement()) {
         continue;
+      }
+      if (reader.isStartElement() && reader.getLocalName().equals("title")) {
+        skipToElement(reader, "CharacterString");
+        isoMetadata.setTitle(reader.getElementText());
       }
       if (reader.isStartElement() && reader.getLocalName().equals("abstract")) {
         skipToElement(reader, "CharacterString");
@@ -454,7 +467,13 @@ public class ImportService {
                 break;
             }
           }
-          json.getContentDescriptions().add(description);
+          if (description.getDescription() != null && description.getDescription().trim().equals("Inhaltliche Beschreibung")) {
+            json.setContentDescription(description.getUrl());
+          } else if (description.getDescription() != null && description.getDescription().trim().equals("Technische Beschreibung")) {
+            json.setTechnicalDescription(description.getUrl());
+          } else {
+            json.getContentDescriptions().add(description);
+          }
         }
       }
     }
@@ -550,18 +569,12 @@ public class ImportService {
           contact.setOrganisation(reader.getElementText());
           break;
         case "voice":
-        case "facsimile":
-          var voice = reader.getLocalName().equals("voice");
           skipToElement(reader, "CharacterString");
           var text = reader.getElementText();
           var matcher = PHONE_REGEXP.matcher(text);
           if (matcher.matches()) {
             var number = matcher.group(1).replace("-", "");
-            if (voice) {
-              contact.setPhone(number);
-            } else {
-              contact.setFax(number);
-            }
+            contact.setPhone(number);
           } else {
             log.warn("Unable to extract phone number from {}", text);
           }

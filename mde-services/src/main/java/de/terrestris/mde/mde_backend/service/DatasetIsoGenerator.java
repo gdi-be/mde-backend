@@ -24,6 +24,7 @@ import java.util.List;
 
 import static de.terrestris.mde.mde_backend.enumeration.MetadataProfile.ISO;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_DateTypeCode.*;
+import static de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode.information;
 import static de.terrestris.mde.mde_backend.model.json.codelists.MD_RestrictionCode.otherRestrictions;
 import static de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode.dataset;
 import static de.terrestris.mde.mde_backend.model.json.codelists.MD_SpatialRepresentationTypeCode.vector;
@@ -375,6 +376,7 @@ public class DatasetIsoGenerator {
       writer.writeEndElement(); // MD_DigitalTransferOptions
       writer.writeEndElement(); // transferOptions
     }
+    writeSpecialDescriptions(writer, metadata);
     writer.writeStartElement(GMD, "transferOptions");
     writer.writeStartElement(GMD, "MD_DigitalTransferOptions");
     if (metadata.getContentDescriptions() != null) {
@@ -403,15 +405,47 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // distributionInfo
   }
 
-  protected static void writeDataQualityInfo(XMLStreamWriter writer, JsonIsoMetadata metadata, boolean service) throws XMLStreamException {
+  private static void writeDescription(XMLStreamWriter writer, String url) throws XMLStreamException {
+    writer.writeStartElement(GMD, "transferOptions");
+    writer.writeStartElement(GMD, "MD_DigitalTransferOptions");
+    writer.writeStartElement(GMD, "onLine");
+    writer.writeStartElement(GMD, "CI_OnlineResource");
+    writer.writeStartElement(GMD, "linkage");
+    writeSimpleElement(writer, GMD, "URL", replaceValues(url));
+    writer.writeEndElement(); // linkage
+    writer.writeStartElement(GMD, "description");
+    writer.writeStartElement(GMX, "Anchor");
+    writer.writeAttribute(XLINK, "href", "http://inspire.ec.europa.eu/metadata-codelist/OnLineDescriptionCode/accessPoint");
+    writer.writeCharacters("http://inspire.ec.europa.eu/metadata-codelist/OnLineDescriptionCode/accessPoint");
+    writer.writeEndElement(); // Anchor
+    writer.writeEndElement(); // description
+    writer.writeStartElement(GMD, "function");
+    writeCodelistValue(writer, information);
+    writer.writeEndElement(); // function
+    writer.writeEndElement(); // CI_OnlineResource
+    writer.writeEndElement(); // onLine
+    writer.writeEndElement(); // MD_DigitalTransferOptions
+    writer.writeEndElement(); // transferOptions
+  }
+
+  private static void writeSpecialDescriptions(XMLStreamWriter writer, JsonIsoMetadata metadata) throws XMLStreamException {
+    if (metadata.getContentDescription() != null) {
+      writeDescription(writer, metadata.getContentDescription());
+    }
+    if (metadata.getTechnicalDescription() != null) {
+      writeDescription(writer, metadata.getTechnicalDescription());
+    }
+  }
+
+  protected static void writeDataQualityInfo(XMLStreamWriter writer, JsonIsoMetadata metadata, Service service) throws XMLStreamException {
     writer.writeStartElement(GMD, "dataQualityInfo");
     writer.writeStartElement(GMD, "DQ_DataQuality");
     writer.writeStartElement(GMD, "scope");
     writer.writeStartElement(GMD, "DQ_Scope");
     writer.writeStartElement(GMD, "level");
-    writeCodelistValue(writer, service ? MD_ScopeCode.service : dataset);
+    writeCodelistValue(writer, service != null ? MD_ScopeCode.service : dataset);
     writer.writeEndElement(); // level
-    if (service) {
+    if (service != null) {
       writer.writeStartElement(GMD, "levelDescription");
       writer.writeStartElement(GMD, "MD_ScopeDescription");
       writer.writeStartElement(GMD, "other");
@@ -431,6 +465,17 @@ public class DatasetIsoGenerator {
     writer.writeStartElement(GMD, "statement");
     writeSimpleElement(writer, GCO, "CharacterString", metadata.getLineage().getFirst().getTitle());
     writer.writeEndElement(); // statement
+    if (service != null && service.getDataBases() != null) {
+      for (var ds : service.getDataBases()) {
+        writer.writeStartElement(GMD, "source");
+        writer.writeStartElement(GMD, "LI_Source");
+        writer.writeStartElement(GMD, "description");
+        writeSimpleElement(writer, GCO, "CharacterString", ds.getContent());
+        writer.writeEndElement(); // description
+        writer.writeEndElement(); // LI_Source
+        writer.writeEndElement(); // source
+      }
+    }
     writer.writeEndElement(); // LI_Lineage
     writer.writeEndElement(); // lineage
 
@@ -513,7 +558,7 @@ public class DatasetIsoGenerator {
     writeCrs(writer, metadata);
     writeIdentificationInfo(writer, metadata, id);
     writeDistributionInfo(writer, metadata);
-    writeDataQualityInfo(writer, metadata, false);
+    writeDataQualityInfo(writer, metadata, null);
   }
 
   public void generateDatasetMetadata(JsonIsoMetadata metadata, String id, OutputStream out) throws IOException, XMLStreamException {

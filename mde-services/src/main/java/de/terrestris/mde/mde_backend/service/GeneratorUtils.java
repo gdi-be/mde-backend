@@ -63,18 +63,13 @@ public class GeneratorUtils {
     writer.writeEndElement(); // organisationName
     writer.writeStartElement(GMD, "contactInfo");
     writer.writeStartElement(GMD, "CI_Contact");
-    if (contact.getPhone() != null || contact.getFax() != null) {
+    if (contact.getPhone() != null) {
       writer.writeStartElement(GMD, "phone");
       writer.writeStartElement(GMD, "CI_Telephone");
       if (contact.getPhone() != null) {
         writer.writeStartElement(GMD, "voice");
         writeSimpleElement(writer, GCO, "CharacterString", contact.getPhone());
         writer.writeEndElement(); // voice
-      }
-      if (contact.getFax() != null) {
-        writer.writeStartElement(GMD, "facsimile");
-        writeSimpleElement(writer, GCO, "CharacterString", contact.getFax());
-        writer.writeEndElement(); // facsimile
       }
       writer.writeEndElement(); // CI_Telephone
       writer.writeEndElement(); // phone
