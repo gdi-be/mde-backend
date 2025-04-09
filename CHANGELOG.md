@@ -1,3 +1,15 @@
+# [1.3.0](https://github.com/gdi-be/mde-backend/compare/v1.2.0...v1.3.0) (2025-04-09)
+
+
+### Bug Fixes
+
+* fix import/generation of certain fields ([99679e2](https://github.com/gdi-be/mde-backend/commit/99679e29a24de47e34a7dfe8da0208cf835f850e))
+
+
+### Features
+
+* enable openapi docs ([a2cd159](https://github.com/gdi-be/mde-backend/commit/a2cd1595fa94b13d0e5be226607d230d30cf91d7))
+
 # [1.2.0](https://github.com/gdi-be/mde-backend/compare/v1.1.3...v1.2.0) (2025-04-07)
 
 
