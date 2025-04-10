@@ -301,15 +301,18 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
         .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
 
       String assignedUserId = metadataCollection.getAssignedUserId();
-      List<RoleRepresentation> keycloakUserRoles = keycloakService.getRealmRoles(assignedUserId);
-      List<String> keycloakUserRoleNames = keycloakUserRoles.stream().map(RoleRepresentation::getName).toList();
 
-      if (!keycloakUserRoleNames.contains(role)) {
-        this.unassignUser(metadataId);
+      if (assignedUserId != null) {
+        List<RoleRepresentation> keycloakUserRoles = keycloakService.getRealmRoles(assignedUserId);
+        List<String> keycloakUserRoleNames = keycloakUserRoles.stream().map(RoleRepresentation::getName).toList();
+
+        if (!keycloakUserRoleNames.contains(role)) {
+          this.unassignUser(metadataId);
+        }
       }
 
       metadataCollection.setResponsibleRole(Role.valueOf(role));
-        repository.save(metadataCollection);
+      repository.save(metadataCollection);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
