@@ -25,8 +25,8 @@ public class MetadataCollectionSpecification {
       }
 
       // Valid-Filter
-      if (config.getIsValid() != null) {
-        predicates.add(cb.equal(root.get("valid"), config.getIsValid()));
+      if (config.getIsApproved() != null) {
+        predicates.add(cb.equal(root.get("approved"), config.getIsApproved()));
       }
 
       // Assigned-Filter
