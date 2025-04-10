@@ -33,6 +33,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static de.terrestris.mde.mde_backend.service.IsoGenerator.TERMS_OF_USE_MAP;
+import static de.terrestris.mde.mde_backend.service.IsoGenerator.replaceValues;
 import static de.terrestris.utils.xml.MetadataNamespaceUtils.XLINK;
 import static de.terrestris.utils.xml.XmlUtils.*;
 
@@ -625,10 +626,14 @@ public class ImportService {
       extractIsoFields(reader, service);
       clientMetadata.getLayers().put(service.getFileIdentifier(), layers);
       parseCapabilities(service, clientMetadata);
+      if (replaceValues(service.getUrl()).contains("fbadmin.senstadtdmz.verwalt-berlin.de")) {
+        isoMetadata.getServices().removeLast();
+        log.info("Removing service as it's not migrated yet.");
+      }
     } catch (XMLStreamException | IOException | ParseException | URISyntaxException e) {
-      log.warn("Unable to add service from {}: {}", file, e.getMessage());
+      log.warn("Problem while adding service from {}: {}", file, e.getMessage());
       log.trace("Stack trace", e);
-      throw new ImportException(e);
+      log.warn("Continuing anyway...");
     }
   }
 
@@ -733,12 +738,11 @@ public class ImportService {
   }
 
   private static void parseCapabilities(Service service, JsonClientMetadata client) throws URISyntaxException, IOException, XMLStreamException {
-    var url = service.getUrl();
-    if (!url.contains("@@WMSServiceServer@senstadt@@")) {
+    var url = replaceValues(service.getUrl());
+    if (!url.contains("gdi.berlin.de")) {
       log.info("Not reading capabilities from {}", url);
       return;
     }
-    url = url.replace("@@WMSServiceServer@senstadt@@", "gdi.berlin.de/services/wms/");
     log.info("Reading capabilities from {}", url);
     if (!service.getServiceType().equals(ServiceType.WMS)) {
       return;
@@ -789,9 +793,6 @@ public class ImportService {
         if (reader.getElementText().equals("ogcmap")) {
           service.setServiceType(ServiceType.WMS);
         }
-        break;
-      case "GIS-ServerName":
-        service.setUrl(reader.getElementText());
         break;
       case "LegendImage":
         var img = new LegendImage(
