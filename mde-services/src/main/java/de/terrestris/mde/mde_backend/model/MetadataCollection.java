@@ -30,10 +30,9 @@ public class MetadataCollection extends BaseMetadata {
   @Formula("(iso_metadata->>'title')")
   private String title;
 
-  // TODO: THIS SHOULD NOT BE FORMULA! The valid property in the iso_metadata is
-  //  not the same as the validation state of the metadata collection
-  @Formula("(iso_metadata->>'valid')::boolean")
-  private Boolean valid;
+  @Column
+  @Setter
+  private Boolean approved;
 
   @Column
   @Setter

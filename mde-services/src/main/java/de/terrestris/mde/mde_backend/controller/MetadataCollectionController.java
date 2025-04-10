@@ -653,4 +653,47 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
     }
   }
 
+  @PostMapping("/{metadataId}/approved")
+  public ResponseEntity<Void> approveMetadata(@PathVariable("metadataId") String metadataId) {
+    try {
+      service.setApprovalState(metadataId, true);
+      return new ResponseEntity<>(OK);
+    } catch (Exception e) {
+      log.error("Error while approving metadata with id {}: \n {}", metadataId, e.getMessage());
+      log.trace("Full stack trace: ", e);
+
+      throw new ResponseStatusException(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        messageSource.getMessage(
+          "BASE_CONTROLLER.INTERNAL_SERVER_ERROR",
+          null,
+          LocaleContextHolder.getLocale()
+        ),
+        e
+      );
+    }
+  }
+
+  @DeleteMapping("/{metadataId}/approved")
+  public ResponseEntity<Void> disapproveMetadata(@PathVariable("metadataId") String metadataId) {
+    try {
+      service.setApprovalState(metadataId, false);
+      return new ResponseEntity<>(OK);
+    } catch (Exception e) {
+      log.error("Error while disapproving metadata with id {}: \n {}", metadataId, e.getMessage());
+      log.trace("Full stack trace: ", e);
+
+      throw new ResponseStatusException(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        messageSource.getMessage(
+          "BASE_CONTROLLER.INTERNAL_SERVER_ERROR",
+          null,
+          LocaleContextHolder.getLocale()
+        ),
+        e
+      );
+    }
+  }
+
+
 }
