@@ -1,3 +1,17 @@
+# [1.4.0](https://github.com/gdi-be/mde-backend/compare/v1.3.0...v1.4.0) (2025-04-10)
+
+
+### Bug Fixes
+
+* add missing properties ([68b4a8f](https://github.com/gdi-be/mde-backend/commit/68b4a8f13a8c53b7327d1d304ad3e8c6c06708ac))
+* fix importer ([a4d0f3d](https://github.com/gdi-be/mde-backend/commit/a4d0f3d518926506d18b63a1085f67debb609aa9))
+* update query config ([e860310](https://github.com/gdi-be/mde-backend/commit/e86031092db34ed517b02eb02c5d9ef5223531a7))
+
+
+### Features
+
+* add approved property and interfaces ([b0f9b44](https://github.com/gdi-be/mde-backend/commit/b0f9b448228fc5947eed1dec627c08fd55a954e0))
+
 # [1.3.0](https://github.com/gdi-be/mde-backend/compare/v1.2.0...v1.3.0) (2025-04-09)
 
 
