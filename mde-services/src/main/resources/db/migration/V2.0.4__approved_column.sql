@@ -1,0 +1,1 @@
+ALTER TABLE metadata_collection ADD COLUMN approved BOOLEAN DEFAULT FALSE;

@@ -16,7 +16,7 @@ public class QueryConfig {
 
     private Boolean isTeamMember;
 
-    private Boolean isValid;
+    private Boolean isApproved;
 
     private List<Role> assignedRoles;
 

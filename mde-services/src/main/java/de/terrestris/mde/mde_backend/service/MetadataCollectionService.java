@@ -406,4 +406,14 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
       .toList();
   }
 
+  @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
+  @Transactional(isolation = Isolation.SERIALIZABLE)
+  public void setApprovalState(String metadataId, Boolean approved) {
+    MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
+      .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
+
+    metadataCollection.setApproved(approved);
+    repository.save(metadataCollection);
+  }
+
 }
