@@ -40,8 +40,10 @@ public class Service implements FileIdentifier {
 
   private ServiceType serviceType;
 
+  // imported from service connectPoint
   private String url;
 
+  // imported from CapabilitiesUrl in service files (non ISO section)
   private String capabilitiesUrl;
 
   private List<ServiceDescription> serviceDescriptions;
