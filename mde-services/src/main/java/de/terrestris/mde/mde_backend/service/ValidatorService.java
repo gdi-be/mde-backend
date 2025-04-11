@@ -7,7 +7,11 @@ import de.terrestris.bkgtestsuite.core.spi.TestRunner;
 import de.terrestris.bkgtestsuite.etf.EtfTestRunner;
 import de.terrestris.bkgtestsuite.te.TeTestRunner;
 import de.terrestris.mde.mde_backend.enumeration.MetadataProfile;
+import de.terrestris.mde.mde_backend.enumeration.ValidationStatus;
+import de.terrestris.mde.mde_backend.event.sse.validation.ValidationEventPublisher;
 import de.terrestris.mde.mde_backend.jpa.MetadataCollectionRepository;
+import de.terrestris.mde.mde_backend.model.dto.sse.ValidationMessage;
+import de.terrestris.mde.mde_backend.thread.TrackedTask;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FileUtils;
@@ -16,6 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import javax.xml.stream.XMLStreamException;
@@ -53,6 +59,9 @@ public class ValidatorService {
 
   @Autowired
   private IsoGenerator generator;
+
+  @Autowired
+  private ValidationEventPublisher eventPublisher;
 
   private TestRunner isoRunner;
 
@@ -213,6 +222,31 @@ public class ValidatorService {
     files.forEach(f -> errors.addAll(validate(inspire, f, files.getFirst() == f)));
     FileUtils.deleteDirectory(files.getFirst().getParent().toFile());
     return errors;
+  }
+
+  public TrackedTask createValidateMetadataTask(String metadataId) {
+    SecurityContext context = SecurityContextHolder.getContext();
+
+    return new TrackedTask(metadataId, () -> {
+      SecurityContextHolder.setContext(context);
+      try {
+        eventPublisher.publishEvent(new ValidationMessage(metadataId,
+          "Validation started", ValidationStatus.RUNNING));
+
+        List<String> result = this.validateMetadata(metadataId);
+
+        eventPublisher.publishEvent(new ValidationMessage(metadataId,
+          String.join("\n", result), ValidationStatus.FINISHED));
+      } catch (IOException | XMLStreamException | RuntimeException e) {
+        log.error("Error while validating metadata with id {}: \n {}", metadataId, e.getMessage());
+        log.trace("Full stack trace: ", e);
+
+        eventPublisher.publishEvent(new ValidationMessage(metadataId,
+          "Error while validation", ValidationStatus.FAILED));
+      } finally {
+        SecurityContextHolder.clearContext();
+      }
+    });
   }
 
 }
