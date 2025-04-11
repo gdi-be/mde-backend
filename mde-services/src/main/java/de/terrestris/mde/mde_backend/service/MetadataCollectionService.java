@@ -99,9 +99,9 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
       Role roleToSet = null;
       List<String> roleNames = authorities.stream().map(GrantedAuthority::getAuthority).toList();
       if (roleNames.contains("Editor")) {
-        roleToSet = Role.Editor;
+        roleToSet = Role.MdeEditor;
       } else if (roleNames.contains("DataOwner")) {
-        roleToSet = Role.DataOwner;
+        roleToSet = Role.MdeDataOwner;
       }
       if (roleToSet != null) {
         metadataCollection.setResponsibleRole(roleToSet);
@@ -156,9 +156,9 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
       Role roleToSet = null;
       List<String> roleNames = authorities.stream().map(GrantedAuthority::getAuthority).toList();
       if (roleNames.contains("Editor")) {
-        roleToSet = Role.Editor;
+        roleToSet = Role.MdeEditor;
       } else if (roleNames.contains("DataOwner")) {
-        roleToSet = Role.DataOwner;
+        roleToSet = Role.MdeDataOwner;
       }
       if (roleToSet != null) {
         metadataCollection.setResponsibleRole(roleToSet);

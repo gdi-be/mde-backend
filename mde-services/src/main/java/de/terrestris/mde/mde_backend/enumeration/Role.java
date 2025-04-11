@@ -7,19 +7,19 @@ public enum Role {
     /**
      * Administrator role. (Administrator)
      */
-    Administrator("Administrator"),
+    MdeAdministrator("MdeAdministrator"),
     /**
      * DataOwner role. (Datenhaltende Stelle)
      */
-    DataOwner("DataOwner"),
+    MdeDataOwner("MdeDataOwner"),
     /**
      * Editor role. (Redakteur)
      */
-    Editor("Editor"),
+    MdeEditor("MdeEditor"),
     /**
      * QualityAssurance role. (QS)
      */
-    QualityAssurance("QualityAssurance");
+    MdeQualityAssurance("MdeQualityAssurance");
 
     private final String type;
 
