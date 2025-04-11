@@ -15,7 +15,7 @@ public class MdePermissionEvaluator implements PermissionEvaluator {
 
     @Override
     public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {
-        List<Role> allowedRoles = List.of(Role.Administrator, Role.Editor, Role.QualityAssurance, Role.DataOwner);
+        List<Role> allowedRoles = List.of(Role.MdeAdministrator, Role.MdeEditor, Role.MdeQualityAssurance, Role.MdeDataOwner);
         return allowedRoles.stream()
                 .anyMatch(role -> authentication.getAuthorities().stream()
                     .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals(role.toString()))
