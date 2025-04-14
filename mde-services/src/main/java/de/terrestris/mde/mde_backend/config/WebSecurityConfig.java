@@ -65,8 +65,6 @@ public class WebSecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
                  authorizationManagerRequestMatcherRegistry
-                     .requestMatchers(HttpMethod.GET, "/metadata/**")
-                         .permitAll()
                      .requestMatchers(
                          "/swagger-ui/**",
                          "/v3/api-docs",
