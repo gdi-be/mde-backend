@@ -65,7 +65,7 @@ public class Service implements FileIdentifier {
 
   private String preview;
 
-  private List<ColumnInfo> columns;
+  private List<FeatureType> featureTypes;
 
   private List<DownloadInfo> downloads;
 
