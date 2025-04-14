@@ -5,6 +5,7 @@ import de.terrestris.mde.mde_backend.model.BaseMetadata;
 import de.terrestris.mde.mde_backend.model.MetadataCollection;
 import de.terrestris.mde.mde_backend.model.dto.*;
 import de.terrestris.mde.mde_backend.model.json.Comment;
+import de.terrestris.mde.mde_backend.model.json.Layer;
 import de.terrestris.mde.mde_backend.model.json.Service;
 import de.terrestris.mde.mde_backend.service.*;
 import de.terrestris.mde.mde_backend.thread.TrackedTask;
@@ -202,6 +203,30 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
       // TODO: Add more specific exception handling
     } catch (Exception e) {
       log.error("Error while updating metadata with id {}: \n {}", metadataId, e.getMessage());
+      log.trace("Full stack trace: ", e);
+
+      throw new ResponseStatusException(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        messageSource.getMessage(
+          "BASE_CONTROLLER.INTERNAL_SERVER_ERROR",
+          null,
+          LocaleContextHolder.getLocale()
+        ),
+        e
+      );
+    }
+  }
+
+  @PatchMapping("/{metadataId}/updateLayers/{serviceIdentification}")
+  public String updateLayers(
+    @PathVariable("metadataId") String metadataId,
+    @PathVariable("serviceIdentification") String serviceIdentification,
+    @RequestBody List<Layer> layers
+  ) {
+    try {
+      return service.updateLayers(metadataId, serviceIdentification, layers);
+    } catch (Exception e) {
+      log.error("Error while updating layers of metadata with id {} and serviceIdentification {}: \n {}", metadataId, serviceIdentification, e.getMessage());
       log.trace("Full stack trace: ", e);
 
       throw new ResponseStatusException(

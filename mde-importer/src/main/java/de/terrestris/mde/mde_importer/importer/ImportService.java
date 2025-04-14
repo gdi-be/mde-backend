@@ -624,12 +624,15 @@ public class ImportService {
       }
 
       extractIsoFields(reader, service);
-      clientMetadata.getLayers().put(service.getFileIdentifier(), layers);
       parseCapabilities(service, clientMetadata);
+
       if (replaceValues(service.getUrl()).contains("fbadmin.senstadtdmz.verwalt-berlin.de")) {
         isoMetadata.getServices().removeLast();
         log.info("Removing service as it's not migrated yet.");
+      } else {
+        clientMetadata.getLayers().put(service.getServiceIdentification(), layers);
       }
+
     } catch (XMLStreamException | IOException | ParseException | URISyntaxException e) {
       log.warn("Problem while adding service from {}: {}", file, e.getMessage());
       log.trace("Stack trace", e);
@@ -712,14 +715,7 @@ public class ImportService {
           layer.setStyleName(reader.getElementText());
           break;
         case "LegendURL":
-          var legend = new LegendImage();
-          legend.setWidth(Integer.parseInt(reader.getAttributeValue(null, "width")));
-          legend.setHeight(Integer.parseInt(reader.getAttributeValue(null, "height")));
-          skipToElement(reader, "Format");
-          legend.setFormat(reader.getElementText());
-          skipToElement(reader, "OnlineResource");
-          legend.setUrl(reader.getAttributeValue(XLINK, "href"));
-          layer.setLegendImage(legend);
+          layer.setLegendImage(reader.getAttributeValue(XLINK, "href"));
           break;
       }
     }
@@ -904,7 +900,6 @@ public class ImportService {
       case "Kartenebene":
         var layer = new Layer();
         layers.add(layer);
-        layer.setRelatedTopic(reader.getAttributeValue(null, "mt_klasse"));
         layer.setName(reader.getAttributeValue(null, "name"));
         while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("Kartenebene"))) {
           reader.next();
@@ -923,13 +918,7 @@ public class ImportService {
               layer.setStyleTitle(reader.getAttributeValue(null, "title"));
               break;
             case "LegendImage":
-              var image = new LegendImage(
-                reader.getAttributeValue(null, "format"),
-                reader.getAttributeValue(null, "url"),
-                Integer.parseInt(reader.getAttributeValue(null, "width")),
-                Integer.parseInt(reader.getAttributeValue(null, "height"))
-              );
-              layer.setLegendImage(image);
+              layer.setLegendImage(reader.getAttributeValue(null, "url"));
               break;
           }
         }

@@ -13,8 +13,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Layer {
 
-  private String relatedTopic;
-
   private String name;
 
   private String title;
@@ -25,12 +23,10 @@ public class Layer {
 
   private String shortDescription;
 
-  private LegendImage legendImage;
-
-  private double minScale;
-
-  private double maxScale;
+  private String legendImage;
 
   private String datasource;
+
+  private String secondaryDatasource;
 
 }
