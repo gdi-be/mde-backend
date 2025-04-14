@@ -7,6 +7,8 @@ import de.terrestris.mde.mde_backend.model.dto.*;
 import de.terrestris.mde.mde_backend.model.json.Comment;
 import de.terrestris.mde.mde_backend.model.json.Service;
 import de.terrestris.mde.mde_backend.service.*;
+import de.terrestris.mde.mde_backend.thread.TrackedTask;
+import de.terrestris.mde.mde_backend.thread.TrackingExecutorService;
 import de.terrestris.utils.io.ZipUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -59,6 +61,9 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
 
   @Autowired
   protected MessageSource messageSource;
+
+  @Autowired
+  private TrackingExecutorService executor;
 
   @GetMapping("/{metadataId}")
   @ResponseStatus(HttpStatus.OK)
@@ -221,12 +226,30 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
     return new ResponseEntity<>(DatasetIsoGenerator.getAutomaticKeywords(isoMetadata), OK);
   }
 
+  // TODO Make validation canceable?
+  // TODO Add openapi annotations
   @GetMapping("/{metadataId}/validate")
-  public ResponseEntity<List<String>> validate(@PathVariable("metadataId") String metadataId) {
+  public ResponseEntity<String> validate(@PathVariable("metadataId") String metadataId) {
+    Set<Runnable> tasks = executor.getRunningTasks();
+
+    for (Runnable task : tasks) {
+      if (task instanceof TrackedTask trackedTask) {
+        if (trackedTask.getTaskId().equals(metadataId)) {
+          log.warn("Validation job for metadata with ID {} is already running.", metadataId);
+          return new ResponseEntity<>(HttpStatus.CONFLICT);
+        }
+      } else {
+        log.warn("Task is not a TrackedTask: {}", task);
+      }
+    }
+
     try {
-      var errors = validatorService.validateMetadata(metadataId);
-      return new ResponseEntity<>(errors, OK);
-    } catch (XMLStreamException | IOException e) {
+      TrackedTask task = validatorService.createValidateMetadataTask(metadataId);
+
+      executor.submit(task);
+
+      return new ResponseEntity<>(metadataId, OK);
+    } catch (Exception e) {
       log.error("Error while validating metadata with id {}: \n {}", metadataId, e.getMessage());
       log.trace("Full stack trace: ", e);
 
