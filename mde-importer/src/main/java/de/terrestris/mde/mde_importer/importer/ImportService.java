@@ -760,8 +760,8 @@ public class ImportService {
 
   private static List<Layer> extractMetadataFields(XMLStreamReader reader, Service service, JsonTechnicalMetadata technical) throws XMLStreamException, ParseException, URISyntaxException {
     var layers = new ArrayList<Layer>();
-    if (service.getColumns() == null) {
-      service.setColumns(new ArrayList<>());
+    if (service.getFeatureTypes() == null) {
+      service.setFeatureTypes(new ArrayList<>());
     }
     if (technical.getCategories() == null) {
       technical.setCategories(new ArrayList<>());
@@ -852,7 +852,14 @@ public class ImportService {
         break;
       case "SelectColumn":
         var columnInfo = new ColumnInfo();
-        service.getColumns().add(columnInfo);
+        var featureTypes = service.getFeatureTypes();
+
+        // TODO: handle multiple featuretypes in xml
+        var featureType = new FeatureType();
+        featureType.setColumns(new ArrayList<>());
+        featureType.getColumns().add(columnInfo);
+        featureTypes.add(featureType);
+
         while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("SelectColumn"))) {
           reader.next();
           if (!reader.isStartElement()) {
@@ -863,10 +870,7 @@ public class ImportService {
               columnInfo.setName(reader.getElementText());
               break;
             case "ColumnAlias":
-              columnInfo.setTitle(reader.getElementText());
-              break;
-            case "ColumnDescription":
-              columnInfo.setDescription(reader.getElementText());
+              columnInfo.setAlias(reader.getElementText());
               break;
             case "ColumnType":
               String tp = reader.getElementText();

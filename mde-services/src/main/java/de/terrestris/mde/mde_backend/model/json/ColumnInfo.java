@@ -37,30 +37,10 @@ public class ColumnInfo {
 
   private String name;
 
-  private String title;
-
-  private String description;
+  private String alias;
 
   private ColumnType type;
 
-  private boolean listView;
-
-  private boolean listViewEnabled;
-
-  private boolean elementView;
-
-  private boolean elementViewEnabled;
-
-  private boolean statisticsView;
-
   private FilterType filterType;
-
-  private String minFilterValue;
-
-  private String maxFilterValue;
-
-  private String minOrderValue;
-
-  private String maxOrderValue;
 
 }
