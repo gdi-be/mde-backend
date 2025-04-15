@@ -8,7 +8,11 @@ import de.terrestris.mde.mde_backend.model.json.ColumnInfo.ColumnType;
 import de.terrestris.mde.mde_backend.model.json.ColumnInfo.FilterType;
 import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata.InspireTheme;
 import de.terrestris.mde.mde_backend.model.json.Service.ServiceType;
-import de.terrestris.mde.mde_backend.model.json.codelists.*;
+import de.terrestris.mde.mde_backend.model.json.codelists.CI_DateTypeCode;
+import de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode;
+import de.terrestris.mde.mde_backend.model.json.codelists.CI_RoleCode;
+import de.terrestris.mde.mde_backend.model.json.codelists.MD_MaintenanceFrequencyCode;
+import de.terrestris.mde.mde_backend.service.KeycloakService;
 import lombok.extern.log4j.Log4j2;
 import org.apache.http.client.utils.URIBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -104,6 +108,9 @@ public class ImportService {
 
   @Autowired
   private MetadataCollectionRepository metadataCollectionRepository;
+
+  @Autowired
+  private KeycloakService keycloakService;
 
   private final Map<String, List<Path>> servicesMap = new HashMap<>();
 
@@ -235,6 +242,23 @@ public class ImportService {
     if (isoMetadata.getTermsOfUseId() == null) {
       log.info("Terms of use could not be mapped for {}, using standard.", metadataCollection.getMetadataId());
       isoMetadata.setTermsOfUseId(BigInteger.ONE);
+    }
+    var ids = new HashSet<String>();
+    for (var c : isoMetadata.getContacts()) {
+      var id = keycloakService.getUserIdByEmail(c.getEmail());
+      if (id != null) {
+        ids.add(id);
+      }
+    }
+    for (var c : isoMetadata.getPointsOfContact()) {
+      var id = keycloakService.getUserIdByEmail(c.getEmail());
+      if (id != null) {
+        ids.add(id);
+      }
+    }
+    if (!ids.isEmpty()) {
+      metadataCollection.setOwnerId(ids.iterator().next());
+      metadataCollection.setTeamMemberIds(ids);
     }
     metadataCollectionRepository.save(metadataCollection);
   }

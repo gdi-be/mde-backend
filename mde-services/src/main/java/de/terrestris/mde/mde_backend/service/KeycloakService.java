@@ -24,6 +24,14 @@ public class KeycloakService  {
     return kcUsers.get(id);
   }
 
+  public String getUserIdByEmail(String email) {
+    var users = keycloakRealm.users().searchByEmail(email, true);
+    if (users.isEmpty()) {
+      return null;
+    }
+    return users.getFirst().getId();
+  }
+
   /**
    * Get the effective user's realm roles.
    *
