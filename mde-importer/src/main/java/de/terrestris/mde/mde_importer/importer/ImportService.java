@@ -16,6 +16,7 @@ import de.terrestris.mde.mde_backend.service.KeycloakService;
 import lombok.extern.log4j.Log4j2;
 import org.apache.http.client.utils.URIBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
@@ -111,6 +112,9 @@ public class ImportService {
 
   @Autowired
   private KeycloakService keycloakService;
+
+  @Value("${mde.assign-users-on-import:false}")
+  private boolean assignUsersOnImport;
 
   private final Map<String, List<Path>> servicesMap = new HashMap<>();
 
@@ -243,23 +247,27 @@ public class ImportService {
       log.info("Terms of use could not be mapped for {}, using standard.", metadataCollection.getMetadataId());
       isoMetadata.setTermsOfUseId(BigInteger.ONE);
     }
-    var ids = new HashSet<String>();
-    for (var c : isoMetadata.getContacts()) {
-      var id = keycloakService.getUserIdByEmail(c.getEmail());
-      if (id != null) {
-        ids.add(id);
+
+    if (assignUsersOnImport) {
+      var ids = new HashSet<String>();
+      for (var c : isoMetadata.getContacts()) {
+        var id = keycloakService.getUserIdByEmail(c.getEmail());
+        if (id != null) {
+          ids.add(id);
+        }
+      }
+      for (var c : isoMetadata.getPointsOfContact()) {
+        var id = keycloakService.getUserIdByEmail(c.getEmail());
+        if (id != null) {
+          ids.add(id);
+        }
+      }
+      if (!ids.isEmpty()) {
+        metadataCollection.setOwnerId(ids.iterator().next());
+        metadataCollection.setTeamMemberIds(ids);
       }
     }
-    for (var c : isoMetadata.getPointsOfContact()) {
-      var id = keycloakService.getUserIdByEmail(c.getEmail());
-      if (id != null) {
-        ids.add(id);
-      }
-    }
-    if (!ids.isEmpty()) {
-      metadataCollection.setOwnerId(ids.iterator().next());
-      metadataCollection.setTeamMemberIds(ids);
-    }
+
     metadataCollectionRepository.save(metadataCollection);
   }
 
