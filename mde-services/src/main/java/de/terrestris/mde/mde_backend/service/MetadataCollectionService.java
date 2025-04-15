@@ -10,10 +10,7 @@ import de.terrestris.mde.mde_backend.jpa.MetadataCollectionRepository;
 import de.terrestris.mde.mde_backend.model.MetadataCollection;
 import de.terrestris.mde.mde_backend.model.dto.QueryConfig;
 import de.terrestris.mde.mde_backend.model.dto.UserData;
-import de.terrestris.mde.mde_backend.model.json.Comment;
-import de.terrestris.mde.mde_backend.model.json.JsonClientMetadata;
-import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
-import de.terrestris.mde.mde_backend.model.json.JsonTechnicalMetadata;
+import de.terrestris.mde.mde_backend.model.json.*;
 import de.terrestris.mde.mde_backend.specification.MetadataCollectionSpecification;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -417,6 +414,27 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
 
     metadataCollection.setApproved(approved);
     repository.save(metadataCollection);
+  }
+
+  @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
+  @Transactional(isolation = Isolation.SERIALIZABLE)
+  public String updateLayers(String metadataId, String serviceIdentification, List<Layer> layers) {
+    MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
+      .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
+
+    JsonClientMetadata clientMetadata = metadataCollection.getClientMetadata();
+    Map<String, List<Layer>> layerMap = clientMetadata.getLayers();
+
+    if (layerMap == null) {
+      layerMap = new HashMap<>();
+    }
+
+    layerMap.put(serviceIdentification, layers);
+    clientMetadata.setLayers(layerMap);
+
+    repository.save(metadataCollection);
+
+    return serviceIdentification;
   }
 
 }
