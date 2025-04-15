@@ -236,7 +236,7 @@ public class ValidatorService {
         List<String> result = this.validateMetadata(metadataId);
 
         eventPublisher.publishEvent(new ValidationMessage(metadataId,
-          String.join("\n", result), ValidationStatus.FINISHED));
+          String.join("|", result), ValidationStatus.FINISHED));
       } catch (IOException | XMLStreamException | RuntimeException e) {
         log.error("Error while validating metadata with id {}: \n {}", metadataId, e.getMessage());
         log.trace("Full stack trace: ", e);
