@@ -14,6 +14,7 @@ import de.terrestris.mde.mde_backend.model.json.*;
 import de.terrestris.mde.mde_backend.specification.MetadataCollectionSpecification;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import lombok.extern.log4j.Log4j2;
 import org.hibernate.search.engine.search.query.SearchResult;
 import org.hibernate.search.mapper.orm.Search;
 import org.hibernate.search.mapper.orm.session.SearchSession;
@@ -34,10 +35,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.imageio.ImageIO;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.*;
 
+import static de.terrestris.mde.mde_backend.service.IsoGenerator.replaceValues;
+
 @Service
+@Log4j2
 public class MetadataCollectionService extends BaseMetadataService<MetadataCollectionRepository, MetadataCollection> {
 
     @PersistenceContext
@@ -170,6 +177,24 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
       return metadataId;
     }
 
+    private void updateLegendSize(JsonIsoMetadata data) {
+      if (data.getServices() == null) {
+        return;
+      }
+      for (var service : data.getServices()) {
+        try {
+          if (service.getLegendImage() != null && service.getLegendImage().getUrl() != null) {
+            var img = ImageIO.read(new URI(replaceValues(service.getLegendImage().getUrl())).toURL());
+            service.getLegendImage().setWidth(img.getWidth());
+            service.getLegendImage().setHeight(img.getHeight());
+          }
+        } catch (IOException | URISyntaxException e) {
+          log.warn("Unable to determine size of legend: {}", e.getMessage());
+          log.trace("Stack trace:", e);
+        }
+      }
+    }
+
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public MetadataCollection updateIsoJsonValue(String metadataId, String key, JsonNode value) throws IOException, IllegalArgumentException {
@@ -183,6 +208,7 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
         jsonNode.replace(key, value);
 
         JsonIsoMetadata updatedData = objectMapper.treeToValue(jsonNode, JsonIsoMetadata.class);
+        updateLegendSize(updatedData);
         metadataCollection.setIsoMetadata(updatedData);
 
         return repository.save(metadataCollection);
