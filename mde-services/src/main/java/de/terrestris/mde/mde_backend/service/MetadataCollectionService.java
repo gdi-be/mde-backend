@@ -188,7 +188,7 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
             service.getLegendImage().setWidth(img.getWidth());
             service.getLegendImage().setHeight(img.getHeight());
           }
-        } catch (IOException | URISyntaxException e) {
+        } catch (IOException | URISyntaxException | IllegalArgumentException e) {
           log.warn("Unable to determine size of legend: {}", e.getMessage());
           log.trace("Stack trace:", e);
         }
