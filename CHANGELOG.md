@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/gdi-be/mde-backend/compare/v2.0.0...v2.0.1) (2025-04-16)
+
+
+### Bug Fixes
+
+* fix exception handling when getting image size ([f4972ae](https://github.com/gdi-be/mde-backend/commit/f4972ae27dc3b09f7ea2e04108b9ec31463c8e3a))
+
 # [2.0.0](https://github.com/gdi-be/mde-backend/compare/v1.4.1...v2.0.0) (2025-04-16)
 
 
