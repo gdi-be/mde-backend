@@ -1,3 +1,33 @@
+# [2.0.0](https://github.com/gdi-be/mde-backend/compare/v1.4.1...v2.0.0) (2025-04-16)
+
+
+### Bug Fixes
+
+* remove outdated and unused base controller methods ([b125d46](https://github.com/gdi-be/mde-backend/commit/b125d46698db38f3a9e8e2afa4e33c448d853502))
+* removes unused properties from ColumnInfo ([e20c472](https://github.com/gdi-be/mde-backend/commit/e20c47223d4b8ff700490b0a83e9408355c2ee58))
+* replace delimiter ([794c88d](https://github.com/gdi-be/mde-backend/commit/794c88d6e6867f42b8ecade94c4242c9af789157))
+* update role name handling ([76bf5a9](https://github.com/gdi-be/mde-backend/commit/76bf5a9f00a439b3884889e5f4b6ca27263808db))
+
+
+### Features
+
+* add server sent event handling ([c48312b](https://github.com/gdi-be/mde-backend/commit/c48312be361a439b2f282b0dea4c9748efd1b325))
+* add user details endpoint ([6808464](https://github.com/gdi-be/mde-backend/commit/68084643c13152ec9f0afa3639a2f18e17fb2773))
+* automatically update legend with/height for resolvable urls ([18c1c3e](https://github.com/gdi-be/mde-backend/commit/18c1c3eeb3fec4d53a6f26bc38cfe27c5fdf487c))
+* introduces FeatureType model ([270f79f](https://github.com/gdi-be/mde-backend/commit/270f79f57f761618e13f62c8a65208ac905cc61d))
+* map owner and team members when importing ([2c11378](https://github.com/gdi-be/mde-backend/commit/2c113787382225bf9c7eebcbf8435a969677328f))
+* opt out user assignment on import ([6d711fb](https://github.com/gdi-be/mde-backend/commit/6d711fb8bb68b5944ab56f1da6d8e8d28f04173a))
+* rename roles ([5c8ad5e](https://github.com/gdi-be/mde-backend/commit/5c8ad5e5b0ced65e862cf6514cff793d4e264352))
+* require authentication for all requests (except swagger) ([d9f261d](https://github.com/gdi-be/mde-backend/commit/d9f261d77703a34de2928413b7de3f987533efb4))
+* update layers ([8a13a62](https://github.com/gdi-be/mde-backend/commit/8a13a620b798f2947ac46817bd16f8e1fa76901b))
+
+
+### BREAKING CHANGES
+
+* removes properties from Layer and updates mapping of layers in JsonClientMetadata
+* This requires authentication for /metadata/** GET requests
+* removes several properties from ColumnInfo
+
 ## [1.4.1](https://github.com/gdi-be/mde-backend/compare/v1.4.0...v1.4.1) (2025-04-10)
 
 
