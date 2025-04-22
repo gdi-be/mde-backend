@@ -96,7 +96,9 @@ public class GeneratorUtils {
     writer.writeEndElement(); // CI_Contact
     writer.writeEndElement(); // contactInfo
     writer.writeStartElement(GMD, "role");
-    writeCodelistValue(writer, contact.getRoleCode());
+    if (contact.getRoleCode() != null) {
+      writeCodelistValue(writer, contact.getRoleCode());
+    }
     writer.writeEndElement(); // role
     writer.writeEndElement(); // CI_ResponsibleParty
     writer.writeEndElement(); // contact

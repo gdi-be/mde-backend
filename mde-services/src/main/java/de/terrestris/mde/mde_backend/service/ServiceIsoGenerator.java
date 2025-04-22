@@ -57,7 +57,9 @@ public class ServiceIsoGenerator {
     writer.writeStartElement(SRV, "connectPoint");
     writer.writeStartElement(GMD, "CI_OnlineResource");
     writer.writeStartElement(GMD, "linkage");
-    writeSimpleElement(writer, GMD, "URL", replaceValues(service.getCapabilitiesUrl()));
+    if (service.getCapabilitiesUrl() != null) {
+      writeSimpleElement(writer, GMD, "URL", replaceValues(service.getCapabilitiesUrl()));
+    }
     writer.writeEndElement(); // linkage
     writer.writeStartElement(GMD, "protocol");
     writeSimpleElement(writer, GCO, "CharacterString", "WWW:LINK-1.0-http--link");
