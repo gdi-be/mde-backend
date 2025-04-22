@@ -310,7 +310,10 @@ public class ImportService {
       }
       if (reader.isStartElement() && reader.getLocalName().equals("topicCategory")) {
         skipToElement(reader, "MD_TopicCategoryCode");
-        isoMetadata.setTopicCategory(reader.getElementText());
+        if (isoMetadata.getTopicCategory() == null) {
+          isoMetadata.setTopicCategory(new ArrayList<>());
+        }
+        isoMetadata.getTopicCategory().add(reader.getElementText());
       }
       if (reader.isStartElement() && reader.getLocalName().equals("graphicOverview")) {
         skipToElement(reader, "CharacterString");
@@ -581,7 +584,10 @@ public class ImportService {
       json.getKeywords().put(thesaurus.getTitle() == null ? "default" : thesaurus.getTitle(), keywords);
       json.getThesauri().put(thesaurus.getTitle() == null ? "default" : thesaurus.getTitle(), thesaurus);
       if (thesaurus.getTitle() != null && thesaurus.getTitle().equals("GEMET - INSPIRE themes, version 1.0")) {
-        json.setInspireTheme(INSPIRE_THEME_MAP.get(keywords.getFirst().getKeyword()));
+        if (json.getInspireTheme() == null) {
+          json.setInspireTheme(new ArrayList<>());
+        }
+        json.getInspireTheme().add(INSPIRE_THEME_MAP.get(keywords.getFirst().getKeyword()));
       }
     }
   }

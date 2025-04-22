@@ -66,7 +66,7 @@ public class JsonIsoMetadata implements FileIdentifier {
 
   private MetadataProfile metadataProfile;
 
-  private InspireTheme inspireTheme;
+  private List<InspireTheme> inspireTheme;
 
   private String inspireAnnexVersion;
 
@@ -140,7 +140,7 @@ public class JsonIsoMetadata implements FileIdentifier {
   @GenericField
   private boolean valid;
 
-  private String topicCategory;
+  private List<String> topicCategory;
 
   private BigInteger termsOfUseId;
 
