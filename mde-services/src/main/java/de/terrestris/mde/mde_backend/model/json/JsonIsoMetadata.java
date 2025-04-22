@@ -88,7 +88,7 @@ public class JsonIsoMetadata implements FileIdentifier {
 
   private Map<String, Thesaurus> thesauri = new HashMap<>();
 
-  private String highValueDataCategory;
+  private List<String> highValueDataCategory;
 
   @JsonFormat(shape = STRING)
   private Instant dateTime;
