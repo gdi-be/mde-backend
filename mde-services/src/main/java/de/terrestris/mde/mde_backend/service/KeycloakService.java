@@ -61,9 +61,9 @@ public class KeycloakService  {
     details.setStreet(attributes.getOrDefault("streetAddress", List.of("")).getFirst());
     details.setCity(attributes.getOrDefault("city", List.of("")).getFirst());
     details.setPhone(attributes.getOrDefault("telephoneNumber", List.of("")).getFirst());
-    details.setFirstName(user.getFirstName());
-    details.setLastName(user.getLastName());
-    details.setEmail(user.getEmail());
+    details.setFirstName(user.getFirstName() == null ? "" : user.getFirstName());
+    details.setLastName(user.getLastName() == null ? "" : user.getLastName());
+    details.setEmail(user.getEmail() == null ? "" : user.getEmail());
     return details;
   }
 
