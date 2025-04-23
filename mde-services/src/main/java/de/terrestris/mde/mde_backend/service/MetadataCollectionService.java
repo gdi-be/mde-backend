@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonpatch.JsonPatchException;
+import de.terrestris.mde.mde_backend.enumeration.MetadataProfile;
 import de.terrestris.mde.mde_backend.enumeration.Role;
 import de.terrestris.mde.mde_backend.jpa.MetadataCollectionRepository;
 import de.terrestris.mde.mde_backend.model.MetadataCollection;
@@ -98,6 +99,7 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
 
       metadataCollection.getIsoMetadata().setTitle(title);
       metadataCollection.getIsoMetadata().setIdentifier(metadataId);
+      metadataCollection.getIsoMetadata().setMetadataProfile(MetadataProfile.ISO);
 
       // User and role assignment. Set responsibleRole, ownerId, assignedUserId, teamMemberIds.
       Role roleToSet = null;
