@@ -206,6 +206,7 @@ public class DatasetIsoGenerator {
     writeMaintenanceInfo(writer, metadata.getMaintenanceFrequency());
     writePreview(writer, metadata.getPreview());
     writeKeywords(writer, metadata);
+    writeInspireThemeKeywords(writer, metadata);
     writeResourceConstraints(writer, TERMS_OF_USE_BY_ID.get(metadata.getTermsOfUseId().intValue()));
     writeSpatialRepresentationType(writer);
     writeSpatialResolution(writer, metadata);
@@ -314,6 +315,37 @@ public class DatasetIsoGenerator {
       }
       writer.writeEndElement(); // MD_Keywords
       writer.writeEndElement(); // descriptiveKeywords
+    }
+  }
+
+  protected static void writeInspireThemeKeywords(XMLStreamWriter writer, JsonIsoMetadata metadata) throws XMLStreamException {
+    if (metadata.getInspireTheme() != null) {
+      for (var theme : metadata.getInspireTheme()) {
+        writer.writeStartElement(GMD, "descriptiveKeywords");
+        writer.writeStartElement(GMD, "MD_Keywords");
+        writer.writeStartElement(GMD, "keyword");
+        writeSimpleElement(writer, GCO, "CharacterString", INSPIRE_THEME_KEYWORD_MAP.get(theme));
+        writer.writeEndElement(); // keyword
+        writer.writeStartElement(GMD, "thesaurusName");
+        writer.writeStartElement(GMD, "CI_Citation");
+        writer.writeStartElement(GMD, "title");
+        writeSimpleElement(writer, GCO, "CharacterString", "GEMET - INSPIRE themes, version 1.0");
+        writer.writeEndElement(); // title
+        writer.writeStartElement(GMD, "date");
+        writer.writeStartElement(GMD, "CI_Date");
+        writer.writeStartElement(GMD, "date");
+        writeSimpleElement(writer, GCO, "Date", "2008-06-01");
+        writer.writeEndElement(); // date
+        writer.writeStartElement(GMD, "dateType");
+        writeCodelistValue(writer, publication);
+        writer.writeEndElement(); // dateType
+        writer.writeEndElement(); // CI_Date
+        writer.writeEndElement(); // date
+        writer.writeEndElement(); // CI_Citation
+        writer.writeEndElement(); // thesaurusName
+        writer.writeEndElement(); // MD_Keywords
+        writer.writeEndElement(); // descriptiveKeywords
+      }
     }
   }
 

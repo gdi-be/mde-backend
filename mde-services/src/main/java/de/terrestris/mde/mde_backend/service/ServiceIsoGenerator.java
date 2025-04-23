@@ -113,6 +113,7 @@ public class ServiceIsoGenerator {
       writePreview(writer, metadata.getPreview());
     }
     writeKeywords(writer, metadata);
+    writeInspireThemeKeywords(writer, metadata);
     switch (service.getServiceType()) {
       case WFS, ATOM -> writeServiceKeyword(writer, "infoFeatureAccessService");
       case WMS, WMTS -> writeServiceKeyword(writer, "infoMapAccessService");

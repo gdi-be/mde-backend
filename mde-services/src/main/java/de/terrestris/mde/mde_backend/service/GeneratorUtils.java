@@ -10,6 +10,8 @@ import javax.xml.stream.XMLStreamWriter;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode.information;
 import static de.terrestris.mde.mde_backend.model.json.codelists.MD_CharacterSetCode.utf8;
@@ -19,6 +21,52 @@ import static de.terrestris.utils.xml.MetadataNamespaceUtils.*;
 import static de.terrestris.utils.xml.XmlUtils.writeSimpleElement;
 
 public class GeneratorUtils {
+
+  public static final Map<String, JsonIsoMetadata.InspireTheme> INSPIRE_THEME_MAP;
+
+  public static final Map<JsonIsoMetadata.InspireTheme, String> INSPIRE_THEME_KEYWORD_MAP;
+
+  static {
+    INSPIRE_THEME_MAP = new HashMap<>();
+    INSPIRE_THEME_MAP.put("Atmosphärische Bedingungen", JsonIsoMetadata.InspireTheme.AC);
+    INSPIRE_THEME_MAP.put("Adressen", JsonIsoMetadata.InspireTheme.AD);
+    INSPIRE_THEME_MAP.put("Landwirtschaftliche Anlagen und Aquakulturanlagen", JsonIsoMetadata.InspireTheme.AF);
+    INSPIRE_THEME_MAP.put("Bewirtschaftungsgebiete/Schutzgebiete/geregelte Gebiete und Berichterstattungseinheiten", JsonIsoMetadata.InspireTheme.AM);
+    INSPIRE_THEME_MAP.put("Verwaltungseinheiten", JsonIsoMetadata.InspireTheme.AU);
+    INSPIRE_THEME_MAP.put("Biogeografische Regionen", JsonIsoMetadata.InspireTheme.BR);
+    INSPIRE_THEME_MAP.put("Gebäude", JsonIsoMetadata.InspireTheme.BU);
+    INSPIRE_THEME_MAP.put("Flurstücke/Grundstücke (Katasterparzellen)", JsonIsoMetadata.InspireTheme.CP);
+    INSPIRE_THEME_MAP.put("Umweltüberwachung", JsonIsoMetadata.InspireTheme.EF);
+    INSPIRE_THEME_MAP.put("Höhe", JsonIsoMetadata.InspireTheme.EL);
+    INSPIRE_THEME_MAP.put("Energiequellen", JsonIsoMetadata.InspireTheme.ER);
+    INSPIRE_THEME_MAP.put("Geologie", JsonIsoMetadata.InspireTheme.GE);
+    INSPIRE_THEME_MAP.put("Geografische Gittersysteme", JsonIsoMetadata.InspireTheme.GG);
+    INSPIRE_THEME_MAP.put("Geografische Bezeichnungen", JsonIsoMetadata.InspireTheme.GN);
+    INSPIRE_THEME_MAP.put("Lebensräume und Biotope", JsonIsoMetadata.InspireTheme.HB);
+    INSPIRE_THEME_MAP.put("Gesundheit und Sicherheit", JsonIsoMetadata.InspireTheme.HH);
+    INSPIRE_THEME_MAP.put("Gewässernetz", JsonIsoMetadata.InspireTheme.HY);
+    INSPIRE_THEME_MAP.put("Bodenbedeckung", JsonIsoMetadata.InspireTheme.LC);
+    INSPIRE_THEME_MAP.put("Bodennutzung", JsonIsoMetadata.InspireTheme.LU);
+    INSPIRE_THEME_MAP.put("Meteorologisch-geografische Kennwerte", JsonIsoMetadata.InspireTheme.MF);
+    INSPIRE_THEME_MAP.put("Mineralische Bodenschätze", JsonIsoMetadata.InspireTheme.MR);
+    INSPIRE_THEME_MAP.put("Gebiete mit naturbedingten Risiken", JsonIsoMetadata.InspireTheme.NZ);
+    INSPIRE_THEME_MAP.put("Ozeanografisch-geografische Kennwerte", JsonIsoMetadata.InspireTheme.OF);
+    INSPIRE_THEME_MAP.put("Orthofotografie", JsonIsoMetadata.InspireTheme.OI);
+    INSPIRE_THEME_MAP.put("Verteilung der Bevölkerung — Demografie", JsonIsoMetadata.InspireTheme.PD);
+    INSPIRE_THEME_MAP.put("Produktions- und Industrieanlagen", JsonIsoMetadata.InspireTheme.PF);
+    INSPIRE_THEME_MAP.put("Schutzgebiete", JsonIsoMetadata.InspireTheme.PS);
+    INSPIRE_THEME_MAP.put("Koordinatenreferenzsysteme", JsonIsoMetadata.InspireTheme.RS);
+    INSPIRE_THEME_MAP.put("Verteilung der Arten", JsonIsoMetadata.InspireTheme.SD);
+    INSPIRE_THEME_MAP.put("Boden", JsonIsoMetadata.InspireTheme.SO);
+    INSPIRE_THEME_MAP.put("Meeresregionen", JsonIsoMetadata.InspireTheme.SR);
+    INSPIRE_THEME_MAP.put("Statistische Einheiten", JsonIsoMetadata.InspireTheme.SU);
+    INSPIRE_THEME_MAP.put("Verkehrsnetze", JsonIsoMetadata.InspireTheme.TN);
+    INSPIRE_THEME_MAP.put("Versorgungswirtschaft und staatliche Dienste", JsonIsoMetadata.InspireTheme.US);
+    INSPIRE_THEME_KEYWORD_MAP = new HashMap<>();
+    for (var e : INSPIRE_THEME_MAP.entrySet()) {
+      INSPIRE_THEME_KEYWORD_MAP.put(e.getValue(), e.getKey());
+    }
+  }
 
   protected static void writeLanguage(XMLStreamWriter writer) throws XMLStreamException {
     writer.writeStartElement(GMD, "language");
