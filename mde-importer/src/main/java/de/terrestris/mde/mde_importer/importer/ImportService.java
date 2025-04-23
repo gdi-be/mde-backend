@@ -6,12 +6,12 @@ import de.terrestris.mde.mde_backend.model.MetadataCollection;
 import de.terrestris.mde.mde_backend.model.json.*;
 import de.terrestris.mde.mde_backend.model.json.ColumnInfo.ColumnType;
 import de.terrestris.mde.mde_backend.model.json.ColumnInfo.FilterType;
-import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata.InspireTheme;
 import de.terrestris.mde.mde_backend.model.json.Service.ServiceType;
 import de.terrestris.mde.mde_backend.model.json.codelists.CI_DateTypeCode;
 import de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode;
 import de.terrestris.mde.mde_backend.model.json.codelists.CI_RoleCode;
 import de.terrestris.mde.mde_backend.model.json.codelists.MD_MaintenanceFrequencyCode;
+import de.terrestris.mde.mde_backend.service.GeneratorUtils;
 import de.terrestris.mde.mde_backend.service.KeycloakService;
 import lombok.extern.log4j.Log4j2;
 import org.apache.http.client.utils.URIBuilder;
@@ -54,8 +54,6 @@ public class ImportService {
 
   private static final SimpleDateFormat FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
-  public static final Map<String, JsonIsoMetadata.InspireTheme> INSPIRE_THEME_MAP;
-
   private static final Set<String> AUTO_KEYWORDS = Set.of(
     "inspireidentifiziert",
     "open data",
@@ -70,41 +68,6 @@ public class ImportService {
 
   static {
     FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
-    INSPIRE_THEME_MAP = new HashMap<>();
-    INSPIRE_THEME_MAP.put("Atmosphärische Bedingungen", InspireTheme.AC);
-    INSPIRE_THEME_MAP.put("Adressen", InspireTheme.AD);
-    INSPIRE_THEME_MAP.put("Landwirtschaftliche Anlagen und Aquakulturanlagen", InspireTheme.AF);
-    INSPIRE_THEME_MAP.put("Bewirtschaftungsgebiete/Schutzgebiete/geregelte Gebiete und Berichterstattungseinheiten", InspireTheme.AM);
-    INSPIRE_THEME_MAP.put("Verwaltungseinheiten", InspireTheme.AU);
-    INSPIRE_THEME_MAP.put("Biogeografische Regionen", InspireTheme.BR);
-    INSPIRE_THEME_MAP.put("Gebäude", InspireTheme.BU);
-    INSPIRE_THEME_MAP.put("Flurstücke/Grundstücke (Katasterparzellen)", InspireTheme.CP);
-    INSPIRE_THEME_MAP.put("Umweltüberwachung", InspireTheme.EF);
-    INSPIRE_THEME_MAP.put("Höhe", InspireTheme.EL);
-    INSPIRE_THEME_MAP.put("Energiequellen", InspireTheme.ER);
-    INSPIRE_THEME_MAP.put("Geologie", InspireTheme.GE);
-    INSPIRE_THEME_MAP.put("Geografische Gittersysteme", InspireTheme.GG);
-    INSPIRE_THEME_MAP.put("Geografische Bezeichnungen", InspireTheme.GN);
-    INSPIRE_THEME_MAP.put("Lebensräume und Biotope", InspireTheme.HB);
-    INSPIRE_THEME_MAP.put("Gesundheit und Sicherheit", InspireTheme.HH);
-    INSPIRE_THEME_MAP.put("Gewässernetz", InspireTheme.HY);
-    INSPIRE_THEME_MAP.put("Bodenbedeckung", InspireTheme.LC);
-    INSPIRE_THEME_MAP.put("Bodennutzung", InspireTheme.LU);
-    INSPIRE_THEME_MAP.put("Meteorologisch-geografische Kennwerte", InspireTheme.MF);
-    INSPIRE_THEME_MAP.put("Mineralische Bodenschätze", InspireTheme.MR);
-    INSPIRE_THEME_MAP.put("Gebiete mit naturbedingten Risiken", InspireTheme.NZ);
-    INSPIRE_THEME_MAP.put("Ozeanografisch-geografische Kennwerte", InspireTheme.OF);
-    INSPIRE_THEME_MAP.put("Orthofotografie", InspireTheme.OI);
-    INSPIRE_THEME_MAP.put("Verteilung der Bevölkerung — Demografie", InspireTheme.PD);
-    INSPIRE_THEME_MAP.put("Produktions- und Industrieanlagen", InspireTheme.PF);
-    INSPIRE_THEME_MAP.put("Schutzgebiete", InspireTheme.PS);
-    INSPIRE_THEME_MAP.put("Koordinatenreferenzsysteme", InspireTheme.RS);
-    INSPIRE_THEME_MAP.put("Verteilung der Arten", InspireTheme.SD);
-    INSPIRE_THEME_MAP.put("Boden", InspireTheme.SO);
-    INSPIRE_THEME_MAP.put("Meeresregionen", InspireTheme.SR);
-    INSPIRE_THEME_MAP.put("Statistische Einheiten", InspireTheme.SU);
-    INSPIRE_THEME_MAP.put("Verkehrsnetze", InspireTheme.TN);
-    INSPIRE_THEME_MAP.put("Versorgungswirtschaft und staatliche Dienste", InspireTheme.US);
   }
 
   @Autowired
@@ -581,13 +544,14 @@ public class ImportService {
       if (keywords.isEmpty()) {
         return;
       }
-      json.getKeywords().put(thesaurus.getTitle() == null ? "default" : thesaurus.getTitle(), keywords);
-      json.getThesauri().put(thesaurus.getTitle() == null ? "default" : thesaurus.getTitle(), thesaurus);
       if (thesaurus.getTitle() != null && thesaurus.getTitle().equals("GEMET - INSPIRE themes, version 1.0")) {
         if (json.getInspireTheme() == null) {
           json.setInspireTheme(new ArrayList<>());
         }
-        json.getInspireTheme().add(INSPIRE_THEME_MAP.get(keywords.getFirst().getKeyword()));
+        json.getInspireTheme().add(GeneratorUtils.INSPIRE_THEME_MAP.get(keywords.getFirst().getKeyword()));
+      } else {
+        json.getKeywords().put(thesaurus.getTitle() == null ? "default" : thesaurus.getTitle(), keywords);
+        json.getThesauri().put(thesaurus.getTitle() == null ? "default" : thesaurus.getTitle(), thesaurus);
       }
     }
   }
