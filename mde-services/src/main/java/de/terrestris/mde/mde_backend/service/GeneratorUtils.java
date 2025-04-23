@@ -106,19 +106,19 @@ public class GeneratorUtils {
       writeSimpleElement(writer, GCO, "CharacterString", contact.getName());
       writer.writeEndElement(); // individual name
     }
-    writer.writeStartElement(GMD, "organisationName");
-    writeSimpleElement(writer, GCO, "CharacterString", contact.getOrganisation());
-    writer.writeEndElement(); // organisationName
+    if (contact.getOrganisation() != null) {
+      writer.writeStartElement(GMD, "organisationName");
+      writeSimpleElement(writer, GCO, "CharacterString", contact.getOrganisation());
+      writer.writeEndElement(); // organisationName
+    }
     writer.writeStartElement(GMD, "contactInfo");
     writer.writeStartElement(GMD, "CI_Contact");
     if (contact.getPhone() != null) {
       writer.writeStartElement(GMD, "phone");
       writer.writeStartElement(GMD, "CI_Telephone");
-      if (contact.getPhone() != null) {
-        writer.writeStartElement(GMD, "voice");
-        writeSimpleElement(writer, GCO, "CharacterString", contact.getPhone());
-        writer.writeEndElement(); // voice
-      }
+      writer.writeStartElement(GMD, "voice");
+      writeSimpleElement(writer, GCO, "CharacterString", contact.getPhone());
+      writer.writeEndElement(); // voice
       writer.writeEndElement(); // CI_Telephone
       writer.writeEndElement(); // phone
     }
