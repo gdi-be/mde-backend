@@ -144,4 +144,6 @@ public class JsonIsoMetadata implements FileIdentifier {
 
   private BigInteger termsOfUseId;
 
+  private String termsOfUseSource;
+
 }

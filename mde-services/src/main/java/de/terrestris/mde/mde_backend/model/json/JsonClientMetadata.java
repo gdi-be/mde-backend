@@ -31,6 +31,8 @@ public class JsonClientMetadata {
 
   private Extent initialExtent;
 
+  private String relatedTopics;
+
   // Map of service.serviceIdentification and List of layers
   private Map<String, List<Layer>> layers;
 
