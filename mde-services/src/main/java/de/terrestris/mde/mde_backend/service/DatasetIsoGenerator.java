@@ -131,11 +131,14 @@ public class DatasetIsoGenerator {
     }
   }
 
-  private static void writeTopicCategory(XMLStreamWriter writer, String topic) throws XMLStreamException {
-    if (topic != null) {
-      writer.writeStartElement(GMD, "topicCategory");
-      writeSimpleElement(writer, GMD, "MD_TopicCategoryCode", topic);
-      writer.writeEndElement(); // topicCategory
+  private static void writeTopicCategory(XMLStreamWriter writer, List<String> topics) throws XMLStreamException {
+    if (topics != null) {
+
+      for (var topic : topics) {
+        writer.writeStartElement(GMD, "topicCategory");
+        writeSimpleElement(writer, GMD, "MD_TopicCategoryCode", topic);
+        writer.writeEndElement(); // topicCategory
+      }
     }
   }
 
