@@ -685,6 +685,7 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
         services.forEach(service -> {
           var fileIdentifier = service.getFileIdentifier();
           try {
+            // TODO security
             publicationService.removeMetadata(fileIdentifier);
             catalogRecords.add(fileIdentifier);
           } catch (Exception e) {
@@ -719,6 +720,16 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
   }
 
   @GetMapping("/{metadataId}/team")
+  @ApiResponses(value = {
+    @ApiResponse(
+      responseCode = "200",
+      description = "Ok: The team members were successfully returned"
+    ),
+    @ApiResponse(
+      responseCode = "500",
+      description = "Internal Server Error: Something internal went wrong while getting the team members"
+    )
+  })
   public ResponseEntity<List<UserData>> getTeam(@PathVariable("metadataId") String metadataId) {
     try {
       List<UserData> teamWithRoles = service.getTeamWithRoles(metadataId);
@@ -782,5 +793,25 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
     }
   }
 
+  @PostMapping("/{metadataId}/publish")
+  public ResponseEntity<Void> publishMetadata(@PathVariable("metadataId") String metadataId) {
+    try {
+      // TODO Security
+      publicationService.publishMetadata(metadataId);
+      return new ResponseEntity<>(OK);
+    } catch (Exception e) {
+      log.error("Error while publishing metadata with id {}: \n {}", metadataId, e.getMessage());
+      log.trace("Full stack trace: ", e);
 
+      throw new ResponseStatusException(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        messageSource.getMessage(
+          "BASE_CONTROLLER.INTERNAL_SERVER_ERROR",
+          null,
+          LocaleContextHolder.getLocale()
+        ),
+        e
+      );
+    }
+  }
 }

@@ -7,6 +7,7 @@ import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -53,6 +54,7 @@ public class KeycloakService  {
     return roles;
   }
 
+  @PreAuthorize("isAuthenticated()")
   public UserDetails getUserDetails(String userId) {
     var userResource = this.getUserResource(userId);
     var user = userResource.toRepresentation();

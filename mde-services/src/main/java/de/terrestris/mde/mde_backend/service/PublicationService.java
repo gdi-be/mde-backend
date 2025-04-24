@@ -1,6 +1,7 @@
 package de.terrestris.mde.mde_backend.service;
 
 import com.nimbusds.jose.util.Base64;
+import de.terrestris.mde.mde_backend.enumeration.Role;
 import de.terrestris.mde.mde_backend.model.json.FileIdentifier;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.log4j.Log4j2;
@@ -10,6 +11,7 @@ import org.codehaus.stax2.XMLOutputFactory2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
 import javax.xml.stream.XMLInputFactory;
@@ -188,13 +190,33 @@ public class PublicationService {
     }
   }
 
+  @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR')")
   public void publishMetadata(String metadataId) throws XMLStreamException, IOException, URISyntaxException, InterruptedException {
+    // TODO add field status (or similiar) to metadata (set it here to "published")
+
     var metadata = metadataCollectionService.findOneByMetadataId(metadataId);
     if (metadata.isEmpty()) {
       log.info("Metadata with ID {} is not available.", metadataId);
       return;
     }
+
     var entity = metadata.get();
+
+    if (entity.getApproved() == null || !entity.getApproved()) {
+      log.warn("Metadata with ID {} is not approved.", metadataId);
+      return;
+    }
+
+    if (entity.getAssignedUserId() == null) {
+      log.warn("Metadata with ID {} is not assigned to a user.", metadataId);
+      return;
+    }
+
+    if (entity.getResponsibleRole() == null || !entity.getResponsibleRole().equals(Role.MdeEditor)) {
+      log.warn("Metadata with ID {} is not assigned to required role {}.", metadataId, Role.MdeEditor);
+      return;
+    }
+
     var isoMetadata = entity.getIsoMetadata();
     var uuids = new ArrayList<String>();
     var insert = isoMetadata.getFileIdentifier() == null;
@@ -249,6 +271,8 @@ public class PublicationService {
         }
       });
     }
+
+    // TODO call repository.save() isntead
     metadataCollectionService.update(entity.getId(), entity);
     publishRecords(uuids);
   }
