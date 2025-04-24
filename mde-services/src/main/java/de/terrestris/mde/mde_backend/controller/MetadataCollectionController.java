@@ -506,6 +506,7 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
       return this.service.searchLineage(searchTerm, property);
     } catch (Exception e) {
       log.error("Error while searching for MetadataCollection with searchTerm: {}", searchTerm);
+      log.trace("Stack trace:", e);
 
       throw new ResponseStatusException(
         HttpStatus.INTERNAL_SERVER_ERROR,
