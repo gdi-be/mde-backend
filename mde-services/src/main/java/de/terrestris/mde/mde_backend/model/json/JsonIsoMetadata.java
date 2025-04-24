@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.search.engine.backend.types.Sortable;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -135,6 +136,7 @@ public class JsonIsoMetadata implements FileIdentifier {
 
   private String contentDescription;
 
+  @IndexedEmbedded
   private List<Lineage> lineage;
 
   @GenericField

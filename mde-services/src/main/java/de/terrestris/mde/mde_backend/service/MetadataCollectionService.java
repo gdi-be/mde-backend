@@ -85,6 +85,32 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
         .fetch(offset, limit);
     }
 
+    @Transactional(readOnly = true)
+    public List<Lineage> searchLineage(String searchTerm, String property) {
+        SearchSession searchSession = Search.session(entityManager);
+
+        if (!property.equals("title") && !property.equals("identifier")) {
+            return Collections.emptyList();
+        }
+
+        SearchResult<MetadataCollection> result = searchSession.search(MetadataCollection.class)
+            .where(f -> {
+                if ("identifier".equals(property)) {
+                    return f.match()
+                        .field("isoMetadata.lineage.identifier")
+                        .matching(searchTerm);
+                }
+                return f.simpleQueryString()
+                    .fields("isoMetadata.lineage.title")
+                    .matching(searchTerm + "*");
+            })
+            .fetchAll();
+
+        return result.hits().stream()
+            .flatMap(mc -> mc.getIsoMetadata().getLineage().stream())
+            .toList();
+    }
+
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'CREATE')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public String create(String title) {
@@ -462,5 +488,4 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
 
     return serviceIdentification;
   }
-
 }
