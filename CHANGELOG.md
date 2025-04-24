@@ -1,3 +1,29 @@
+# [3.0.0](https://github.com/gdi-be/mde-backend/compare/v2.0.1...v3.0.0) (2025-04-24)
+
+
+### Bug Fixes
+
+* add default values for user details ([c6d1b60](https://github.com/gdi-be/mde-backend/commit/c6d1b60ffcfd8f9fa666a720e8a1a3aaf0cff55e))
+* add/fix some checks when exporting contacts ([362208b](https://github.com/gdi-be/mde-backend/commit/362208b5fe1b225734aeef9f49270451598701d8))
+* fix generation of INSPIRE theme keywords ([5f11d97](https://github.com/gdi-be/mde-backend/commit/5f11d97612b01866403f26269b4c794b69d4f3d8))
+* prevent NPEs ([8b99169](https://github.com/gdi-be/mde-backend/commit/8b991693319d8c43b32b373dc33f64c02a07a6f2))
+
+
+### Features
+
+* add default value for crs ([5ba4251](https://github.com/gdi-be/mde-backend/commit/5ba42519b83690f08f0c559f6f0ae795c1caee34))
+* add interface to serach for lineages ([13fc2bc](https://github.com/gdi-be/mde-backend/commit/13fc2bcafb10ecf0af7a2421f34caab6070a29c9))
+* add missing fields termsOfUseSource and relatedTopics ([643607a](https://github.com/gdi-be/mde-backend/commit/643607abc07af2e5d1ab00e0188756bc88c1b602))
+* allows multiple values for HVD categories ([f455072](https://github.com/gdi-be/mde-backend/commit/f455072419b5dbe2cef6df904acd90ad83b26b01))
+* set metadataProfile to "ISO" on create ([4f62714](https://github.com/gdi-be/mde-backend/commit/4f627147f0994620482b3215f9799eb9069bc79d))
+* transforms topicCategory and inspireTheme to lists ([6b3678a](https://github.com/gdi-be/mde-backend/commit/6b3678a1d0d20df9fc392fd7f20d1cd5d9f7c834))
+
+
+### BREAKING CHANGES
+
+* changes require a reimport of the DB
+* changes require a reimport of the DB
+
 ## [2.0.1](https://github.com/gdi-be/mde-backend/compare/v2.0.0...v2.0.1) (2025-04-16)
 
 
