@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode.information;
+import static de.terrestris.mde.mde_backend.model.json.codelists.CI_RoleCode.pointOfContact;
 import static de.terrestris.mde.mde_backend.model.json.codelists.MD_CharacterSetCode.utf8;
 import static de.terrestris.mde.mde_backend.model.json.codelists.MD_GeometricObjectTypeCode.complex;
 import static de.terrestris.mde.mde_backend.service.IsoGenerator.replaceValues;
@@ -144,9 +145,7 @@ public class GeneratorUtils {
     writer.writeEndElement(); // CI_Contact
     writer.writeEndElement(); // contactInfo
     writer.writeStartElement(GMD, "role");
-    if (contact.getRoleCode() != null) {
-      writeCodelistValue(writer, contact.getRoleCode());
-    }
+    writeCodelistValue(writer, contact.getRoleCode() == null ? pointOfContact : contact.getRoleCode());
     writer.writeEndElement(); // role
     writer.writeEndElement(); // CI_ResponsibleParty
     writer.writeEndElement(); // contact
