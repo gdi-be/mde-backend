@@ -18,40 +18,34 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("/search")
 public class SearchController {
 
-  @Autowired
-  protected MessageSource messageSource;
+  @Autowired protected MessageSource messageSource;
 
-  @Autowired
-  private SearchService service;
+  @Autowired private SearchService service;
 
   @GetMapping(path = "/index/initialize")
   @ResponseStatus(HttpStatus.OK)
-  @Operation(security = { @SecurityRequirement(name = "bearer-key") })
-  @ApiResponses(value = {
-    @ApiResponse(
-      responseCode = "200",
-      description = "Ok: The index was successfully initialized"
-    ),
-    @ApiResponse(
-      responseCode = "500",
-      description = "Internal Server Error: Something internal went wrong while initializing the index"
-    )
-  })
+  @Operation(security = {@SecurityRequirement(name = "bearer-key")})
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Ok: The index was successfully initialized"),
+        @ApiResponse(
+            responseCode = "500",
+            description =
+                "Internal Server Error: Something internal went wrong while initializing the index")
+      })
   public void initializeIndex() {
     log.info("Initializing index");
     try {
       service.reindexAll();
     } catch (RuntimeException e) {
       throw new ResponseStatusException(
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        messageSource.getMessage(
-          "BASE_CONTROLLER.INTERNAL_SERVER_ERROR",
-          null,
-          LocaleContextHolder.getLocale()
-        ),
-        e
-      );
-    };
+          HttpStatus.INTERNAL_SERVER_ERROR,
+          messageSource.getMessage(
+              "BASE_CONTROLLER.INTERNAL_SERVER_ERROR", null, LocaleContextHolder.getLocale()),
+          e);
+    }
+    ;
   }
-
 }

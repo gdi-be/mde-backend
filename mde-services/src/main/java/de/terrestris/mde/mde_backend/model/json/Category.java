@@ -18,5 +18,4 @@ public class Category {
   private String type;
 
   private String url;
-
 }

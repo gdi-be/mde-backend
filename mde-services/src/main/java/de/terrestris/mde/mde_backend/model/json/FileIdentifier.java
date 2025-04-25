@@ -5,5 +5,4 @@ public interface FileIdentifier {
   void setFileIdentifier(String identifier);
 
   String getFileIdentifier();
-
 }

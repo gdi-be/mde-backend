@@ -6,11 +6,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import de.terrestris.mde.mde_backend.jpa.MetadataCollectionRepository;
 import de.terrestris.mde.mde_backend.model.json.termsofuse.TermsOfUse;
 import de.terrestris.mde.mde_backend.utils.MdeException;
-import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.xml.stream.XMLStreamException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,19 +14,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.xml.stream.XMLStreamException;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 @Log4j2
 public class IsoGenerator {
 
-  @Autowired
-  private MetadataCollectionRepository metadataCollectionRepository;
+  @Autowired private MetadataCollectionRepository metadataCollectionRepository;
 
-  @Autowired
-  private DatasetIsoGenerator datasetIsoGenerator;
+  @Autowired private DatasetIsoGenerator datasetIsoGenerator;
 
-  @Autowired
-  private ServiceIsoGenerator serviceIsoGenerator;
+  @Autowired private ServiceIsoGenerator serviceIsoGenerator;
 
   private static final Map<String, String> VALUES_MAP;
 
@@ -43,18 +39,21 @@ public class IsoGenerator {
 
   static {
     try {
-      VALUES_MAP = new ObjectMapper().readValue(new File(System.getenv("VARIABLE_FILE")), Map.class);
+      VALUES_MAP =
+          new ObjectMapper().readValue(new File(System.getenv("VARIABLE_FILE")), Map.class);
       var mapper = new ObjectMapper(new YAMLFactory());
-      var type = TypeFactory.defaultInstance().constructCollectionType(List.class, TermsOfUse.class);
+      var type =
+          TypeFactory.defaultInstance().constructCollectionType(List.class, TermsOfUse.class);
       var dir = new File(System.getenv("CODELISTS_DIR"));
       TERMS_OF_USES = mapper.readValue(new File(dir, "terms_of_use.yaml"), type);
-      TERMS_OF_USES.forEach(t -> {
-        if (t.getMatchStrings() == null) {
-          t.setMatchStrings(List.of(t.getDescription()));
-        }
-        t.getMatchStrings().forEach(s -> TERMS_OF_USE_MAP.put(s, t));
-        TERMS_OF_USE_BY_ID.put(t.getId(), t);
-      });
+      TERMS_OF_USES.forEach(
+          t -> {
+            if (t.getMatchStrings() == null) {
+              t.setMatchStrings(List.of(t.getDescription()));
+            }
+            t.getMatchStrings().forEach(s -> TERMS_OF_USE_MAP.put(s, t));
+            TERMS_OF_USE_BY_ID.put(t.getId(), t);
+          });
     } catch (IOException e) {
       throw new MdeException("Could not read the variables map file.", e);
     }
@@ -77,20 +76,33 @@ public class IsoGenerator {
     var isoMetadata = metadataCollection.get().getIsoMetadata();
     var tmp = Files.createTempDirectory(null).toFile();
     var dataset = new File(tmp, String.format("dataset_%s.xml", metadataId)).toPath();
-    datasetIsoGenerator.generateDatasetMetadata(isoMetadata, metadataId, Files.newOutputStream(dataset));
+    datasetIsoGenerator.generateDatasetMetadata(
+        isoMetadata, metadataId, Files.newOutputStream(dataset));
     files.add(dataset);
     if (isoMetadata.getServices() != null) {
-      isoMetadata.getServices().forEach(service -> {
-        try {
-          var file = new File(tmp, String.format("service_%s_%s.xml", service.getServiceType().toString(), service.getServiceIdentification())).toPath();
-          serviceIsoGenerator.generateServiceMetadata(isoMetadata, service, Files.newOutputStream(file));
-          files.add(file);
-        } catch (IOException | XMLStreamException e) {
-          throw new MdeException("Unable to render service metadata for " + service.getServiceIdentification(), e);
-        }
-      });
+      isoMetadata
+          .getServices()
+          .forEach(
+              service -> {
+                try {
+                  var file =
+                      new File(
+                              tmp,
+                              String.format(
+                                  "service_%s_%s.xml",
+                                  service.getServiceType().toString(),
+                                  service.getServiceIdentification()))
+                          .toPath();
+                  serviceIsoGenerator.generateServiceMetadata(
+                      isoMetadata, service, Files.newOutputStream(file));
+                  files.add(file);
+                } catch (IOException | XMLStreamException e) {
+                  throw new MdeException(
+                      "Unable to render service metadata for " + service.getServiceIdentification(),
+                      e);
+                }
+              });
     }
     return files;
   }
-
 }

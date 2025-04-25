@@ -1,27 +1,5 @@
 package de.terrestris.mde.mde_backend.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import de.terrestris.mde.mde_backend.model.json.Extent;
-import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
-import de.terrestris.mde.mde_backend.model.json.Service;
-import de.terrestris.mde.mde_backend.model.json.codelists.MD_MaintenanceFrequencyCode;
-import de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode;
-import de.terrestris.mde.mde_backend.model.json.termsofuse.TermsOfUse;
-import lombok.extern.log4j.Log4j2;
-import org.codehaus.stax2.XMLOutputFactory2;
-import org.springframework.stereotype.Component;
-
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-
 import static de.terrestris.mde.mde_backend.enumeration.MetadataProfile.ISO;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_DateTypeCode.*;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode.information;
@@ -34,6 +12,27 @@ import static de.terrestris.mde.mde_backend.service.IsoGenerator.replaceValues;
 import static de.terrestris.utils.xml.MetadataNamespaceUtils.*;
 import static de.terrestris.utils.xml.XmlUtils.writeSimpleElement;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.terrestris.mde.mde_backend.model.json.Extent;
+import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
+import de.terrestris.mde.mde_backend.model.json.Service;
+import de.terrestris.mde.mde_backend.model.json.codelists.MD_MaintenanceFrequencyCode;
+import de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode;
+import de.terrestris.mde.mde_backend.model.json.termsofuse.TermsOfUse;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+import lombok.extern.log4j.Log4j2;
+import org.codehaus.stax2.XMLOutputFactory2;
+import org.springframework.stereotype.Component;
+
 @Component
 @Log4j2
 public class DatasetIsoGenerator {
@@ -42,17 +41,23 @@ public class DatasetIsoGenerator {
 
   private static final XMLOutputFactory FACTORY = XMLOutputFactory2.newFactory();
 
-  private static void writeIdentifier(XMLStreamWriter writer, String identifier) throws XMLStreamException {
+  private static void writeIdentifier(XMLStreamWriter writer, String identifier)
+      throws XMLStreamException {
     writer.writeStartElement(GMD, "identifier");
     writer.writeStartElement(GMD, "MD_Identifier");
     writer.writeStartElement(GMD, "code");
-    writeSimpleElement(writer, GCO, "CharacterString", String.format("https://registry.gdi-de.org/id/de.be.csw/%s", identifier));
+    writeSimpleElement(
+        writer,
+        GCO,
+        "CharacterString",
+        String.format("https://registry.gdi-de.org/id/de.be.csw/%s", identifier));
     writer.writeEndElement(); // code
     writer.writeEndElement(); // MD_Identifier
     writer.writeEndElement(); // identifier
   }
 
-  private static void writeMaintenanceInfo(XMLStreamWriter writer, MD_MaintenanceFrequencyCode code) throws XMLStreamException {
+  private static void writeMaintenanceInfo(XMLStreamWriter writer, MD_MaintenanceFrequencyCode code)
+      throws XMLStreamException {
     writer.writeStartElement(GMD, "resourceMaintenance");
     writer.writeStartElement(GMD, "MD_MaintenanceInformation");
     writer.writeStartElement(GMD, "maintenanceAndUpdateFrequency");
@@ -62,7 +67,8 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // resourceMaintenance
   }
 
-  protected static void writePreview(XMLStreamWriter writer, String preview) throws XMLStreamException {
+  protected static void writePreview(XMLStreamWriter writer, String preview)
+      throws XMLStreamException {
     writer.writeStartElement(GMD, "graphicOverview");
     writer.writeStartElement(GMD, "MD_BrowseGraphic");
     writer.writeStartElement(GMD, "fileName");
@@ -72,7 +78,8 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // graphicOverview
   }
 
-  protected static void writeResourceConstraints(XMLStreamWriter writer, TermsOfUse terms) throws XMLStreamException, JsonProcessingException {
+  protected static void writeResourceConstraints(XMLStreamWriter writer, TermsOfUse terms)
+      throws XMLStreamException, JsonProcessingException {
     writer.writeStartElement(GMD, "resourceConstraints");
     writer.writeStartElement(GMD, "MD_LegalConstraints");
     writer.writeStartElement(GMD, "accessConstraints");
@@ -80,7 +87,10 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // accessConstraints
     writer.writeStartElement(GMD, "otherConstraints");
     writer.writeStartElement(GMX, "Anchor");
-    writer.writeAttribute(XLINK, "href", "http://inspire.ec.europa.eu/metadata-codelist/LimitationsOnPublicAccess/noLimitations");
+    writer.writeAttribute(
+        XLINK,
+        "href",
+        "http://inspire.ec.europa.eu/metadata-codelist/LimitationsOnPublicAccess/noLimitations");
     writer.writeCharacters("Es gelten keine Zugriffsbeschränkungen");
     writer.writeEndElement(); // Anchor
     writer.writeEndElement(); // otherConstraints
@@ -101,7 +111,8 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // resourceConstraints
   }
 
-  private static void writeSpatialResolution(XMLStreamWriter writer, JsonIsoMetadata metadata) throws XMLStreamException {
+  private static void writeSpatialResolution(XMLStreamWriter writer, JsonIsoMetadata metadata)
+      throws XMLStreamException {
     if (metadata.getScale() != null) {
       writer.writeStartElement(GMD, "spatialResolution");
       writer.writeStartElement(GMD, "MD_Resolution");
@@ -131,7 +142,8 @@ public class DatasetIsoGenerator {
     }
   }
 
-  private static void writeTopicCategory(XMLStreamWriter writer, List<String> topics) throws XMLStreamException {
+  private static void writeTopicCategory(XMLStreamWriter writer, List<String> topics)
+      throws XMLStreamException {
     if (topics != null) {
 
       for (var topic : topics) {
@@ -142,7 +154,8 @@ public class DatasetIsoGenerator {
     }
   }
 
-  protected static void writeExtent(XMLStreamWriter writer, Extent extent, String extentNamespace) throws XMLStreamException {
+  protected static void writeExtent(XMLStreamWriter writer, Extent extent, String extentNamespace)
+      throws XMLStreamException {
     writer.writeStartElement(extentNamespace, "extent");
     writer.writeStartElement(GMD, "EX_Extent");
     writer.writeStartElement(GMD, "geographicElement");
@@ -182,7 +195,9 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // extent
   }
 
-  protected static void writeIdentificationInfo(XMLStreamWriter writer, JsonIsoMetadata metadata, String id) throws XMLStreamException, JsonProcessingException {
+  protected static void writeIdentificationInfo(
+      XMLStreamWriter writer, JsonIsoMetadata metadata, String id)
+      throws XMLStreamException, JsonProcessingException {
     writer.writeStartElement(GMD, "identificationInfo");
     writer.writeStartElement(GMD, "MD_DataIdentification");
     writer.writeAttribute("uuid", id);
@@ -225,7 +240,8 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // spatialRepresentationType
   }
 
-  private static void writeKeyword(XMLStreamWriter writer, String keyword) throws XMLStreamException {
+  private static void writeKeyword(XMLStreamWriter writer, String keyword)
+      throws XMLStreamException {
     writer.writeStartElement(GMD, "keyword");
     writeSimpleElement(writer, GCO, "CharacterString", keyword);
     writer.writeEndElement(); // keyword
@@ -240,7 +256,8 @@ public class DatasetIsoGenerator {
     if (!isoMetadata.getMetadataProfile().equals(ISO)) {
       list.add("inspireidentifiziert");
     }
-    if (isoMetadata.getTermsOfUseId() != null && TERMS_OF_USE_BY_ID.get(isoMetadata.getTermsOfUseId().intValue()).isOpenData()) {
+    if (isoMetadata.getTermsOfUseId() != null
+        && TERMS_OF_USE_BY_ID.get(isoMetadata.getTermsOfUseId().intValue()).isOpenData()) {
       list.add("open data");
       list.add("opendata");
     }
@@ -265,7 +282,8 @@ public class DatasetIsoGenerator {
     return list;
   }
 
-  protected static void writeKeywords(XMLStreamWriter writer, JsonIsoMetadata metadata) throws XMLStreamException {
+  protected static void writeKeywords(XMLStreamWriter writer, JsonIsoMetadata metadata)
+      throws XMLStreamException {
     for (var entry : metadata.getKeywords().entrySet()) {
       var thesaurus = metadata.getThesauri().get(entry.getKey());
       writer.writeStartElement(GMD, "descriptiveKeywords");
@@ -303,7 +321,12 @@ public class DatasetIsoGenerator {
         writer.writeStartElement(GMD, "date");
         writer.writeStartElement(GMD, "CI_Date");
         writer.writeStartElement(GMD, "date");
-        writeSimpleElement(writer, GCO, "Date", DateTimeFormatter.ISO_DATE.format(thesaurus.getDate().atOffset(ZoneOffset.UTC).toLocalDate()));
+        writeSimpleElement(
+            writer,
+            GCO,
+            "Date",
+            DateTimeFormatter.ISO_DATE.format(
+                thesaurus.getDate().atOffset(ZoneOffset.UTC).toLocalDate()));
         writer.writeEndElement(); // date
         writer.writeStartElement(GMD, "dateType");
         writeCodelistValue(writer, thesaurus.getCode());
@@ -318,7 +341,8 @@ public class DatasetIsoGenerator {
     }
   }
 
-  protected static void writeInspireThemeKeywords(XMLStreamWriter writer, JsonIsoMetadata metadata) throws XMLStreamException {
+  protected static void writeInspireThemeKeywords(XMLStreamWriter writer, JsonIsoMetadata metadata)
+      throws XMLStreamException {
     if (metadata.getInspireTheme() != null) {
       for (var theme : metadata.getInspireTheme()) {
         writer.writeStartElement(GMD, "descriptiveKeywords");
@@ -349,7 +373,8 @@ public class DatasetIsoGenerator {
     }
   }
 
-  protected static void writeDistributionInfo(XMLStreamWriter writer, JsonIsoMetadata metadata) throws XMLStreamException {
+  protected static void writeDistributionInfo(XMLStreamWriter writer, JsonIsoMetadata metadata)
+      throws XMLStreamException {
     writer.writeStartElement(GMD, "distributionInfo");
     writer.writeStartElement(GMD, "MD_Distribution");
     writer.writeStartElement(GMD, "distributionFormat");
@@ -376,32 +401,38 @@ public class DatasetIsoGenerator {
       writer.writeEndElement(); // linkage
       writer.writeStartElement(GMD, "protocol");
       writer.writeStartElement(GMX, "Anchor");
-      var type = switch (service.getServiceType()) {
-        case WFS -> "http://www.opengis.net/def/serviceType/ogc/wfs";
-        case WMS -> "http://www.opengis.net/def/serviceType/ogc/wms";
-        case ATOM -> "https://tools.ietf.org/html/rfc4287";
-        case WMTS -> "http://www.opengis.net/def/serviceType/ogc/wmts";
-      };
-      var text = switch (service.getServiceType()) {
-        case WFS -> "OGC Web Feature Service";
-        case WMS -> "OGC Web Map Service";
-        case ATOM -> "ATOM Syndication Format";
-        case WMTS -> "OGC Web Map Tile Service";
-      };
+      var type =
+          switch (service.getServiceType()) {
+            case WFS -> "http://www.opengis.net/def/serviceType/ogc/wfs";
+            case WMS -> "http://www.opengis.net/def/serviceType/ogc/wms";
+            case ATOM -> "https://tools.ietf.org/html/rfc4287";
+            case WMTS -> "http://www.opengis.net/def/serviceType/ogc/wmts";
+          };
+      var text =
+          switch (service.getServiceType()) {
+            case WFS -> "OGC Web Feature Service";
+            case WMS -> "OGC Web Map Service";
+            case ATOM -> "ATOM Syndication Format";
+            case WMTS -> "OGC Web Map Tile Service";
+          };
       writer.writeAttribute(XLINK, "href", type);
       writer.writeCharacters(text);
       writer.writeEndElement(); // Anchor
       writer.writeEndElement(); // protocol
       writer.writeStartElement(GMD, "applicationProfile");
       writer.writeStartElement(GMX, "Anchor");
-      var inspireType = switch (service.getServiceType()) {
-        case WFS, ATOM -> "http://inspire.ec.europa.eu/metadata-codelist/SpatialDataServiceType/download";
-        case WMS, WMTS -> "http://inspire.ec.europa.eu/metadata-codelist/SpatialDataServiceType/view";
-      };
-      var inspireText = switch (service.getServiceType()) {
-        case WFS, ATOM -> "Download Service";
-        case WMS, WMTS -> "View Service";
-      };
+      var inspireType =
+          switch (service.getServiceType()) {
+            case WFS, ATOM ->
+                "http://inspire.ec.europa.eu/metadata-codelist/SpatialDataServiceType/download";
+            case WMS, WMTS ->
+                "http://inspire.ec.europa.eu/metadata-codelist/SpatialDataServiceType/view";
+          };
+      var inspireText =
+          switch (service.getServiceType()) {
+            case WFS, ATOM -> "Download Service";
+            case WMS, WMTS -> "View Service";
+          };
       writer.writeAttribute(XLINK, "href", inspireType);
       writer.writeCharacters(inspireText);
       writer.writeEndElement(); // Anchor
@@ -423,8 +454,12 @@ public class DatasetIsoGenerator {
         writer.writeEndElement(); // linkage
         writer.writeStartElement(GMD, "description");
         writer.writeStartElement(GMX, "Anchor");
-        writer.writeAttribute(XLINK, "href", "http://inspire.ec.europa.eu/metadata-codelist/OnLineDescriptionCode/accessPoint");
-        writer.writeCharacters("http://inspire.ec.europa.eu/metadata-codelist/OnLineDescriptionCode/accessPoint");
+        writer.writeAttribute(
+            XLINK,
+            "href",
+            "http://inspire.ec.europa.eu/metadata-codelist/OnLineDescriptionCode/accessPoint");
+        writer.writeCharacters(
+            "http://inspire.ec.europa.eu/metadata-codelist/OnLineDescriptionCode/accessPoint");
         writer.writeEndElement(); // Anchor
         writer.writeEndElement(); // description
         writer.writeStartElement(GMD, "function");
@@ -440,7 +475,8 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // distributionInfo
   }
 
-  private static void writeDescription(XMLStreamWriter writer, String url) throws XMLStreamException {
+  private static void writeDescription(XMLStreamWriter writer, String url)
+      throws XMLStreamException {
     writer.writeStartElement(GMD, "transferOptions");
     writer.writeStartElement(GMD, "MD_DigitalTransferOptions");
     writer.writeStartElement(GMD, "onLine");
@@ -450,8 +486,12 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // linkage
     writer.writeStartElement(GMD, "description");
     writer.writeStartElement(GMX, "Anchor");
-    writer.writeAttribute(XLINK, "href", "http://inspire.ec.europa.eu/metadata-codelist/OnLineDescriptionCode/accessPoint");
-    writer.writeCharacters("http://inspire.ec.europa.eu/metadata-codelist/OnLineDescriptionCode/accessPoint");
+    writer.writeAttribute(
+        XLINK,
+        "href",
+        "http://inspire.ec.europa.eu/metadata-codelist/OnLineDescriptionCode/accessPoint");
+    writer.writeCharacters(
+        "http://inspire.ec.europa.eu/metadata-codelist/OnLineDescriptionCode/accessPoint");
     writer.writeEndElement(); // Anchor
     writer.writeEndElement(); // description
     writer.writeStartElement(GMD, "function");
@@ -463,7 +503,8 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // transferOptions
   }
 
-  private static void writeSpecialDescriptions(XMLStreamWriter writer, JsonIsoMetadata metadata) throws XMLStreamException {
+  private static void writeSpecialDescriptions(XMLStreamWriter writer, JsonIsoMetadata metadata)
+      throws XMLStreamException {
     if (metadata.getContentDescription() != null) {
       writeDescription(writer, metadata.getContentDescription());
     }
@@ -472,7 +513,8 @@ public class DatasetIsoGenerator {
     }
   }
 
-  protected static void writeDataQualityInfo(XMLStreamWriter writer, JsonIsoMetadata metadata, Service service) throws XMLStreamException {
+  protected static void writeDataQualityInfo(
+      XMLStreamWriter writer, JsonIsoMetadata metadata, Service service) throws XMLStreamException {
     writer.writeStartElement(GMD, "dataQualityInfo");
     writer.writeStartElement(GMD, "DQ_DataQuality");
     writer.writeStartElement(GMD, "scope");
@@ -518,22 +560,34 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // dataQualityInfo
   }
 
-  protected static void writeReport(XMLStreamWriter writer, JsonIsoMetadata metadata) throws XMLStreamException {
-    var text = "VERORDNUNG (EG) Nr. 1089/2010 DER KOMMISSION vom 23. November 2010 zur Durchführung der Richtlinie 2007/2/EG des Europäischen Parlaments und des Rates hinsichtlich der Interoperabilität von Geodatensätzen und -diensten";
+  protected static void writeReport(XMLStreamWriter writer, JsonIsoMetadata metadata)
+      throws XMLStreamException {
+    var text =
+        "VERORDNUNG (EG) Nr. 1089/2010 DER KOMMISSION vom 23. November 2010 zur Durchführung der Richtlinie 2007/2/EG des Europäischen Parlaments und des Rates hinsichtlich der Interoperabilität von Geodatensätzen und -diensten";
     var date = "2010-12-08";
-    // HBD: the 1089/2010 has been replaced with (s.o.), else the invocable spatial data services test class fails
+    // HBD: the 1089/2010 has been replaced with (s.o.), else the invocable spatial data services
+    // test class fails
     // also, we need at least 3 reports, else the tests will also fail
-    var text2 = "VERORDNUNG (EU) Nr. 102/2011 DER KOMMISSION vom 4. Februar 2011 zur Änderung der Verordnung (EU) Nr. (s.o.) zur Durchführung der Richtlinie 2007/2/EG des Europäischen Parlaments und des Rates hinsichtlich der Interoperabilität von Geodatensätzen und -diensten";
+    var text2 =
+        "VERORDNUNG (EU) Nr. 102/2011 DER KOMMISSION vom 4. Februar 2011 zur Änderung der Verordnung (EU) Nr. (s.o.) zur Durchführung der Richtlinie 2007/2/EG des Europäischen Parlaments und des Rates hinsichtlich der Interoperabilität von Geodatensätzen und -diensten";
     var date2 = "2011-02-05";
-    var text3 = "VERORDNUNG (EG) Nr. 976/2009 DER KOMMISSION vom 19. Oktober 2009 zur Durchführung der Richtlinie 2007/2/EG des Europäischen Parlaments und des Rates hinsichtlich der Netzdienste";
+    var text3 =
+        "VERORDNUNG (EG) Nr. 976/2009 DER KOMMISSION vom 19. Oktober 2009 zur Durchführung der Richtlinie 2007/2/EG des Europäischen Parlaments und des Rates hinsichtlich der Netzdienste";
     var date3 = "2009-10-20";
     writeReport(writer, metadata, text, date, "http://data.europa.eu/eli/reg/2010/1089");
     writeReport(writer, metadata, text2, date2, "http://data.europa.eu/eli/reg/2010/1089");
     writeReport(writer, metadata, text3, date3, "http://data.europa.eu/eli/reg/2010/1089");
-    writeReport(writer, metadata, "invocable", date, "http://inspire.ec.europa.eu/id/ats/metadata/2.0/sds-invocable");
+    writeReport(
+        writer,
+        metadata,
+        "invocable",
+        date,
+        "http://inspire.ec.europa.eu/id/ats/metadata/2.0/sds-invocable");
   }
 
-  private static void writeReport(XMLStreamWriter writer, JsonIsoMetadata metadata, String text, String date, String url) throws XMLStreamException {
+  private static void writeReport(
+      XMLStreamWriter writer, JsonIsoMetadata metadata, String text, String date, String url)
+      throws XMLStreamException {
     writer.writeStartElement(GMD, "report");
     writer.writeStartElement(GMD, "DQ_DomainConsistency");
     writer.writeStartElement(GMD, "result");
@@ -572,13 +626,16 @@ public class DatasetIsoGenerator {
 
   /**
    * Write metadata to a XMLStreamWriter.
+   *
    * @param metadata the metadata object
-   * @param id       the metadata id
-   * @param writer   the writer, must have already written the MD_Metadata element and the namespace bindings etc.
+   * @param id the metadata id
+   * @param writer the writer, must have already written the MD_Metadata element and the namespace
+   *     bindings etc.
    * @throws IOException in case anything goes wrong
    * @throws XMLStreamException in case anything goes wrong
    */
-  public void generateDatasetMetadata(JsonIsoMetadata metadata, String id, XMLStreamWriter writer) throws IOException, XMLStreamException {
+  public void generateDatasetMetadata(JsonIsoMetadata metadata, String id, XMLStreamWriter writer)
+      throws IOException, XMLStreamException {
     writeFileIdentifier(writer, metadata.getFileIdentifier());
     writeLanguage(writer);
     writeCharacterSet(writer);
@@ -596,7 +653,8 @@ public class DatasetIsoGenerator {
     writeDataQualityInfo(writer, metadata, null);
   }
 
-  public void generateDatasetMetadata(JsonIsoMetadata metadata, String id, OutputStream out) throws IOException, XMLStreamException {
+  public void generateDatasetMetadata(JsonIsoMetadata metadata, String id, OutputStream out)
+      throws IOException, XMLStreamException {
     var writer = FACTORY.createXMLStreamWriter(out);
     setNamespaceBindings(writer);
     writer.writeStartDocument();
@@ -608,5 +666,4 @@ public class DatasetIsoGenerator {
     writer.close();
     out.close();
   }
-
 }

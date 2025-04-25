@@ -20,5 +20,4 @@ public class LegendImage {
   private int width;
 
   private int height;
-
 }

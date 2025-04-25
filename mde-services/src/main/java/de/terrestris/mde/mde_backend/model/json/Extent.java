@@ -22,5 +22,4 @@ public class Extent {
   private double maxx;
 
   private double maxy;
-
 }

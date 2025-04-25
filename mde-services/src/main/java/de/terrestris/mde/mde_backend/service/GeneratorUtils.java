@@ -1,18 +1,5 @@
 package de.terrestris.mde.mde_backend.service;
 
-import de.terrestris.mde.mde_backend.model.json.Contact;
-import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
-import de.terrestris.mde.mde_backend.model.json.codelists.CI_DateTypeCode;
-import de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode;
-
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
-
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode.information;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_RoleCode.pointOfContact;
 import static de.terrestris.mde.mde_backend.model.json.codelists.MD_CharacterSetCode.utf8;
@@ -20,6 +7,18 @@ import static de.terrestris.mde.mde_backend.model.json.codelists.MD_GeometricObj
 import static de.terrestris.mde.mde_backend.service.IsoGenerator.replaceValues;
 import static de.terrestris.utils.xml.MetadataNamespaceUtils.*;
 import static de.terrestris.utils.xml.XmlUtils.writeSimpleElement;
+
+import de.terrestris.mde.mde_backend.model.json.Contact;
+import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
+import de.terrestris.mde.mde_backend.model.json.codelists.CI_DateTypeCode;
+import de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 public class GeneratorUtils {
 
@@ -31,12 +30,16 @@ public class GeneratorUtils {
     INSPIRE_THEME_MAP = new HashMap<>();
     INSPIRE_THEME_MAP.put("Atmosphärische Bedingungen", JsonIsoMetadata.InspireTheme.AC);
     INSPIRE_THEME_MAP.put("Adressen", JsonIsoMetadata.InspireTheme.AD);
-    INSPIRE_THEME_MAP.put("Landwirtschaftliche Anlagen und Aquakulturanlagen", JsonIsoMetadata.InspireTheme.AF);
-    INSPIRE_THEME_MAP.put("Bewirtschaftungsgebiete/Schutzgebiete/geregelte Gebiete und Berichterstattungseinheiten", JsonIsoMetadata.InspireTheme.AM);
+    INSPIRE_THEME_MAP.put(
+        "Landwirtschaftliche Anlagen und Aquakulturanlagen", JsonIsoMetadata.InspireTheme.AF);
+    INSPIRE_THEME_MAP.put(
+        "Bewirtschaftungsgebiete/Schutzgebiete/geregelte Gebiete und Berichterstattungseinheiten",
+        JsonIsoMetadata.InspireTheme.AM);
     INSPIRE_THEME_MAP.put("Verwaltungseinheiten", JsonIsoMetadata.InspireTheme.AU);
     INSPIRE_THEME_MAP.put("Biogeografische Regionen", JsonIsoMetadata.InspireTheme.BR);
     INSPIRE_THEME_MAP.put("Gebäude", JsonIsoMetadata.InspireTheme.BU);
-    INSPIRE_THEME_MAP.put("Flurstücke/Grundstücke (Katasterparzellen)", JsonIsoMetadata.InspireTheme.CP);
+    INSPIRE_THEME_MAP.put(
+        "Flurstücke/Grundstücke (Katasterparzellen)", JsonIsoMetadata.InspireTheme.CP);
     INSPIRE_THEME_MAP.put("Umweltüberwachung", JsonIsoMetadata.InspireTheme.EF);
     INSPIRE_THEME_MAP.put("Höhe", JsonIsoMetadata.InspireTheme.EL);
     INSPIRE_THEME_MAP.put("Energiequellen", JsonIsoMetadata.InspireTheme.ER);
@@ -53,7 +56,8 @@ public class GeneratorUtils {
     INSPIRE_THEME_MAP.put("Gebiete mit naturbedingten Risiken", JsonIsoMetadata.InspireTheme.NZ);
     INSPIRE_THEME_MAP.put("Ozeanografisch-geografische Kennwerte", JsonIsoMetadata.InspireTheme.OF);
     INSPIRE_THEME_MAP.put("Orthofotografie", JsonIsoMetadata.InspireTheme.OI);
-    INSPIRE_THEME_MAP.put("Verteilung der Bevölkerung — Demografie", JsonIsoMetadata.InspireTheme.PD);
+    INSPIRE_THEME_MAP.put(
+        "Verteilung der Bevölkerung — Demografie", JsonIsoMetadata.InspireTheme.PD);
     INSPIRE_THEME_MAP.put("Produktions- und Industrieanlagen", JsonIsoMetadata.InspireTheme.PF);
     INSPIRE_THEME_MAP.put("Schutzgebiete", JsonIsoMetadata.InspireTheme.PS);
     INSPIRE_THEME_MAP.put("Koordinatenreferenzsysteme", JsonIsoMetadata.InspireTheme.RS);
@@ -62,7 +66,8 @@ public class GeneratorUtils {
     INSPIRE_THEME_MAP.put("Meeresregionen", JsonIsoMetadata.InspireTheme.SR);
     INSPIRE_THEME_MAP.put("Statistische Einheiten", JsonIsoMetadata.InspireTheme.SU);
     INSPIRE_THEME_MAP.put("Verkehrsnetze", JsonIsoMetadata.InspireTheme.TN);
-    INSPIRE_THEME_MAP.put("Versorgungswirtschaft und staatliche Dienste", JsonIsoMetadata.InspireTheme.US);
+    INSPIRE_THEME_MAP.put(
+        "Versorgungswirtschaft und staatliche Dienste", JsonIsoMetadata.InspireTheme.US);
     INSPIRE_THEME_KEYWORD_MAP = new HashMap<>();
     for (var e : INSPIRE_THEME_MAP.entrySet()) {
       INSPIRE_THEME_KEYWORD_MAP.put(e.getValue(), e.getKey());
@@ -78,7 +83,8 @@ public class GeneratorUtils {
     writer.writeEndElement();
   }
 
-  protected static void writeFileIdentifier(XMLStreamWriter writer, String fileIdentifier) throws XMLStreamException {
+  protected static void writeFileIdentifier(XMLStreamWriter writer, String fileIdentifier)
+      throws XMLStreamException {
     if (fileIdentifier == null) {
       return;
     }
@@ -93,13 +99,15 @@ public class GeneratorUtils {
     writer.writeEndElement(); // characterSet
   }
 
-  protected static void writeHierarchyLevel(XMLStreamWriter writer, MD_ScopeCode level) throws XMLStreamException {
+  protected static void writeHierarchyLevel(XMLStreamWriter writer, MD_ScopeCode level)
+      throws XMLStreamException {
     writer.writeStartElement(GMD, "hierarchyLevel");
     writeCodelistValue(writer, level);
     writer.writeEndElement(); // hierarchyLevel
   }
 
-  protected static void writeContact(XMLStreamWriter writer, Contact contact, String localName) throws XMLStreamException {
+  protected static void writeContact(XMLStreamWriter writer, Contact contact, String localName)
+      throws XMLStreamException {
     writer.writeStartElement(GMD, localName);
     writer.writeStartElement(GMD, "CI_ResponsibleParty");
     if (contact.getName() != null) {
@@ -145,13 +153,15 @@ public class GeneratorUtils {
     writer.writeEndElement(); // CI_Contact
     writer.writeEndElement(); // contactInfo
     writer.writeStartElement(GMD, "role");
-    writeCodelistValue(writer, contact.getRoleCode() == null ? pointOfContact : contact.getRoleCode());
+    writeCodelistValue(
+        writer, contact.getRoleCode() == null ? pointOfContact : contact.getRoleCode());
     writer.writeEndElement(); // role
     writer.writeEndElement(); // CI_ResponsibleParty
     writer.writeEndElement(); // contact
   }
 
-  protected static void writeDateStamp(XMLStreamWriter writer, JsonIsoMetadata metadata) throws XMLStreamException {
+  protected static void writeDateStamp(XMLStreamWriter writer, JsonIsoMetadata metadata)
+      throws XMLStreamException {
     if (metadata.getDateTime() == null) {
       return;
     }
@@ -160,7 +170,8 @@ public class GeneratorUtils {
     writer.writeEndElement(); // dateStamp
   }
 
-  protected static void writeMetadataInfo(XMLStreamWriter writer, boolean inspire) throws XMLStreamException {
+  protected static void writeMetadataInfo(XMLStreamWriter writer, boolean inspire)
+      throws XMLStreamException {
     writer.writeStartElement(GMD, "metadataStandardName");
     writeSimpleElement(writer, GCO, "CharacterString", "ISO 19115/19119 ? BE");
     writer.writeEndElement(); // metadataStandardName
@@ -184,7 +195,8 @@ public class GeneratorUtils {
     writer.writeEndElement(); // spatialRepresentationInfo
   }
 
-  protected static void writeCrs(XMLStreamWriter writer, JsonIsoMetadata metadata) throws XMLStreamException {
+  protected static void writeCrs(XMLStreamWriter writer, JsonIsoMetadata metadata)
+      throws XMLStreamException {
     writer.writeStartElement(GMD, "referenceSystemInfo");
     writer.writeStartElement(GMD, "MD_ReferenceSystem");
     writer.writeStartElement(GMD, "referenceSystemIdentifier");
@@ -198,14 +210,19 @@ public class GeneratorUtils {
     writer.writeEndElement(); // referenceSystemInfo
   }
 
-  protected static void writeDate(XMLStreamWriter writer, Instant date, CI_DateTypeCode type) throws XMLStreamException {
+  protected static void writeDate(XMLStreamWriter writer, Instant date, CI_DateTypeCode type)
+      throws XMLStreamException {
     if (date == null) {
       return;
     }
     writer.writeStartElement(GMD, "date");
     writer.writeStartElement(GMD, "CI_Date");
     writer.writeStartElement(GMD, "date");
-    writeSimpleElement(writer, GCO, "Date", DateTimeFormatter.ISO_DATE.format(date.atOffset(ZoneOffset.UTC).toLocalDate()));
+    writeSimpleElement(
+        writer,
+        GCO,
+        "Date",
+        DateTimeFormatter.ISO_DATE.format(date.atOffset(ZoneOffset.UTC).toLocalDate()));
     writer.writeEndElement(); // Date
     writer.writeStartElement(GMD, "dateType");
     writeCodelistValue(writer, type);
@@ -214,17 +231,22 @@ public class GeneratorUtils {
     writer.writeEndElement(); // date
   }
 
-  protected static <T> void writeCodelistValue(XMLStreamWriter writer, T codeListValue) throws XMLStreamException {
+  protected static <T> void writeCodelistValue(XMLStreamWriter writer, T codeListValue)
+      throws XMLStreamException {
     writer.writeStartElement(GMD, codeListValue.getClass().getSimpleName());
-    writer.writeAttribute("codeList", String.format("http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#%s", codeListValue.getClass().getSimpleName()));
+    writer.writeAttribute(
+        "codeList",
+        String.format(
+            "http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#%s",
+            codeListValue.getClass().getSimpleName()));
     writer.writeAttribute("codeListValue", codeListValue.toString());
     writer.writeEndElement();
   }
 
-  protected static void writeVersion(XMLStreamWriter writer, String version) throws XMLStreamException {
+  protected static void writeVersion(XMLStreamWriter writer, String version)
+      throws XMLStreamException {
     writer.writeStartElement(SRV, "serviceTypeVersion");
     writeSimpleElement(writer, GCO, "CharacterString", version);
     writer.writeEndElement(); // serviceTypeVersion
   }
-
 }

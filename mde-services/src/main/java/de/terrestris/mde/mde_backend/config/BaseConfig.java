@@ -16,5 +16,4 @@ public class BaseConfig {
     objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
     return objectMapper;
   }
-
 }

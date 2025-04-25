@@ -2,11 +2,10 @@ package de.terrestris.mde.mde_backend.model.json;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.math.BigInteger;
 
 @Data
 @JsonDeserialize(as = DownloadInfo.class)
@@ -23,5 +22,4 @@ public class DownloadInfo {
   private String href;
 
   private BigInteger fileSize;
-
 }

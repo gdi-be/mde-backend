@@ -8,5 +8,4 @@ public enum Status {
   IN_EDIT,
   // dataset is published and not being edited
   PUBLISHED
-
 }

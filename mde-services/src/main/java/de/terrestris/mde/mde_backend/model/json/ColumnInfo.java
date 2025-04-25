@@ -42,5 +42,4 @@ public class ColumnInfo {
   private ColumnType type;
 
   private FilterType filterType;
-
 }

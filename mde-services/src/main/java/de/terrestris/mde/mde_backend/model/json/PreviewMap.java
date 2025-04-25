@@ -24,5 +24,4 @@ public class PreviewMap {
   private double maxy;
 
   private String url;
-
 }

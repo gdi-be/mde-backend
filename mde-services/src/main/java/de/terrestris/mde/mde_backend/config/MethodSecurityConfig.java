@@ -10,8 +10,8 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 @EnableMethodSecurity
 public class MethodSecurityConfig {
 
-    @Bean
-    public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
-      return new DefaultMethodSecurityExpressionHandler();
-    }
+  @Bean
+  public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
+    return new DefaultMethodSecurityExpressionHandler();
+  }
 }

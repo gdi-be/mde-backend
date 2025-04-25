@@ -1,17 +1,16 @@
 package de.terrestris.mde.mde_backend.thread;
 
-import lombok.extern.log4j.Log4j2;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import lombok.extern.log4j.Log4j2;
 
 /**
- * An {@link ExecutorService} that tracks the number of running tasks and provides
- * methods to retrieve the count and the set of currently running tasks.
+ * An {@link ExecutorService} that tracks the number of running tasks and provides methods to
+ * retrieve the count and the set of currently running tasks.
  *
  * @see ExecutorService
  */
@@ -59,18 +58,22 @@ public class TrackingExecutorService implements ExecutorService {
     return delegate.submit(wrap(task));
   }
 
-  @Override public <T> Future<T> submit(Callable<T> task) {
-    return delegate.submit(() -> {
-      Runnable wrapped = wrap(() -> {
-        try {
-          task.call();
-        } catch (Exception e) {
-          throw new CompletionException(e);
-        }
-      });
-      wrapped.run();
-      return null;
-    });
+  @Override
+  public <T> Future<T> submit(Callable<T> task) {
+    return delegate.submit(
+        () -> {
+          Runnable wrapped =
+              wrap(
+                  () -> {
+                    try {
+                      task.call();
+                    } catch (Exception e) {
+                      throw new CompletionException(e);
+                    }
+                  });
+          wrapped.run();
+          return null;
+        });
   }
 
   @Override
@@ -104,24 +107,27 @@ public class TrackingExecutorService implements ExecutorService {
   }
 
   @Override
-  public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
+  public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks)
+      throws InterruptedException {
     return delegate.invokeAll(tasks);
   }
 
   @Override
-  public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
-    throws InterruptedException {
+  public <T> List<Future<T>> invokeAll(
+      Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
+      throws InterruptedException {
     return delegate.invokeAll(tasks, timeout, unit);
   }
 
   @Override
-  public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
+  public <T> T invokeAny(Collection<? extends Callable<T>> tasks)
+      throws InterruptedException, ExecutionException {
     return delegate.invokeAny(tasks);
   }
 
   @Override
   public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
-    throws InterruptedException, ExecutionException, TimeoutException {
+      throws InterruptedException, ExecutionException, TimeoutException {
     return delegate.invokeAny(tasks, timeout, unit);
   }
 }

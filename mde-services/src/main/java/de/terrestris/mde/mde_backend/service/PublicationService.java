@@ -1,5 +1,8 @@
 package de.terrestris.mde.mde_backend.service;
 
+import static de.terrestris.utils.xml.MetadataNamespaceUtils.*;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.nimbusds.jose.util.Base64;
 import de.terrestris.mde.mde_backend.enumeration.Role;
 import de.terrestris.mde.mde_backend.jpa.MetadataCollectionRepository;
@@ -7,20 +10,6 @@ import de.terrestris.mde.mde_backend.model.Status;
 import de.terrestris.mde.mde_backend.model.json.FileIdentifier;
 import de.terrestris.mde.mde_backend.utils.PublicationException;
 import jakarta.annotation.PostConstruct;
-import lombok.extern.log4j.Log4j2;
-import org.apache.commons.io.IOUtils;
-import org.codehaus.stax2.XMLInputFactory2;
-import org.codehaus.stax2.XMLOutputFactory2;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Component;
-
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -32,9 +21,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Function;
-
-import static de.terrestris.utils.xml.MetadataNamespaceUtils.*;
-import static java.nio.charset.StandardCharsets.UTF_8;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+import lombok.extern.log4j.Log4j2;
+import org.apache.commons.io.IOUtils;
+import org.codehaus.stax2.XMLInputFactory2;
+import org.codehaus.stax2.XMLOutputFactory2;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Component;
 
 @Component
 @Log4j2
@@ -61,17 +60,13 @@ public class PublicationService {
 
   private String meUrl;
 
-  @Autowired
-  private DatasetIsoGenerator datasetIsoGenerator;
+  @Autowired private DatasetIsoGenerator datasetIsoGenerator;
 
-  @Autowired
-  private ServiceIsoGenerator serviceIsoGenerator;
+  @Autowired private ServiceIsoGenerator serviceIsoGenerator;
 
-  @Autowired
-  private MetadataCollectionService metadataCollectionService;
+  @Autowired private MetadataCollectionService metadataCollectionService;
 
-  @Autowired
-  private MetadataCollectionRepository metadataCollectionRepository;
+  @Autowired private MetadataCollectionRepository metadataCollectionRepository;
 
   @PostConstruct
   public void completeCswUrl() {
@@ -83,44 +78,48 @@ public class PublicationService {
     cswServer = String.format("%ssrv/eng/csw-publication", cswServer);
   }
 
-  private void sendTransaction(Function<XMLStreamWriter, Void> generator, boolean insert, FileIdentifier object) throws URISyntaxException, IOException, InterruptedException, XMLStreamException {
-    var publisher = HttpRequest.BodyPublishers.ofInputStream(() -> {
-      var in = new PipedInputStream();
-      try (var pool = ForkJoinPool.commonPool()) {
-        pool.submit(() -> {
-          var out = new BufferedOutputStream(new PipedOutputStream(in));
-          var writer = FACTORY.createXMLStreamWriter(out);
-          setNamespaceBindings(writer);
-          writer.setPrefix("csw", CSW);
-          writer.writeStartDocument();
-          writer.writeStartElement(CSW, "Transaction");
-          writeNamespaceBindings(writer);
-          writer.writeNamespace("csw", CSW);
-          writer.writeAttribute("service", "CSW");
-          writer.writeAttribute("version", "2.0.2");
-          writer.writeStartElement(CSW, insert ? "Insert" : "Update");
-          writer.writeStartElement(GMD, "MD_Metadata");
-          log.debug("Writing document");
-          generator.apply(writer);
-          log.debug("Wrote document");
-          writer.writeEndElement(); // MD_Metadata
-          writer.writeEndElement(); // Insert/Update
-          writer.writeEndElement(); // Transaction
-          writer.flush();
-          writer.close();
-          out.flush();
-          out.close();
-          return null;
-        });
-      }
-      return in;
-    });
+  private void sendTransaction(
+      Function<XMLStreamWriter, Void> generator, boolean insert, FileIdentifier object)
+      throws URISyntaxException, IOException, InterruptedException, XMLStreamException {
+    var publisher =
+        HttpRequest.BodyPublishers.ofInputStream(
+            () -> {
+              var in = new PipedInputStream();
+              try (var pool = ForkJoinPool.commonPool()) {
+                pool.submit(
+                    () -> {
+                      var out = new BufferedOutputStream(new PipedOutputStream(in));
+                      var writer = FACTORY.createXMLStreamWriter(out);
+                      setNamespaceBindings(writer);
+                      writer.setPrefix("csw", CSW);
+                      writer.writeStartDocument();
+                      writer.writeStartElement(CSW, "Transaction");
+                      writeNamespaceBindings(writer);
+                      writer.writeNamespace("csw", CSW);
+                      writer.writeAttribute("service", "CSW");
+                      writer.writeAttribute("version", "2.0.2");
+                      writer.writeStartElement(CSW, insert ? "Insert" : "Update");
+                      writer.writeStartElement(GMD, "MD_Metadata");
+                      log.debug("Writing document");
+                      generator.apply(writer);
+                      log.debug("Wrote document");
+                      writer.writeEndElement(); // MD_Metadata
+                      writer.writeEndElement(); // Insert/Update
+                      writer.writeEndElement(); // Transaction
+                      writer.flush();
+                      writer.close();
+                      out.flush();
+                      out.close();
+                      return null;
+                    });
+              }
+              return in;
+            });
     try (var client = HttpClient.newHttpClient()) {
       var builder = HttpRequest.newBuilder(new URI(cswServer));
       var req = builder.POST(publisher);
       var encoded = Base64.encode(String.format("%s:%s", cswUser, cswPassword)).toString();
-      req.header("Authorization", "Basic " + encoded)
-        .header("Content-Type", "application/xml");
+      req.header("Authorization", "Basic " + encoded).header("Content-Type", "application/xml");
       log.debug("Sending request");
       var response = client.send(req.build(), HttpResponse.BodyHandlers.ofInputStream());
       log.debug("Sent request");
@@ -145,7 +144,8 @@ public class PublicationService {
     }
   }
 
-  private void saveTransaction(Function<XMLStreamWriter, Void> generator, boolean insert) throws IOException, XMLStreamException {
+  private void saveTransaction(Function<XMLStreamWriter, Void> generator, boolean insert)
+      throws IOException, XMLStreamException {
     var tmp = Files.createTempFile(null, null);
     log.debug("Writing transaction to {}", tmp);
     var out = new BufferedOutputStream(Files.newOutputStream(tmp));
@@ -172,13 +172,20 @@ public class PublicationService {
     out.close();
   }
 
-  private void publishRecords(List<String> uuids) throws URISyntaxException, IOException, InterruptedException {
+  private void publishRecords(List<String> uuids)
+      throws URISyntaxException, IOException, InterruptedException {
     try (var client = HttpClient.newHttpClient()) {
       var builder = HttpRequest.newBuilder(new URI(meUrl));
       var req = builder.GET();
       var response = client.send(req.build(), HttpResponse.BodyHandlers.ofInputStream());
       var cookiesList = response.headers().allValues("set-cookie");
-      var csrf = cookiesList.stream().map(s -> s.split(";")[0]).filter(s -> s.startsWith("XSRF")).findFirst().get().split("=")[1];
+      var csrf =
+          cookiesList.stream()
+              .map(s -> s.split(";")[0])
+              .filter(s -> s.startsWith("XSRF"))
+              .findFirst()
+              .get()
+              .split("=")[1];
       var cookies = String.join("; ", cookiesList.stream().map(s -> s.split(";")[0]).toList());
       for (var uuid : uuids) {
         var url = String.format("%s/%s/publish?publicationType=", publicationUrl, uuid);
@@ -186,8 +193,8 @@ public class PublicationService {
         req = builder.PUT(HttpRequest.BodyPublishers.ofString(""));
         var encoded = Base64.encode(String.format("%s:%s", cswUser, cswPassword)).toString();
         req.header("Authorization", "Basic " + encoded)
-          .header("X-XSRF-TOKEN", csrf)
-          .header("Cookie", cookies);
+            .header("X-XSRF-TOKEN", csrf)
+            .header("Cookie", cookies);
         log.debug("Publishing record");
         response = client.send(req.build(), HttpResponse.BodyHandlers.ofInputStream());
         log.debug("Published record");
@@ -197,22 +204,37 @@ public class PublicationService {
   }
 
   @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR')")
-  public void publishMetadata(String metadataId) throws XMLStreamException, IOException, URISyntaxException,
-    InterruptedException, PublicationException {
-    var metadata = metadataCollectionRepository.findByMetadataId(metadataId)
-      .orElseThrow(() -> new IllegalArgumentException("Metadata with ID " + metadataId + " not found."));
+  public void publishMetadata(String metadataId)
+      throws XMLStreamException,
+          IOException,
+          URISyntaxException,
+          InterruptedException,
+          PublicationException {
+    var metadata =
+        metadataCollectionRepository
+            .findByMetadataId(metadataId)
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException("Metadata with ID " + metadataId + " not found."));
 
     if (metadata.getApproved() == null || !metadata.getApproved()) {
       throw new PublicationException("Metadata with ID " + metadataId + " is not approved.");
     }
 
     if (metadata.getAssignedUserId() == null) {
-      throw new PublicationException("Metadata with ID " + metadataId + " is not assigned to a user.");
+      throw new PublicationException(
+          "Metadata with ID " + metadataId + " is not assigned to a user.");
     }
 
-    if (metadata.getResponsibleRole() == null || !metadata.getResponsibleRole().equals(Role.MdeEditor)) {
-      throw new PublicationException("Metadata with ID " + metadataId + " is not assigned to " +
-        "required role " + Role.MdeEditor + ".");
+    if (metadata.getResponsibleRole() == null
+        || !metadata.getResponsibleRole().equals(Role.MdeEditor)) {
+      throw new PublicationException(
+          "Metadata with ID "
+              + metadataId
+              + " is not assigned to "
+              + "required role "
+              + Role.MdeEditor
+              + ".");
     }
 
     metadata.setStatus(Status.PUBLISHED);
@@ -221,55 +243,72 @@ public class PublicationService {
     var uuids = new ArrayList<String>();
     var insert = isoMetadata.getFileIdentifier() == null;
     if (log.isTraceEnabled()) {
-      saveTransaction(writer -> {
-        try {
-          datasetIsoGenerator.generateDatasetMetadata(isoMetadata, metadataId, writer);
-        } catch (IOException | XMLStreamException e) {
-          log.warn("Unable to generate dataset metadata: {}", e.getMessage());
-          log.trace("Stack trace:", e);
-        }
-        return null;
-      }, insert);
-    }
-    sendTransaction(writer -> {
-      try {
-        datasetIsoGenerator.generateDatasetMetadata(isoMetadata, metadataId, writer);
-        uuids.add(isoMetadata.getFileIdentifier());
-      } catch (IOException | XMLStreamException e) {
-        log.warn("Unable to generate dataset metadata: {}", e.getMessage());
-        log.trace("Stack trace:", e);
-      }
-      return null;
-    }, insert, isoMetadata);
-    if (isoMetadata.getServices() != null) {
-      isoMetadata.getServices().forEach(service -> {
-        try {
-          if (log.isTraceEnabled()) {
-            saveTransaction(writer -> {
-              try {
-                serviceIsoGenerator.generateServiceMetadata(isoMetadata, service, writer);
-              } catch (IOException | XMLStreamException e) {
-                log.warn("Unable to generate service metadata: {}", e.getMessage());
-                log.trace("Stack trace:", e);
-              }
-              return null;
-            }, insert);
-          }
-          sendTransaction(writer -> {
+      saveTransaction(
+          writer -> {
             try {
-              serviceIsoGenerator.generateServiceMetadata(isoMetadata, service, writer);
-              uuids.add(service.getFileIdentifier());
+              datasetIsoGenerator.generateDatasetMetadata(isoMetadata, metadataId, writer);
             } catch (IOException | XMLStreamException e) {
-              log.warn("Unable to generate service metadata: {}", e.getMessage());
+              log.warn("Unable to generate dataset metadata: {}", e.getMessage());
               log.trace("Stack trace:", e);
             }
             return null;
-          }, insert, service);
-        } catch (URISyntaxException | IOException | InterruptedException | XMLStreamException e) {
-          log.warn("Unable to generate service metadata: {}", e.getMessage());
-          log.trace("Stack trace:", e);
-        }
-      });
+          },
+          insert);
+    }
+    sendTransaction(
+        writer -> {
+          try {
+            datasetIsoGenerator.generateDatasetMetadata(isoMetadata, metadataId, writer);
+            uuids.add(isoMetadata.getFileIdentifier());
+          } catch (IOException | XMLStreamException e) {
+            log.warn("Unable to generate dataset metadata: {}", e.getMessage());
+            log.trace("Stack trace:", e);
+          }
+          return null;
+        },
+        insert,
+        isoMetadata);
+    if (isoMetadata.getServices() != null) {
+      isoMetadata
+          .getServices()
+          .forEach(
+              service -> {
+                try {
+                  if (log.isTraceEnabled()) {
+                    saveTransaction(
+                        writer -> {
+                          try {
+                            serviceIsoGenerator.generateServiceMetadata(
+                                isoMetadata, service, writer);
+                          } catch (IOException | XMLStreamException e) {
+                            log.warn("Unable to generate service metadata: {}", e.getMessage());
+                            log.trace("Stack trace:", e);
+                          }
+                          return null;
+                        },
+                        insert);
+                  }
+                  sendTransaction(
+                      writer -> {
+                        try {
+                          serviceIsoGenerator.generateServiceMetadata(isoMetadata, service, writer);
+                          uuids.add(service.getFileIdentifier());
+                        } catch (IOException | XMLStreamException e) {
+                          log.warn("Unable to generate service metadata: {}", e.getMessage());
+                          log.trace("Stack trace:", e);
+                        }
+                        return null;
+                      },
+                      insert,
+                      service);
+                } catch (URISyntaxException
+                    | IOException
+                    | InterruptedException
+                    | XMLStreamException e) {
+                  log.warn("Unable to generate service metadata: {}", e.getMessage());
+                  log.trace("Stack trace:", e);
+                }
+              });
     }
 
     metadataCollectionRepository.save(metadata);
@@ -285,7 +324,8 @@ public class PublicationService {
    * @throws InterruptedException
    * @throws XMLStreamException
    */
-  public void removeMetadata(String metadataId) throws URISyntaxException, IOException, InterruptedException, XMLStreamException {
+  public void removeMetadata(String metadataId)
+      throws URISyntaxException, IOException, InterruptedException, XMLStreamException {
     StringWriter stringWriter = new StringWriter();
     var writer = FACTORY.createXMLStreamWriter(stringWriter);
     setNamespaceBindings(writer);
@@ -322,8 +362,7 @@ public class PublicationService {
       var body = HttpRequest.BodyPublishers.ofString(xmlString);
       var req = builder.POST(body);
       var encoded = Base64.encode(String.format("%s:%s", cswUser, cswPassword)).toString();
-      req.header("Authorization", "Basic " + encoded)
-        .header("Content-Type", "application/xml");
+      req.header("Authorization", "Basic " + encoded).header("Content-Type", "application/xml");
 
       log.debug("Sending authenticated request to CSW server at {}", cswServer);
 
@@ -355,8 +394,11 @@ public class PublicationService {
       }
 
       if (deletedRecords == 0) {
-        throw new IOException("No records deleted for metadata with ID " + metadataId + ". This is probably due to " +
-          "a wrong or non existing metadata ID.");
+        throw new IOException(
+            "No records deleted for metadata with ID "
+                + metadataId
+                + ". This is probably due to "
+                + "a wrong or non existing metadata ID.");
       } else {
         log.debug("Deleted {} records for metadata with ID {}", deletedRecords, metadataId);
       }

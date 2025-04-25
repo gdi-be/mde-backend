@@ -7,8 +7,7 @@ import lombok.Data;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class MetadataCreationResponse {
 
-    private String title;
+  private String title;
 
-    private String metadataId;
-
+  private String metadataId;
 }

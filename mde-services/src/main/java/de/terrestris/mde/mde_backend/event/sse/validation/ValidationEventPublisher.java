@@ -21,10 +21,11 @@ public class ValidationEventPublisher {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
     if (!(authentication instanceof JwtAuthenticationToken)) {
-     throw new RuntimeException("Could not publish event, user probably not logged in");
+      throw new RuntimeException("Could not publish event, user probably not logged in");
     }
 
-    String keycloakId = ((JwtAuthenticationToken) authentication).getToken().getClaimAsString("sub");
+    String keycloakId =
+        ((JwtAuthenticationToken) authentication).getToken().getClaimAsString("sub");
 
     publisher.publishEvent(new ValidationEvent(this, message, keycloakId));
   }

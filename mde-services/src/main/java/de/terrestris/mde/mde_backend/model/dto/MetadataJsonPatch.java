@@ -7,10 +7,9 @@ import lombok.Data;
 @Data
 public class MetadataJsonPatch {
 
-    private MetadataType type;
+  private MetadataType type;
 
-    private String key;
+  private String key;
 
-    private JsonNode value;
-
+  private JsonNode value;
 }

@@ -16,5 +16,4 @@ public class Keyword {
   private String namespace;
 
   private String keyword;
-
 }

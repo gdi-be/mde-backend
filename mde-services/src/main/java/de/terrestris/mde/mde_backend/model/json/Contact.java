@@ -30,5 +30,4 @@ public class Contact {
   private String url;
 
   private CI_RoleCode roleCode;
-
 }

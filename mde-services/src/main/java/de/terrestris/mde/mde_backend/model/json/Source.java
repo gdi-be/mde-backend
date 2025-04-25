@@ -16,5 +16,4 @@ public class Source {
   private String type;
 
   private String content;
-
 }
