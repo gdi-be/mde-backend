@@ -11,6 +11,7 @@ import de.terrestris.mde.mde_backend.model.json.Service;
 import de.terrestris.mde.mde_backend.service.*;
 import de.terrestris.mde.mde_backend.thread.TrackedTask;
 import de.terrestris.mde.mde_backend.thread.TrackingExecutorService;
+import de.terrestris.mde.mde_backend.utils.PublicationException;
 import de.terrestris.utils.io.ZipUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -685,6 +686,7 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
         services.forEach(service -> {
           var fileIdentifier = service.getFileIdentifier();
           try {
+            // TODO security
             publicationService.removeMetadata(fileIdentifier);
             catalogRecords.add(fileIdentifier);
           } catch (Exception e) {
@@ -719,6 +721,16 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
   }
 
   @GetMapping("/{metadataId}/team")
+  @ApiResponses(value = {
+    @ApiResponse(
+      responseCode = "200",
+      description = "Ok: The team members were successfully returned"
+    ),
+    @ApiResponse(
+      responseCode = "500",
+      description = "Internal Server Error: Something internal went wrong while getting the team members"
+    )
+  })
   public ResponseEntity<List<UserData>> getTeam(@PathVariable("metadataId") String metadataId) {
     try {
       List<UserData> teamWithRoles = service.getTeamWithRoles(metadataId);
@@ -782,5 +794,52 @@ public class MetadataCollectionController extends BaseMetadataController<Metadat
     }
   }
 
+  @Operation(
+    summary = "Publishes a metadata collection in the catalog (Geonetwork)",
+    description = "Publishes the metadata collection in the catalog (Geonetwork).",
+    security = { @SecurityRequirement(name = "Bearer Authentication") }
+  )
+  @ApiResponses(value = {
+    @ApiResponse(
+      responseCode = "200",
+      description = "Ok: The metadata was successfully published",
+      content = @Content
+    ),
+    @ApiResponse(
+      responseCode = "409",
+      description = "Conflict: Prerequisites for publishing the metadata are not met",
+      content = @Content
+    ),
+    @ApiResponse(
+      responseCode = "500",
+      description = "Internal Server Error: Something internal went wrong while publishing the metadata",
+      content = @Content
+    )
+  })
+  @ResponseStatus(HttpStatus.OK)
+  @PostMapping("/{metadataId}/publish")
+  public ResponseEntity<Void> publishMetadata(@PathVariable("metadataId") String metadataId) {
+    try {
+      publicationService.publishMetadata(metadataId);
+      return new ResponseEntity<>(OK);
+    } catch (PublicationException e) {
+      log.error("Prerequisites for publishing the metadata are not met: {}", e.getMessage());
+      log.trace("Full stack trace: ", e);
 
+      return new ResponseEntity<>(HttpStatus.CONFLICT);
+    } catch (Exception e) {
+      log.error("Error while publishing metadata with id {}: {}", metadataId, e.getMessage());
+      log.trace("Full stack trace: ", e);
+
+      throw new ResponseStatusException(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        messageSource.getMessage(
+          "BASE_CONTROLLER.INTERNAL_SERVER_ERROR",
+          null,
+          LocaleContextHolder.getLocale()
+        ),
+        e
+      );
+    }
+  }
 }

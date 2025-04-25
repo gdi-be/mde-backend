@@ -15,6 +15,8 @@ public class SearchService {
   @PersistenceContext
   private EntityManager entityManager;
 
+  // TODO Since this is called in a startup task, we can't use @PreAuthorize here
+//  @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR')")
   @Transactional(readOnly = true)
   public void reindexAll() {
     SearchSession searchSession = Search.session(entityManager);

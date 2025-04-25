@@ -1,7 +1,11 @@
 package de.terrestris.mde.mde_backend.service;
 
 import com.nimbusds.jose.util.Base64;
+import de.terrestris.mde.mde_backend.enumeration.Role;
+import de.terrestris.mde.mde_backend.jpa.MetadataCollectionRepository;
+import de.terrestris.mde.mde_backend.model.Status;
 import de.terrestris.mde.mde_backend.model.json.FileIdentifier;
+import de.terrestris.mde.mde_backend.utils.PublicationException;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.IOUtils;
@@ -10,6 +14,7 @@ import org.codehaus.stax2.XMLOutputFactory2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
 import javax.xml.stream.XMLInputFactory;
@@ -64,6 +69,9 @@ public class PublicationService {
 
   @Autowired
   private MetadataCollectionService metadataCollectionService;
+
+  @Autowired
+  private MetadataCollectionRepository metadataCollectionRepository;
 
   @PostConstruct
   public void completeCswUrl() {
@@ -188,14 +196,28 @@ public class PublicationService {
     }
   }
 
-  public void publishMetadata(String metadataId) throws XMLStreamException, IOException, URISyntaxException, InterruptedException {
-    var metadata = metadataCollectionService.findOneByMetadataId(metadataId);
-    if (metadata.isEmpty()) {
-      log.info("Metadata with ID {} is not available.", metadataId);
-      return;
+  @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR')")
+  public void publishMetadata(String metadataId) throws XMLStreamException, IOException, URISyntaxException,
+    InterruptedException, PublicationException {
+    var metadata = metadataCollectionRepository.findByMetadataId(metadataId)
+      .orElseThrow(() -> new IllegalArgumentException("Metadata with ID " + metadataId + " not found."));
+
+    if (metadata.getApproved() == null || !metadata.getApproved()) {
+      throw new PublicationException("Metadata with ID " + metadataId + " is not approved.");
     }
-    var entity = metadata.get();
-    var isoMetadata = entity.getIsoMetadata();
+
+    if (metadata.getAssignedUserId() == null) {
+      throw new PublicationException("Metadata with ID " + metadataId + " is not assigned to a user.");
+    }
+
+    if (metadata.getResponsibleRole() == null || !metadata.getResponsibleRole().equals(Role.MdeEditor)) {
+      throw new PublicationException("Metadata with ID " + metadataId + " is not assigned to " +
+        "required role " + Role.MdeEditor + ".");
+    }
+
+    metadata.setStatus(Status.PUBLISHED);
+
+    var isoMetadata = metadata.getIsoMetadata();
     var uuids = new ArrayList<String>();
     var insert = isoMetadata.getFileIdentifier() == null;
     if (log.isTraceEnabled()) {
@@ -249,7 +271,8 @@ public class PublicationService {
         }
       });
     }
-    metadataCollectionService.update(entity.getId(), entity);
+
+    metadataCollectionRepository.save(metadata);
     publishRecords(uuids);
   }
 

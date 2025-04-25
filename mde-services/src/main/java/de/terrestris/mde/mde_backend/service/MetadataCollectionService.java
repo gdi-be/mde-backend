@@ -9,6 +9,7 @@ import de.terrestris.mde.mde_backend.enumeration.MetadataProfile;
 import de.terrestris.mde.mde_backend.enumeration.Role;
 import de.terrestris.mde.mde_backend.jpa.MetadataCollectionRepository;
 import de.terrestris.mde.mde_backend.model.MetadataCollection;
+import de.terrestris.mde.mde_backend.model.Status;
 import de.terrestris.mde.mde_backend.model.dto.QueryConfig;
 import de.terrestris.mde.mde_backend.model.dto.UserData;
 import de.terrestris.mde.mde_backend.model.json.*;
@@ -26,7 +27,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -58,6 +58,7 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
     @Autowired
     KeycloakService keycloakService;
 
+    @PreAuthorize("isAuthenticated()")
     @Transactional(readOnly = true)
     public Page<MetadataCollection> query(QueryConfig config, Pageable pageable) {
       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -68,12 +69,13 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
       return findAllBy(specification, pageable);
     }
 
-    @PostAuthorize("hasRole('ROLE_ADMIN') or hasPermission(returnObject.orElse(null), 'READ')")
+    @PreAuthorize("isAuthenticated()")
     @Transactional(readOnly = true)
     public Optional<MetadataCollection> findOneByMetadataId(String metadataId) {
         return repository.findByMetadataId(metadataId);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @Transactional(readOnly = true)
     public SearchResult<MetadataCollection> search(String searchTerm, Integer offset, Integer limit) {
       SearchSession searchSession = Search.session(entityManager);
@@ -86,6 +88,7 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
         .fetch(offset, limit);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @Transactional(readOnly = true)
     public List<Lineage> searchLineage(String searchTerm, String property) {
         SearchSession searchSession = Search.session(entityManager);
@@ -112,7 +115,7 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
             .toList();
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'CREATE')")
+    @PreAuthorize("isAuthenticated()")
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public String create(String title) {
       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -143,6 +146,7 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
       }
       metadataCollection.setAssignedUserId(myKeycloakId);
       metadataCollection.setOwnerId(myKeycloakId);
+      metadataCollection.setStatus(Status.NEW);
 
       repository.save(metadataCollection);
 
@@ -151,7 +155,7 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
       return metadataId;
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'CREATE')")
+    @PreAuthorize("isAuthenticated()")
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public String create(String title, String cloneMetadataId) throws IOException {
       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -200,6 +204,7 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
       }
       metadataCollection.setAssignedUserId(myKeycloakId);
       metadataCollection.setOwnerId(myKeycloakId);
+      metadataCollection.setStatus(Status.NEW);
 
       repository.save(metadataCollection);
 
@@ -226,7 +231,7 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
       }
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
+    @PreAuthorize("isAuthenticated()")
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public MetadataCollection updateIsoJsonValue(String metadataId, String key, JsonNode value) throws IOException, IllegalArgumentException {
       MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
@@ -241,11 +246,14 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
         JsonIsoMetadata updatedData = objectMapper.treeToValue(jsonNode, JsonIsoMetadata.class);
         updateLegendSize(updatedData);
         metadataCollection.setIsoMetadata(updatedData);
+        if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
+          metadataCollection.setStatus(Status.IN_EDIT);
+        }
 
         return repository.save(metadataCollection);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
+    @PreAuthorize("isAuthenticated()")
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public MetadataCollection updateClientJsonValue(String metadataId, String key, JsonNode value) throws IOException, JsonPatchException {
         MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
@@ -259,11 +267,14 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
 
         JsonClientMetadata updatedData = objectMapper.treeToValue(jsonNode, JsonClientMetadata.class);
         metadataCollection.setClientMetadata(updatedData);
+      if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
+        metadataCollection.setStatus(Status.IN_EDIT);
+      }
 
         return repository.save(metadataCollection);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
+    @PreAuthorize("isAuthenticated()")
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public MetadataCollection updateTechnicalJsonValue(String metadataId, String key, JsonNode value) throws IOException, JsonPatchException {
         MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
@@ -277,11 +288,14 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
 
         JsonTechnicalMetadata updatedData = objectMapper.treeToValue(jsonNode, JsonTechnicalMetadata.class);
         metadataCollection.setTechnicalMetadata(updatedData);
+      if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
+        metadataCollection.setStatus(Status.IN_EDIT);
+      }
 
         return repository.save(metadataCollection);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
+    @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void assignUser(String metadataId, String userId) {
         MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
@@ -302,11 +316,14 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
             break;
           }
         }
+      if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
+        metadataCollection.setStatus(Status.IN_EDIT);
+      }
 
         repository.save(metadataCollection);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
+    @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void unassignUser(String metadataId) {
         MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
@@ -316,7 +333,7 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
         repository.save(metadataCollection);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
+    @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void addToTeam(String metadataId, String userId) {
         MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
@@ -332,7 +349,7 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
         repository.save(metadataCollection);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
+    @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void removeFromTeam(String metadataId, String userId) {
         MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
@@ -348,7 +365,7 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
         repository.save(metadataCollection);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
+    @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR') or hasRole('ROLE_MDEQUALITYASSURANCE')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void assignRole(String metadataId, String role) {
       MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
@@ -364,12 +381,15 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
           this.unassignUser(metadataId);
         }
       }
+      if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
+        metadataCollection.setStatus(Status.IN_EDIT);
+      }
 
       metadataCollection.setResponsibleRole(Role.valueOf(role));
       repository.save(metadataCollection);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
+    @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR') or hasRole('ROLE_MDEQUALITYASSURANCE')")
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void unassignRole(String metadataId) {
         MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
@@ -379,7 +399,7 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
         repository.save(metadataCollection);
     }
 
-  @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'CREATE')")
+  @PreAuthorize("isAuthenticated()")
   @Transactional(isolation = Isolation.SERIALIZABLE)
   public Comment addComment(String metadataId, String text) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -406,7 +426,7 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
     return comment;
   }
 
-  @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'DELETE')")
+  @PreAuthorize("isAuthenticated()")
   @Transactional(isolation = Isolation.SERIALIZABLE)
   public void deleteComment(String metadataId, UUID commentId) {
     MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
@@ -423,7 +443,7 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
     repository.save(metadataCollection);
   }
 
-  @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'READ')")
+  @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR') or hasRole('ROLE_MDEQUALITYASSURANCE')")
   @Transactional(readOnly = true)
   public List<UserData> getTeamWithRoles(String metadataId) {
     MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
@@ -463,7 +483,7 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
       .toList();
   }
 
-  @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
+  @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEQUALITYASSURANCE')")
   @Transactional(isolation = Isolation.SERIALIZABLE)
   public void setApprovalState(String metadataId, Boolean approved) {
     MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
@@ -473,7 +493,7 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
     repository.save(metadataCollection);
   }
 
-  @PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#entity, 'UPDATE')")
+  @PreAuthorize("isAuthenticated()")
   @Transactional(isolation = Isolation.SERIALIZABLE)
   public String updateLayers(String metadataId, String serviceIdentification, List<Layer> layers) {
     MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
@@ -488,6 +508,9 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
 
     layerMap.put(serviceIdentification, layers);
     clientMetadata.setLayers(layerMap);
+    if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
+      metadataCollection.setStatus(Status.IN_EDIT);
+    }
 
     repository.save(metadataCollection);
 

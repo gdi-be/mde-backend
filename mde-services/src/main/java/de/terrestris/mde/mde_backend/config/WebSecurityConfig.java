@@ -34,7 +34,13 @@ public class WebSecurityConfig {
             var realmAccess = Optional.ofNullable((Map<String, Object>) claims.get("realm_access"));
             var roles = realmAccess.flatMap(map -> Optional.ofNullable((List<String>) map.get("roles")));
             return roles.stream().flatMap(Collection::stream)
-                    .map(SimpleGrantedAuthority::new)
+                    .map(role -> {
+                        if (role.startsWith("ROLE_")) {
+                            return new SimpleGrantedAuthority(role.toUpperCase());
+                        } else {
+                            return new SimpleGrantedAuthority("ROLE_" + role.toUpperCase());
+                        }
+                    })
                     .map(GrantedAuthority.class::cast)
                     .toList();
         };

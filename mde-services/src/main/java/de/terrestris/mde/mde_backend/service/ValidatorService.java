@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -173,7 +174,7 @@ public class ValidatorService {
     }
   }
 
-  public List<String> validate(boolean inspire, Path file, boolean dataset) {
+  private List<String> validate(boolean inspire, Path file, boolean dataset) {
     try {
       var runner = inspire ? inspireRunner : isoRunner;
       var classes = inspire ? inspireClasses : isoClasses;
@@ -209,6 +210,7 @@ public class ValidatorService {
     extractErrors(result, errors);
   }
 
+  @PreAuthorize("isAuthenticated()")
   public List<String> validateMetadata(String metadataId) throws XMLStreamException, IOException {
     var metadataCollection = metadataCollectionRepository.findByMetadataId(metadataId);
     if (metadataCollection.isEmpty()) {
@@ -224,6 +226,7 @@ public class ValidatorService {
     return errors;
   }
 
+  @PreAuthorize("isAuthenticated()")
   public TrackedTask createValidateMetadataTask(String metadataId) {
     SecurityContext context = SecurityContextHolder.getContext();
 
@@ -248,5 +251,4 @@ public class ValidatorService {
       }
     });
   }
-
 }
