@@ -9,6 +9,7 @@ import de.terrestris.mde.mde_backend.enumeration.MetadataProfile;
 import de.terrestris.mde.mde_backend.enumeration.Role;
 import de.terrestris.mde.mde_backend.jpa.MetadataCollectionRepository;
 import de.terrestris.mde.mde_backend.model.MetadataCollection;
+import de.terrestris.mde.mde_backend.model.Status;
 import de.terrestris.mde.mde_backend.model.dto.QueryConfig;
 import de.terrestris.mde.mde_backend.model.dto.UserData;
 import de.terrestris.mde.mde_backend.model.json.*;
@@ -26,7 +27,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -146,6 +146,7 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
       }
       metadataCollection.setAssignedUserId(myKeycloakId);
       metadataCollection.setOwnerId(myKeycloakId);
+      metadataCollection.setStatus(Status.NEW);
 
       repository.save(metadataCollection);
 
@@ -203,6 +204,7 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
       }
       metadataCollection.setAssignedUserId(myKeycloakId);
       metadataCollection.setOwnerId(myKeycloakId);
+      metadataCollection.setStatus(Status.NEW);
 
       repository.save(metadataCollection);
 
@@ -244,6 +246,9 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
         JsonIsoMetadata updatedData = objectMapper.treeToValue(jsonNode, JsonIsoMetadata.class);
         updateLegendSize(updatedData);
         metadataCollection.setIsoMetadata(updatedData);
+        if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
+          metadataCollection.setStatus(Status.IN_EDIT);
+        }
 
         return repository.save(metadataCollection);
     }
@@ -262,6 +267,9 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
 
         JsonClientMetadata updatedData = objectMapper.treeToValue(jsonNode, JsonClientMetadata.class);
         metadataCollection.setClientMetadata(updatedData);
+      if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
+        metadataCollection.setStatus(Status.IN_EDIT);
+      }
 
         return repository.save(metadataCollection);
     }
@@ -280,6 +288,9 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
 
         JsonTechnicalMetadata updatedData = objectMapper.treeToValue(jsonNode, JsonTechnicalMetadata.class);
         metadataCollection.setTechnicalMetadata(updatedData);
+      if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
+        metadataCollection.setStatus(Status.IN_EDIT);
+      }
 
         return repository.save(metadataCollection);
     }
@@ -305,6 +316,9 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
             break;
           }
         }
+      if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
+        metadataCollection.setStatus(Status.IN_EDIT);
+      }
 
         repository.save(metadataCollection);
     }
@@ -366,6 +380,9 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
         if (!keycloakUserRoleNames.contains(role)) {
           this.unassignUser(metadataId);
         }
+      }
+      if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
+        metadataCollection.setStatus(Status.IN_EDIT);
       }
 
       metadataCollection.setResponsibleRole(Role.valueOf(role));
@@ -491,6 +508,9 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
 
     layerMap.put(serviceIdentification, layers);
     clientMetadata.setLayers(layerMap);
+    if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
+      metadataCollection.setStatus(Status.IN_EDIT);
+    }
 
     repository.save(metadataCollection);
 

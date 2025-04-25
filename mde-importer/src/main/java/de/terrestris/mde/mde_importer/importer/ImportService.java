@@ -3,6 +3,7 @@ package de.terrestris.mde.mde_importer.importer;
 import de.terrestris.mde.mde_backend.enumeration.MetadataProfile;
 import de.terrestris.mde.mde_backend.jpa.MetadataCollectionRepository;
 import de.terrestris.mde.mde_backend.model.MetadataCollection;
+import de.terrestris.mde.mde_backend.model.Status;
 import de.terrestris.mde.mde_backend.model.json.*;
 import de.terrestris.mde.mde_backend.model.json.ColumnInfo.ColumnType;
 import de.terrestris.mde.mde_backend.model.json.ColumnInfo.FilterType;
@@ -160,6 +161,7 @@ public class ImportService {
 
   private void parseDatasetMetadata(XMLStreamReader reader) throws XMLStreamException, ParseException {
     var metadataCollection = new MetadataCollection();
+    metadataCollection.setStatus(Status.PUBLISHED);
     var isoMetadata = new JsonIsoMetadata();
     var technicalMetadata = new JsonTechnicalMetadata();
     var clientMetadata = new JsonClientMetadata();

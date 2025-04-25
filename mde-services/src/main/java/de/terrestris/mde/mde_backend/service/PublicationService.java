@@ -2,6 +2,8 @@ package de.terrestris.mde.mde_backend.service;
 
 import com.nimbusds.jose.util.Base64;
 import de.terrestris.mde.mde_backend.enumeration.Role;
+import de.terrestris.mde.mde_backend.jpa.MetadataCollectionRepository;
+import de.terrestris.mde.mde_backend.model.Status;
 import de.terrestris.mde.mde_backend.model.json.FileIdentifier;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.log4j.Log4j2;
@@ -66,6 +68,9 @@ public class PublicationService {
 
   @Autowired
   private MetadataCollectionService metadataCollectionService;
+
+  @Autowired
+  private MetadataCollectionRepository metadataCollectionRepository;
 
   @PostConstruct
   public void completeCswUrl() {
@@ -192,32 +197,27 @@ public class PublicationService {
 
   @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR')")
   public void publishMetadata(String metadataId) throws XMLStreamException, IOException, URISyntaxException, InterruptedException {
-    // TODO add field status (or similiar) to metadata (set it here to "published")
+    var metadata = metadataCollectionRepository.findByMetadataId(metadataId)
+      .orElseThrow(() -> new IllegalArgumentException("Metadata with ID " + metadataId + " not found."));
 
-    var metadata = metadataCollectionService.findOneByMetadataId(metadataId);
-    if (metadata.isEmpty()) {
-      log.info("Metadata with ID {} is not available.", metadataId);
-      return;
-    }
-
-    var entity = metadata.get();
-
-    if (entity.getApproved() == null || !entity.getApproved()) {
+    if (metadata.getApproved() == null || !metadata.getApproved()) {
       log.warn("Metadata with ID {} is not approved.", metadataId);
       return;
     }
 
-    if (entity.getAssignedUserId() == null) {
+    if (metadata.getAssignedUserId() == null) {
       log.warn("Metadata with ID {} is not assigned to a user.", metadataId);
       return;
     }
 
-    if (entity.getResponsibleRole() == null || !entity.getResponsibleRole().equals(Role.MdeEditor)) {
+    if (metadata.getResponsibleRole() == null || !metadata.getResponsibleRole().equals(Role.MdeEditor)) {
       log.warn("Metadata with ID {} is not assigned to required role {}.", metadataId, Role.MdeEditor);
       return;
     }
 
-    var isoMetadata = entity.getIsoMetadata();
+    metadata.setStatus(Status.PUBLISHED);
+
+    var isoMetadata = metadata.getIsoMetadata();
     var uuids = new ArrayList<String>();
     var insert = isoMetadata.getFileIdentifier() == null;
     if (log.isTraceEnabled()) {
@@ -272,8 +272,7 @@ public class PublicationService {
       });
     }
 
-    // TODO call repository.save() isntead
-    metadataCollectionService.update(entity.getId(), entity);
+    metadataCollectionRepository.save(metadata);
     publishRecords(uuids);
   }
 

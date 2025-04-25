@@ -36,6 +36,11 @@ public class MetadataCollection extends BaseMetadata {
 
   @Column
   @Setter
+  @Enumerated(EnumType.STRING)
+  private Status status;
+
+  @Column
+  @Setter
   @FullTextField
   @KeywordField(name = "team_member_sort", sortable = Sortable.YES)
   private Set<String> teamMemberIds;
