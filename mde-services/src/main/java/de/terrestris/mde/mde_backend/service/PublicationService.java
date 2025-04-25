@@ -5,6 +5,7 @@ import de.terrestris.mde.mde_backend.enumeration.Role;
 import de.terrestris.mde.mde_backend.jpa.MetadataCollectionRepository;
 import de.terrestris.mde.mde_backend.model.Status;
 import de.terrestris.mde.mde_backend.model.json.FileIdentifier;
+import de.terrestris.mde.mde_backend.utils.PublicationException;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.IOUtils;
@@ -196,23 +197,22 @@ public class PublicationService {
   }
 
   @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR')")
-  public void publishMetadata(String metadataId) throws XMLStreamException, IOException, URISyntaxException, InterruptedException {
+  public void publishMetadata(String metadataId) throws XMLStreamException, IOException, URISyntaxException,
+    InterruptedException, PublicationException {
     var metadata = metadataCollectionRepository.findByMetadataId(metadataId)
       .orElseThrow(() -> new IllegalArgumentException("Metadata with ID " + metadataId + " not found."));
 
     if (metadata.getApproved() == null || !metadata.getApproved()) {
-      log.warn("Metadata with ID {} is not approved.", metadataId);
-      return;
+      throw new PublicationException("Metadata with ID " + metadataId + " is not approved.");
     }
 
     if (metadata.getAssignedUserId() == null) {
-      log.warn("Metadata with ID {} is not assigned to a user.", metadataId);
-      return;
+      throw new PublicationException("Metadata with ID " + metadataId + " is not assigned to a user.");
     }
 
     if (metadata.getResponsibleRole() == null || !metadata.getResponsibleRole().equals(Role.MdeEditor)) {
-      log.warn("Metadata with ID {} is not assigned to required role {}.", metadataId, Role.MdeEditor);
-      return;
+      throw new PublicationException("Metadata with ID " + metadataId + " is not assigned to " +
+        "required role " + Role.MdeEditor + ".");
     }
 
     metadata.setStatus(Status.PUBLISHED);
