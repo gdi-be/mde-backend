@@ -25,37 +25,22 @@ public class SpringdocConfig {
   @Bean
   public OpenAPI customOpenAPI() {
     return new OpenAPI()
-      .info(
-        new Info()
-          .title(title)
-          .version(version)
-          .description(description)
-          .contact(
-            new Contact()
-              .name(contactName)
-              .url(contactUrl)
-              .email(contactMail)
-          )
-          .license(
-            new License()
-              .name(license)
-              .url(licenseUrl)
-          )
-      )
-      .addSecurityItem(
-        new SecurityRequirement()
-          .addList("Bearer Authentication")
-      )
-      .components(
-        new Components()
-          .addSecuritySchemes(
-            "Bearer Authentication",
-            new SecurityScheme()
-              .name("Bearer Authentication")
-              .type(SecurityScheme.Type.HTTP)
-              .scheme("bearer")
-              .bearerFormat("JWT")
-          )
-      );
+        .info(
+            new Info()
+                .title(title)
+                .version(version)
+                .description(description)
+                .contact(new Contact().name(contactName).url(contactUrl).email(contactMail))
+                .license(new License().name(license).url(licenseUrl)))
+        .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication"))
+        .components(
+            new Components()
+                .addSecuritySchemes(
+                    "Bearer Authentication",
+                    new SecurityScheme()
+                        .name("Bearer Authentication")
+                        .type(SecurityScheme.Type.HTTP)
+                        .scheme("bearer")
+                        .bearerFormat("JWT")));
   }
 }

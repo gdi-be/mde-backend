@@ -9,8 +9,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class StartupTask {
 
-  @Autowired
-  private SearchService searchService;
+  @Autowired private SearchService searchService;
 
   @EventListener(ApplicationReadyEvent.class)
   public void onApplicationReady() {

@@ -1,5 +1,10 @@
 package de.terrestris.mde.mde_importer.importer;
 
+import static de.terrestris.mde.mde_backend.service.IsoGenerator.TERMS_OF_USE_MAP;
+import static de.terrestris.mde.mde_backend.service.IsoGenerator.replaceValues;
+import static de.terrestris.utils.xml.MetadataNamespaceUtils.XLINK;
+import static de.terrestris.utils.xml.XmlUtils.*;
+
 import de.terrestris.mde.mde_backend.enumeration.MetadataProfile;
 import de.terrestris.mde.mde_backend.jpa.MetadataCollectionRepository;
 import de.terrestris.mde.mde_backend.model.MetadataCollection;
@@ -14,18 +19,6 @@ import de.terrestris.mde.mde_backend.model.json.codelists.CI_RoleCode;
 import de.terrestris.mde.mde_backend.model.json.codelists.MD_MaintenanceFrequencyCode;
 import de.terrestris.mde.mde_backend.service.GeneratorUtils;
 import de.terrestris.mde.mde_backend.service.KeycloakService;
-import lombok.extern.log4j.Log4j2;
-import org.apache.http.client.utils.URIBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.stereotype.Component;
-
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URISyntaxException;
@@ -37,11 +30,17 @@ import java.time.Instant;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-
-import static de.terrestris.mde.mde_backend.service.IsoGenerator.TERMS_OF_USE_MAP;
-import static de.terrestris.mde.mde_backend.service.IsoGenerator.replaceValues;
-import static de.terrestris.utils.xml.MetadataNamespaceUtils.XLINK;
-import static de.terrestris.utils.xml.XmlUtils.*;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import lombok.extern.log4j.Log4j2;
+import org.apache.http.client.utils.URIBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.stereotype.Component;
 
 @Component
 @Log4j2
@@ -55,27 +54,25 @@ public class ImportService {
 
   private static final SimpleDateFormat FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
-  private static final Set<String> AUTO_KEYWORDS = Set.of(
-    "inspireidentifiziert",
-    "open data",
-    "opendata",
-    "Sachdaten",
-    "Karten",
-    "Geodaten",
-    "Berlin",
-    "infoFeatureAccessService",
-    "infoMapAccessService"
-  );
+  private static final Set<String> AUTO_KEYWORDS =
+      Set.of(
+          "inspireidentifiziert",
+          "open data",
+          "opendata",
+          "Sachdaten",
+          "Karten",
+          "Geodaten",
+          "Berlin",
+          "infoFeatureAccessService",
+          "infoMapAccessService");
 
   static {
     FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
   }
 
-  @Autowired
-  private MetadataCollectionRepository metadataCollectionRepository;
+  @Autowired private MetadataCollectionRepository metadataCollectionRepository;
 
-  @Autowired
-  private KeycloakService keycloakService;
+  @Autowired private KeycloakService keycloakService;
 
   @Value("${mde.assign-users-on-import:false}")
   private boolean assignUsersOnImport;
@@ -97,18 +94,21 @@ public class ImportService {
     }
     var factory = XMLInputFactory.newFactory();
     var dir = Path.of(directory);
-    try (Stream<Path> files = Files.find(dir, 1, (path, attributes) -> path.getFileName().toString().startsWith("ISO_"))) {
-      files.forEach(file -> {
-        log.info("Importing from {}", file);
-        try {
-          var reader = factory.createXMLStreamReader(Files.newInputStream(file));
-          parseDatasetMetadata(reader);
-        } catch (XMLStreamException | IOException | ParseException e) {
-          log.warn("Error while importing metadata from file {}: {}", file, e.getMessage());
-          log.trace("Stack trace", e);
-          throw new ImportException(e);
-        }
-      });
+    try (Stream<Path> files =
+        Files.find(
+            dir, 1, (path, attributes) -> path.getFileName().toString().startsWith("ISO_"))) {
+      files.forEach(
+          file -> {
+            log.info("Importing from {}", file);
+            try {
+              var reader = factory.createXMLStreamReader(Files.newInputStream(file));
+              parseDatasetMetadata(reader);
+            } catch (XMLStreamException | IOException | ParseException e) {
+              log.warn("Error while importing metadata from file {}: {}", file, e.getMessage());
+              log.trace("Stack trace", e);
+              throw new ImportException(e);
+            }
+          });
     } catch (IOException e) {
       log.info("Error while importing metadata: {}", e.getMessage());
       log.trace("Stack trace", e);
@@ -119,21 +119,24 @@ public class ImportService {
 
   private void scanServices(String directory) throws IOException {
     var dir = Path.of(directory);
-    try (Stream<Path> files = Files.find(dir, 1, (path, attributes) -> !path.getFileName().toString().startsWith("ISO_"))) {
-      files.forEach(file -> {
-        if (Files.isDirectory(file)) {
-          return;
-        }
-        log.info("Scanning service file {}", file);
-        try {
-          var reader = FACTORY.createXMLStreamReader(Files.newInputStream(file));
-          scanServiceFile(reader, file);
-        } catch (XMLStreamException | IOException e) {
-          log.warn("Error scanning service file {}: {}", file, e.getMessage());
-          log.trace("Stack trace", e);
-          throw new ImportException(e);
-        }
-      });
+    try (Stream<Path> files =
+        Files.find(
+            dir, 1, (path, attributes) -> !path.getFileName().toString().startsWith("ISO_"))) {
+      files.forEach(
+          file -> {
+            if (Files.isDirectory(file)) {
+              return;
+            }
+            log.info("Scanning service file {}", file);
+            try {
+              var reader = FACTORY.createXMLStreamReader(Files.newInputStream(file));
+              scanServiceFile(reader, file);
+            } catch (XMLStreamException | IOException e) {
+              log.warn("Error scanning service file {}: {}", file, e.getMessage());
+              log.trace("Stack trace", e);
+              throw new ImportException(e);
+            }
+          });
     }
     log.info("Mappings from datasets to service files: {}", servicesMap.toString());
   }
@@ -159,7 +162,8 @@ public class ImportService {
     }
   }
 
-  private void parseDatasetMetadata(XMLStreamReader reader) throws XMLStreamException, ParseException {
+  private void parseDatasetMetadata(XMLStreamReader reader)
+      throws XMLStreamException, ParseException {
     var metadataCollection = new MetadataCollection();
     metadataCollection.setStatus(Status.PUBLISHED);
     var isoMetadata = new JsonIsoMetadata();
@@ -200,16 +204,20 @@ public class ImportService {
     // replace content and technical description with values from a service if not set
     if (isoMetadata.getServices() != null) {
       for (var service : isoMetadata.getServices()) {
-        if (isoMetadata.getContentDescription() == null && service.getContentDescription() != null) {
+        if (isoMetadata.getContentDescription() == null
+            && service.getContentDescription() != null) {
           isoMetadata.setContentDescription(service.getContentDescription());
         }
-        if (isoMetadata.getTechnicalDescription() == null && service.getTechnicalDescription() != null) {
+        if (isoMetadata.getTechnicalDescription() == null
+            && service.getTechnicalDescription() != null) {
           isoMetadata.setTechnicalDescription(service.getTechnicalDescription());
         }
       }
     }
     if (isoMetadata.getTermsOfUseId() == null) {
-      log.info("Terms of use could not be mapped for {}, using standard.", metadataCollection.getMetadataId());
+      log.info(
+          "Terms of use could not be mapped for {}, using standard.",
+          metadataCollection.getMetadataId());
       isoMetadata.setTermsOfUseId(BigInteger.ONE);
     }
 
@@ -236,8 +244,10 @@ public class ImportService {
     metadataCollectionRepository.save(metadataCollection);
   }
 
-  private static void extractCoordinateSystem(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException {
-    while (reader.hasNext() && !(reader.isStartElement() && reader.getLocalName().equals("identificationInfo"))) {
+  private static void extractCoordinateSystem(XMLStreamReader reader, JsonIsoMetadata json)
+      throws XMLStreamException {
+    while (reader.hasNext()
+        && !(reader.isStartElement() && reader.getLocalName().equals("identificationInfo"))) {
       reader.next();
       if (!reader.isStartElement()) {
         continue;
@@ -250,13 +260,15 @@ public class ImportService {
     }
   }
 
-  private static void extractFromIso(XMLStreamReader reader, MetadataCollection metadataCollection) throws XMLStreamException, ParseException {
+  private static void extractFromIso(XMLStreamReader reader, MetadataCollection metadataCollection)
+      throws XMLStreamException, ParseException {
     skipToElement(reader, "MD_DataIdentification");
     metadataCollection.setMetadataId(reader.getAttributeValue(null, "uuid"));
     var isoMetadata = metadataCollection.getIsoMetadata();
     isoMetadata.setIdentifier(metadataCollection.getMetadataId());
     isoMetadata.setPointsOfContact(new ArrayList<>());
-    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("MD_Metadata"))) {
+    while (reader.hasNext()
+        && !(reader.isEndElement() && reader.getLocalName().equals("MD_Metadata"))) {
       reader.next();
       if (!reader.isStartElement()) {
         continue;
@@ -288,7 +300,8 @@ public class ImportService {
       extractKeyword(reader, isoMetadata);
       if (reader.isStartElement() && reader.getLocalName().equals("resourceMaintenance")) {
         skipToElement(reader, "MD_MaintenanceFrequencyCode");
-        isoMetadata.setMaintenanceFrequency(MD_MaintenanceFrequencyCode.valueOf(reader.getAttributeValue(null, "codeListValue")));
+        isoMetadata.setMaintenanceFrequency(
+            MD_MaintenanceFrequencyCode.valueOf(reader.getAttributeValue(null, "codeListValue")));
       }
       extractExtent(reader, isoMetadata);
       extractSpatialResolution(reader, isoMetadata);
@@ -309,11 +322,13 @@ public class ImportService {
     }
   }
 
-  private static void extractExtent(XMLStreamReader reader, JsonIsoMetadata metadata) throws XMLStreamException {
+  private static void extractExtent(XMLStreamReader reader, JsonIsoMetadata metadata)
+      throws XMLStreamException {
     if (reader.isStartElement() && reader.getLocalName().equals("EX_GeographicBoundingBox")) {
       var extent = new Extent();
       metadata.setExtent(extent);
-      while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("EX_GeographicBoundingBox"))) {
+      while (reader.hasNext()
+          && !(reader.isEndElement() && reader.getLocalName().equals("EX_GeographicBoundingBox"))) {
         reader.next();
         if (!reader.isStartElement()) {
           continue;
@@ -340,14 +355,16 @@ public class ImportService {
     }
   }
 
-  private static void extractDistributionFormat(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException {
+  private static void extractDistributionFormat(XMLStreamReader reader, JsonIsoMetadata json)
+      throws XMLStreamException {
     if (reader.isStartElement() && reader.getLocalName().equals("distributionFormat")) {
       if (json.getDistributionVersions() == null) {
         json.setDistributionVersions(new ArrayList<>());
       }
       var version = new DistributionVersion();
       json.getDistributionVersions().add(version);
-      while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("distributionFormat"))) {
+      while (reader.hasNext()
+          && !(reader.isEndElement() && reader.getLocalName().equals("distributionFormat"))) {
         reader.next();
         if (!reader.isStartElement()) {
           continue;
@@ -370,7 +387,8 @@ public class ImportService {
     }
   }
 
-  private static void extractDate(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException, ParseException {
+  private static void extractDate(XMLStreamReader reader, JsonIsoMetadata json)
+      throws XMLStreamException, ParseException {
     if (reader.isStartElement() && reader.getLocalName().equals("date")) {
       skipToElement(reader, "Date");
       var text = reader.getElementText();
@@ -393,23 +411,27 @@ public class ImportService {
     }
   }
 
-  private static void extractGraphicOverview(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException {
+  private static void extractGraphicOverview(XMLStreamReader reader, JsonIsoMetadata json)
+      throws XMLStreamException {
     if (reader.isStartElement() && reader.getLocalName().equals("graphicOverview")) {
       skipToElement(reader, "CharacterString");
       json.setPreview(reader.getElementText());
     }
   }
 
-  private static void extractConformanceResult(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException {
+  private static void extractConformanceResult(XMLStreamReader reader, JsonIsoMetadata json)
+      throws XMLStreamException {
     if (reader.isStartElement() && reader.getLocalName().equals("DQ_ConformanceResult")) {
-      while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("DQ_ConformanceResult"))) {
+      while (reader.hasNext()
+          && !(reader.isEndElement() && reader.getLocalName().equals("DQ_ConformanceResult"))) {
         reader.next();
         if (!reader.isStartElement()) {
           continue;
         }
         if (reader.getLocalName().equals("Boolean")) {
           json.setValid(Boolean.parseBoolean(reader.getElementText()));
-          if (json.isValid() && json.getMetadataProfile().equals(MetadataProfile.INSPIRE_IDENTIFIED)) {
+          if (json.isValid()
+              && json.getMetadataProfile().equals(MetadataProfile.INSPIRE_IDENTIFIED)) {
             json.setMetadataProfile(MetadataProfile.INSPIRE_HARMONISED);
           }
         }
@@ -417,9 +439,11 @@ public class ImportService {
     }
   }
 
-  private static void extractSpatialResolution(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException {
+  private static void extractSpatialResolution(XMLStreamReader reader, JsonIsoMetadata json)
+      throws XMLStreamException {
     if (reader.isStartElement() && reader.getLocalName().equals("spatialResolution")) {
-      while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("spatialResolution"))) {
+      while (reader.hasNext()
+          && !(reader.isEndElement() && reader.getLocalName().equals("spatialResolution"))) {
         reader.next();
         if (!reader.isStartElement()) {
           continue;
@@ -438,19 +462,22 @@ public class ImportService {
     }
   }
 
-  private static void extractTransferOptions(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException {
+  private static void extractTransferOptions(XMLStreamReader reader, JsonIsoMetadata json)
+      throws XMLStreamException {
     if (reader.isStartElement() && reader.getLocalName().equals("transferOptions")) {
       if (json.getContentDescriptions() == null) {
         json.setContentDescriptions(new ArrayList<>());
       }
-      while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("transferOptions"))) {
+      while (reader.hasNext()
+          && !(reader.isEndElement() && reader.getLocalName().equals("transferOptions"))) {
         reader.next();
         if (!reader.isStartElement()) {
           continue;
         }
         if (reader.getLocalName().equals("CI_OnlineResource")) {
           var description = new ContentDescription();
-          while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("CI_OnlineResource"))) {
+          while (reader.hasNext()
+              && !(reader.isEndElement() && reader.getLocalName().equals("CI_OnlineResource"))) {
             reader.next();
             if (!reader.isStartElement()) {
               continue;
@@ -468,9 +495,11 @@ public class ImportService {
                 break;
             }
           }
-          if (description.getDescription() != null && description.getDescription().trim().equals("Inhaltliche Beschreibung")) {
+          if (description.getDescription() != null
+              && description.getDescription().trim().equals("Inhaltliche Beschreibung")) {
             json.setContentDescription(description.getUrl());
-          } else if (description.getDescription() != null && description.getDescription().trim().equals("Technische Beschreibung")) {
+          } else if (description.getDescription() != null
+              && description.getDescription().trim().equals("Technische Beschreibung")) {
             json.setTechnicalDescription(description.getUrl());
           } else {
             json.getContentDescriptions().add(description);
@@ -480,12 +509,15 @@ public class ImportService {
     }
   }
 
-  private static void extractResourceConstraints(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException {
+  private static void extractResourceConstraints(XMLStreamReader reader, JsonIsoMetadata json)
+      throws XMLStreamException {
     if (reader.isStartElement() && reader.getLocalName().equals("resourceConstraints")) {
       while (!(reader.isEndElement() && reader.getLocalName().equals("resourceConstraints"))) {
         reader.next();
-        if (!reader.isStartElement() || reader.getLocalName().equals("MD_LegalConstraints") ||
-          reader.getLocalName().equals("useLimitation") || reader.getLocalName().equals("CharacterString")) {
+        if (!reader.isStartElement()
+            || reader.getLocalName().equals("MD_LegalConstraints")
+            || reader.getLocalName().equals("useLimitation")
+            || reader.getLocalName().equals("CharacterString")) {
           continue;
         }
         skipToOneOf(reader, "Anchor", "CharacterString", "MD_RestrictionCode");
@@ -499,11 +531,13 @@ public class ImportService {
     }
   }
 
-  private static void extractKeyword(XMLStreamReader reader, JsonIsoMetadata json) throws XMLStreamException, ParseException {
+  private static void extractKeyword(XMLStreamReader reader, JsonIsoMetadata json)
+      throws XMLStreamException, ParseException {
     if (reader.isStartElement() && reader.getLocalName().equals("MD_Keywords")) {
       var keywords = new ArrayList<Keyword>();
       var thesaurus = new Thesaurus();
-      while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("MD_Keywords"))) {
+      while (reader.hasNext()
+          && !(reader.isEndElement() && reader.getLocalName().equals("MD_Keywords"))) {
         reader.next();
         if (!reader.isStartElement()) {
           continue;
@@ -539,28 +573,35 @@ public class ImportService {
             text += text.endsWith("Z") ? "" : "Z";
             thesaurus.setDate(FORMAT.parse(text).toInstant());
             skipToElement(reader, "CI_DateTypeCode");
-            thesaurus.setCode(CI_DateTypeCode.valueOf(reader.getAttributeValue(null, "codeListValue")));
+            thesaurus.setCode(
+                CI_DateTypeCode.valueOf(reader.getAttributeValue(null, "codeListValue")));
             break;
         }
       }
       if (keywords.isEmpty()) {
         return;
       }
-      if (thesaurus.getTitle() != null && thesaurus.getTitle().equals("GEMET - INSPIRE themes, version 1.0")) {
+      if (thesaurus.getTitle() != null
+          && thesaurus.getTitle().equals("GEMET - INSPIRE themes, version 1.0")) {
         if (json.getInspireTheme() == null) {
           json.setInspireTheme(new ArrayList<>());
         }
-        json.getInspireTheme().add(GeneratorUtils.INSPIRE_THEME_MAP.get(keywords.getFirst().getKeyword()));
+        json.getInspireTheme()
+            .add(GeneratorUtils.INSPIRE_THEME_MAP.get(keywords.getFirst().getKeyword()));
       } else {
-        json.getKeywords().put(thesaurus.getTitle() == null ? "default" : thesaurus.getTitle(), keywords);
-        json.getThesauri().put(thesaurus.getTitle() == null ? "default" : thesaurus.getTitle(), thesaurus);
+        json.getKeywords()
+            .put(thesaurus.getTitle() == null ? "default" : thesaurus.getTitle(), keywords);
+        json.getThesauri()
+            .put(thesaurus.getTitle() == null ? "default" : thesaurus.getTitle(), thesaurus);
       }
     }
   }
 
-  private static Contact parseContact(XMLStreamReader reader, String elementName) throws XMLStreamException {
+  private static Contact parseContact(XMLStreamReader reader, String elementName)
+      throws XMLStreamException {
     var contact = new Contact();
-    while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals(elementName))) {
+    while (reader.hasNext()
+        && !(reader.isEndElement() && reader.getLocalName().equals(elementName))) {
       reader.next();
       if (!reader.isStartElement()) {
         continue;
@@ -592,7 +633,8 @@ public class ImportService {
           skipToElement(reader, "URL");
           contact.setUrl(reader.getElementText());
           skipToElement(reader, "CI_OnLineFunctionCode");
-          contact.setCode(CI_OnLineFunctionCode.valueOf(reader.getAttributeValue(null, "codeListValue")));
+          contact.setCode(
+              CI_OnLineFunctionCode.valueOf(reader.getAttributeValue(null, "codeListValue")));
           break;
         case "CI_RoleCode":
           contact.setRoleCode(CI_RoleCode.valueOf(reader.getAttributeValue(null, "codeListValue")));
@@ -620,7 +662,9 @@ public class ImportService {
       var reader = FACTORY.createXMLStreamReader(Files.newInputStream(file));
       nextElement(reader);
       List<Layer> layers = null;
-      while (reader.hasNext() && !reader.getLocalName().equals("IsoMetadata") && !reader.getLocalName().equals("IsoMetadataWMTS")) {
+      while (reader.hasNext()
+          && !reader.getLocalName().equals("IsoMetadata")
+          && !reader.getLocalName().equals("IsoMetadataWMTS")) {
         var res = extractMetadataFields(reader, service, technicalMetadata);
         if (!res.isEmpty()) {
           layers = res;
@@ -644,7 +688,8 @@ public class ImportService {
     }
   }
 
-  private static void extractIsoFields(XMLStreamReader reader, Service service) throws XMLStreamException {
+  private static void extractIsoFields(XMLStreamReader reader, Service service)
+      throws XMLStreamException {
     skipToElement(reader, "fileIdentifier");
     skipToElement(reader, "CharacterString");
     var id = reader.getElementText();
@@ -675,7 +720,8 @@ public class ImportService {
     service.setUrl(url);
   }
 
-  private static void parseLayer(XMLStreamReader reader, List<Layer> layers) throws XMLStreamException {
+  private static void parseLayer(XMLStreamReader reader, List<Layer> layers)
+      throws XMLStreamException {
     var layer = new Layer();
     while (!(reader.isEndElement() && reader.getLocalName().equals("Layer"))) {
       reader.next();
@@ -725,7 +771,8 @@ public class ImportService {
     }
   }
 
-  private static void parseLayers(XMLStreamReader reader, List<Layer> layers) throws XMLStreamException {
+  private static void parseLayers(XMLStreamReader reader, List<Layer> layers)
+      throws XMLStreamException {
     while (!(reader.isEndElement() && reader.getLocalName().equals("WMS_Capabilities"))) {
       reader.next();
       if (!reader.isStartElement()) {
@@ -737,7 +784,8 @@ public class ImportService {
     }
   }
 
-  private static void parseCapabilities(Service service, JsonClientMetadata client) throws URISyntaxException, IOException, XMLStreamException {
+  private static void parseCapabilities(Service service, JsonClientMetadata client)
+      throws URISyntaxException, IOException, XMLStreamException {
     var url = replaceValues(service.getUrl());
     if (!url.contains("gdi.berlin.de")) {
       log.info("Not reading capabilities from {}", url);
@@ -749,16 +797,19 @@ public class ImportService {
     }
     var layers = new ArrayList<Layer>();
     client.getLayers().put(service.getFileIdentifier(), layers);
-    var uri = new URIBuilder(url)
-      .clearParameters()
-      .setParameter("request", "GetCapabilities")
-      .setParameter("service", "WMS")
-      .build();
+    var uri =
+        new URIBuilder(url)
+            .clearParameters()
+            .setParameter("request", "GetCapabilities")
+            .setParameter("service", "WMS")
+            .build();
     var reader = FACTORY.createXMLStreamReader(uri.toURL().openStream());
     parseLayers(reader, layers);
   }
 
-  private static List<Layer> extractMetadataFields(XMLStreamReader reader, Service service, JsonTechnicalMetadata technical) throws XMLStreamException, ParseException, URISyntaxException {
+  private static List<Layer> extractMetadataFields(
+      XMLStreamReader reader, Service service, JsonTechnicalMetadata technical)
+      throws XMLStreamException, ParseException, URISyntaxException {
     var layers = new ArrayList<Layer>();
     if (service.getFeatureTypes() == null) {
       service.setFeatureTypes(new ArrayList<>());
@@ -768,10 +819,9 @@ public class ImportService {
     }
     switch (reader.getLocalName()) {
       case "Dienstebeschreibung":
-        var desc = new ServiceDescription(
-          reader.getAttributeValue(null, "typ"),
-          reader.getAttributeValue(null, "url")
-        );
+        var desc =
+            new ServiceDescription(
+                reader.getAttributeValue(null, "typ"), reader.getAttributeValue(null, "url"));
         service.getServiceDescriptions().add(desc);
         break;
       case "Title":
@@ -795,12 +845,12 @@ public class ImportService {
         }
         break;
       case "LegendImage":
-        var img = new LegendImage(
-          reader.getAttributeValue(null, "format"),
-          reader.getAttributeValue(null, "url"),
-          Integer.parseInt(reader.getAttributeValue(null, "width")),
-          Integer.parseInt(reader.getAttributeValue(null, "height"))
-        );
+        var img =
+            new LegendImage(
+                reader.getAttributeValue(null, "format"),
+                reader.getAttributeValue(null, "url"),
+                Integer.parseInt(reader.getAttributeValue(null, "width")),
+                Integer.parseInt(reader.getAttributeValue(null, "height")));
         service.setLegendImage(img);
         break;
       case "Datengrundlage":
@@ -817,36 +867,42 @@ public class ImportService {
         publication.setContent(reader.getElementText());
         service.getPublications().add(publication);
         break;
-      case "Erstellungsdatum": {
-        var txt = reader.getElementText();
-        service.setCreated(FORMAT.parse(txt + (txt.endsWith("Z") ? "" : "Z")).toInstant());
-        break;
-      }
-      case "Revisionsdatum": {
-        var txt = reader.getElementText();
-        service.setUpdated(FORMAT.parse(txt + (txt.endsWith("Z") ? "" : "Z")).toInstant());
-        break;
-      }
-      case "Veroeffentlichungsdatum": {
-        var txt = reader.getElementText();
-        service.setPublished(FORMAT.parse(txt + (txt.endsWith("Z") ? "" : "Z")).toInstant());
-        break;
-      }
+      case "Erstellungsdatum":
+        {
+          var txt = reader.getElementText();
+          service.setCreated(FORMAT.parse(txt + (txt.endsWith("Z") ? "" : "Z")).toInstant());
+          break;
+        }
+      case "Revisionsdatum":
+        {
+          var txt = reader.getElementText();
+          service.setUpdated(FORMAT.parse(txt + (txt.endsWith("Z") ? "" : "Z")).toInstant());
+          break;
+        }
+      case "Veroeffentlichungsdatum":
+        {
+          var txt = reader.getElementText();
+          service.setPublished(FORMAT.parse(txt + (txt.endsWith("Z") ? "" : "Z")).toInstant());
+          break;
+        }
       case "Vorschau":
         // ignored
         break;
       case "Kategorie":
-        while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("Kategorie"))) {
+        while (reader.hasNext()
+            && !(reader.isEndElement() && reader.getLocalName().equals("Kategorie"))) {
           reader.next();
           if (!reader.isStartElement()) {
             continue;
           }
           if (reader.getLocalName().equals("Link")) {
-            technical.getCategories().add(new Category(
-              reader.getAttributeValue(null, "title"),
-              reader.getAttributeValue(null, "type"),
-              reader.getElementText()
-            ));
+            technical
+                .getCategories()
+                .add(
+                    new Category(
+                        reader.getAttributeValue(null, "title"),
+                        reader.getAttributeValue(null, "type"),
+                        reader.getElementText()));
           }
         }
         break;
@@ -860,7 +916,8 @@ public class ImportService {
         featureType.getColumns().add(columnInfo);
         featureTypes.add(featureType);
 
-        while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("SelectColumn"))) {
+        while (reader.hasNext()
+            && !(reader.isEndElement() && reader.getLocalName().equals("SelectColumn"))) {
           reader.next();
           if (!reader.isStartElement()) {
             continue;
@@ -883,7 +940,8 @@ public class ImportService {
               columnInfo.setType(ColumnType.valueOf(tp));
               break;
             case "ColumnFilter":
-              while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("ColumnFilter"))) {
+              while (reader.hasNext()
+                  && !(reader.isEndElement() && reader.getLocalName().equals("ColumnFilter"))) {
                 reader.next();
                 if (!reader.isStartElement()) {
                   continue;
@@ -905,7 +963,8 @@ public class ImportService {
         var layer = new Layer();
         layers.add(layer);
         layer.setName(reader.getAttributeValue(null, "name"));
-        while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("Kartenebene"))) {
+        while (reader.hasNext()
+            && !(reader.isEndElement() && reader.getLocalName().equals("Kartenebene"))) {
           reader.next();
           if (!reader.isStartElement()) {
             continue;
@@ -931,5 +990,4 @@ public class ImportService {
     nextElement(reader);
     return layers;
   }
-
 }

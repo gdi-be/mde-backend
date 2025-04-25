@@ -12,18 +12,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class SearchService {
 
-  @PersistenceContext
-  private EntityManager entityManager;
+  @PersistenceContext private EntityManager entityManager;
 
   // TODO Since this is called in a startup task, we can't use @PreAuthorize here
-//  @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR')")
+  //  @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR')")
   @Transactional(readOnly = true)
   public void reindexAll() {
     SearchSession searchSession = Search.session(entityManager);
     log.info("Reindexing started");
     try {
-      searchSession.massIndexer()
-        .startAndWait();
+      searchSession.massIndexer().startAndWait();
       log.info("Reindexing finished");
     } catch (InterruptedException e) {
       throw new RuntimeException("Reindexing failed", e);

@@ -18,5 +18,4 @@ public class DistributionVersion {
   private String version;
 
   private String specification;
-
 }

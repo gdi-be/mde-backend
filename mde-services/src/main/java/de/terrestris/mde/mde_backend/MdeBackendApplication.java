@@ -14,11 +14,13 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 @Configuration
 @PropertySource(value = "classpath:/application.properties", encoding = "UTF8")
-@PropertySource(ignoreResourceNotFound = true, value = "file:///config/application.properties", encoding = "UTF8")
+@PropertySource(
+    ignoreResourceNotFound = true,
+    value = "file:///config/application.properties",
+    encoding = "UTF8")
 public class MdeBackendApplication {
 
   public static void main(String[] args) {
     SpringApplication.run(MdeBackendApplication.class, args);
   }
-
 }

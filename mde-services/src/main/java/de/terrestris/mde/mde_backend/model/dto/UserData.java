@@ -12,5 +12,4 @@ public class UserData {
   private String keycloakId;
 
   private String displayName;
-
 }

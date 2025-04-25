@@ -19,5 +19,4 @@ public class ContentDescription {
   private String description;
 
   private CI_OnLineFunctionCode code;
-
 }

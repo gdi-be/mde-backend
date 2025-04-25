@@ -1,19 +1,5 @@
 package de.terrestris.mde.mde_backend.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import de.terrestris.mde.mde_backend.enumeration.MetadataProfile;
-import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
-import de.terrestris.mde.mde_backend.model.json.Service;
-import de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode;
-import org.codehaus.stax2.XMLOutputFactory2;
-import org.springframework.stereotype.Component;
-
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-import java.io.IOException;
-import java.io.OutputStream;
-
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_DateTypeCode.*;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode.information;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_PresentationFormCode.mapDigital;
@@ -24,12 +10,26 @@ import static de.terrestris.mde.mde_backend.service.IsoGenerator.replaceValues;
 import static de.terrestris.utils.xml.MetadataNamespaceUtils.*;
 import static de.terrestris.utils.xml.XmlUtils.writeSimpleElement;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import de.terrestris.mde.mde_backend.enumeration.MetadataProfile;
+import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
+import de.terrestris.mde.mde_backend.model.json.Service;
+import de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode;
+import java.io.IOException;
+import java.io.OutputStream;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+import org.codehaus.stax2.XMLOutputFactory2;
+import org.springframework.stereotype.Component;
+
 @Component
 public class ServiceIsoGenerator {
 
   private static final XMLOutputFactory FACTORY = XMLOutputFactory2.newFactory();
 
-  private static void writeOperations(XMLStreamWriter writer, Service service, JsonIsoMetadata metadata) throws XMLStreamException {
+  private static void writeOperations(
+      XMLStreamWriter writer, Service service, JsonIsoMetadata metadata) throws XMLStreamException {
     writer.writeStartElement(SRV, "containsOperations");
     writer.writeStartElement(SRV, "SV_OperationMetadata");
     switch (service.getServiceType()) {
@@ -40,17 +40,20 @@ public class ServiceIsoGenerator {
     writer.writeEndElement(); // containsOperations
     writer.writeStartElement(SRV, "operatesOn");
     writer.writeAttribute("uuidref", metadata.getIdentifier());
-    writer.writeAttribute(XLINK, "href", "https://registry.gdi-de.org/id/de.be.csw/" + metadata.getIdentifier());
+    writer.writeAttribute(
+        XLINK, "href", "https://registry.gdi-de.org/id/de.be.csw/" + metadata.getIdentifier());
     writer.writeEndElement(); // operatesOn
   }
 
-  private static void writeOperation(XMLStreamWriter writer, Service service, String operationName) throws XMLStreamException {
+  private static void writeOperation(XMLStreamWriter writer, Service service, String operationName)
+      throws XMLStreamException {
     writer.writeStartElement(SRV, "operationName");
     writeSimpleElement(writer, GCO, "CharacterString", operationName);
     writer.writeEndElement(); // operationName
     writer.writeStartElement(SRV, "DCP");
     writer.writeStartElement(SRV, "DCPList");
-    writer.writeAttribute("codeList", "http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#DCPList");
+    writer.writeAttribute(
+        "codeList", "http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#DCPList");
     writer.writeAttribute("codeListValue", "WebServices");
     writer.writeEndElement(); // DCPList
     writer.writeEndElement(); // DCP
@@ -66,8 +69,12 @@ public class ServiceIsoGenerator {
     writer.writeEndElement(); // protocol
     writer.writeStartElement(GMD, "description");
     writer.writeStartElement(GMX, "Anchor");
-    writer.writeAttribute(XLINK, "href", "http://inspire.ec.europa.eu/metadata-codelist/OnLineDescriptionCode/accessPoint");
-    writer.writeCharacters("http://inspire.ec.europa.eu/metadata-codelist/OnLineDescriptionCode/accessPoint");
+    writer.writeAttribute(
+        XLINK,
+        "href",
+        "http://inspire.ec.europa.eu/metadata-codelist/OnLineDescriptionCode/accessPoint");
+    writer.writeCharacters(
+        "http://inspire.ec.europa.eu/metadata-codelist/OnLineDescriptionCode/accessPoint");
     writer.writeEndElement(); // Anchor
     writer.writeEndElement(); // description
     writer.writeStartElement(GMD, "function");
@@ -77,22 +84,42 @@ public class ServiceIsoGenerator {
     writer.writeEndElement(); // connectPoint
   }
 
-  private static void writeServiceIdentification(XMLStreamWriter writer, Service service, JsonIsoMetadata metadata) throws XMLStreamException, JsonProcessingException {
+  private static void writeServiceIdentification(
+      XMLStreamWriter writer, Service service, JsonIsoMetadata metadata)
+      throws XMLStreamException, JsonProcessingException {
     writer.writeStartElement(GMD, "identificationInfo");
     writer.writeStartElement(SRV, "SV_ServiceIdentification");
     writer.writeAttribute("uuid", service.getServiceIdentification());
     writer.writeStartElement(GMD, "citation");
     writer.writeStartElement(GMD, "CI_Citation");
     writer.writeStartElement(GMD, "title");
-    writeSimpleElement(writer, GCO, "CharacterString", service.getTitle() == null ? metadata.getTitle() : service.getTitle());
+    writeSimpleElement(
+        writer,
+        GCO,
+        "CharacterString",
+        service.getTitle() == null ? metadata.getTitle() : service.getTitle());
     writer.writeEndElement(); // title
-    writeDate(writer, service.getCreated() == null ? metadata.getCreated() : service.getCreated(), creation);
-    writeDate(writer, service.getPublished() == null ? metadata.getPublished() : service.getPublished(), publication);
-    writeDate(writer, service.getUpdated() == null ? metadata.getModified() : service.getUpdated(), revision);
+    writeDate(
+        writer,
+        service.getCreated() == null ? metadata.getCreated() : service.getCreated(),
+        creation);
+    writeDate(
+        writer,
+        service.getPublished() == null ? metadata.getPublished() : service.getPublished(),
+        publication);
+    writeDate(
+        writer,
+        service.getUpdated() == null ? metadata.getModified() : service.getUpdated(),
+        revision);
     writer.writeStartElement(GMD, "identifier");
     writer.writeStartElement(GMD, "MD_Identifier");
     writer.writeStartElement(GMD, "code");
-    writeSimpleElement(writer, GCO, "CharacterString", String.format("https://registry.gdi-de.org/id/de.be.csw/%s", service.getServiceIdentification()));
+    writeSimpleElement(
+        writer,
+        GCO,
+        "CharacterString",
+        String.format(
+            "https://registry.gdi-de.org/id/de.be.csw/%s", service.getServiceIdentification()));
     writer.writeEndElement(); // code
     writer.writeEndElement(); // MD_Identifier
     writer.writeEndElement(); // identifier
@@ -121,8 +148,10 @@ public class ServiceIsoGenerator {
     writeResourceConstraints(writer, TERMS_OF_USE_BY_ID.get(metadata.getTermsOfUseId().intValue()));
     writer.writeStartElement(SRV, "serviceType");
     writer.writeStartElement(GCO, "LocalName");
-    writer.writeAttribute("codeSpace", "http://inspire.ec.europa.eu/metadata-codelist/SpatialDataServiceType");
-    // HBD: using download/view here may seem correct, however, the invocable spatial data services class tests for 'other'
+    writer.writeAttribute(
+        "codeSpace", "http://inspire.ec.europa.eu/metadata-codelist/SpatialDataServiceType");
+    // HBD: using download/view here may seem correct, however, the invocable spatial data services
+    // class tests for 'other'
     // whereas the network services tests check for download/view
     //    writer.writeCharacters("other");
     switch (service.getServiceType()) {
@@ -149,7 +178,9 @@ public class ServiceIsoGenerator {
     writeExtent(writer, metadata.getExtent(), SRV);
     writer.writeStartElement(SRV, "couplingType");
     writer.writeStartElement(SRV, "SV_CouplingType");
-    writer.writeAttribute("codeList", "http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#SV_CouplingType");
+    writer.writeAttribute(
+        "codeList",
+        "http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#SV_CouplingType");
     writer.writeAttribute("codeListValue", "tight");
     writer.writeEndElement(); // SV_CouplingType
     writer.writeEndElement(); // couplingType
@@ -158,7 +189,8 @@ public class ServiceIsoGenerator {
     writer.writeEndElement(); // identificationInfo
   }
 
-  private static void writeServiceKeyword(XMLStreamWriter writer, String type) throws XMLStreamException {
+  private static void writeServiceKeyword(XMLStreamWriter writer, String type)
+      throws XMLStreamException {
     writer.writeStartElement(GMD, "descriptiveKeywords");
     writer.writeStartElement(GMD, "MD_Keywords");
     writer.writeStartElement(GMD, "keyword");
@@ -170,13 +202,17 @@ public class ServiceIsoGenerator {
 
   /**
    * Write metadata to a XMLStreamWriter.
+   *
    * @param metadata the metadata object
-   * @param service  the service object
-   * @param writer   the writer, must have already written the MD_Metadata element and the namespace bindings etc.
+   * @param service the service object
+   * @param writer the writer, must have already written the MD_Metadata element and the namespace
+   *     bindings etc.
    * @throws IOException in case anything goes wrong
    * @throws XMLStreamException in case anything goes wrong
    */
-  public void generateServiceMetadata(JsonIsoMetadata metadata, Service service, XMLStreamWriter writer) throws IOException, XMLStreamException {
+  public void generateServiceMetadata(
+      JsonIsoMetadata metadata, Service service, XMLStreamWriter writer)
+      throws IOException, XMLStreamException {
     writeFileIdentifier(writer, service.getFileIdentifier());
     writeLanguage(writer);
     writeCharacterSet(writer);
@@ -193,13 +229,15 @@ public class ServiceIsoGenerator {
     writeDataQualityInfo(writer, metadata, service);
   }
 
-  private void writeHierarchyLevelName(XMLStreamWriter writer, String title) throws XMLStreamException {
+  private void writeHierarchyLevelName(XMLStreamWriter writer, String title)
+      throws XMLStreamException {
     writer.writeStartElement(GMD, "hierarchyLevelName");
     writeSimpleElement(writer, GCO, "CharacterString", String.format("%s Dienst", title));
     writer.writeEndElement(); // hierarchyLevelName
   }
 
-  public void generateServiceMetadata(JsonIsoMetadata metadata, Service service, OutputStream out) throws IOException, XMLStreamException {
+  public void generateServiceMetadata(JsonIsoMetadata metadata, Service service, OutputStream out)
+      throws IOException, XMLStreamException {
     var writer = FACTORY.createXMLStreamWriter(out);
     setNamespaceBindings(writer);
     writer.writeStartDocument();
@@ -211,5 +249,4 @@ public class ServiceIsoGenerator {
     writer.close();
     out.close();
   }
-
 }

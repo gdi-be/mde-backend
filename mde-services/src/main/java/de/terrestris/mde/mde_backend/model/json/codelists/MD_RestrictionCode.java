@@ -1,7 +1,6 @@
 package de.terrestris.mde.mde_backend.model.json.codelists;
 
 public enum MD_RestrictionCode {
-
   copyright,
   patent,
   patentPending,
@@ -10,5 +9,4 @@ public enum MD_RestrictionCode {
   intellectualPropertyRights,
   restricted,
   otherRestrictions
-
 }

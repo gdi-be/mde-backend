@@ -7,6 +7,5 @@ import lombok.Data;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AssignRoleData {
 
-    private String role;
-
+  private String role;
 }

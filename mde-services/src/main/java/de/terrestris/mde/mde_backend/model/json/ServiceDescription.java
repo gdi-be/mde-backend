@@ -14,5 +14,4 @@ public class ServiceDescription {
   private String type;
 
   private String url;
-
 }

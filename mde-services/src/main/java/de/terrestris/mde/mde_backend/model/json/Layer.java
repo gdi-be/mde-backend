@@ -28,5 +28,4 @@ public class Layer {
   private String datasource;
 
   private String secondaryDatasource;
-
 }

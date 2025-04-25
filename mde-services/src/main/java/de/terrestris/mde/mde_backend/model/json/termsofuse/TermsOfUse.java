@@ -2,11 +2,10 @@ package de.terrestris.mde.mde_backend.model.json.termsofuse;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 @Data
 @JsonDeserialize(as = TermsOfUse.class)
@@ -30,5 +29,4 @@ public class TermsOfUse {
   private Json json;
 
   private String note;
-
 }

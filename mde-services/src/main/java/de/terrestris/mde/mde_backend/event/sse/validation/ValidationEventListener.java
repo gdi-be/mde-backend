@@ -8,12 +8,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class ValidationEventListener {
 
-  @Autowired
-  private SseService sseService;
+  @Autowired private SseService sseService;
 
   @EventListener
   public void onValidationEvent(ValidationEvent event) {
     sseService.send("validation", event.getKeycloakId(), event.getMessage());
   }
-
 }

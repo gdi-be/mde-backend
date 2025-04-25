@@ -6,6 +6,7 @@ import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
 import de.terrestris.mde.mde_backend.model.json.JsonTechnicalMetadata;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
+import java.util.Set;
 import lombok.*;
 import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.Type;
@@ -14,8 +15,6 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextFi
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
 
-import java.util.Set;
-
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @Entity
@@ -23,16 +22,12 @@ import java.util.Set;
 @Data
 public class MetadataCollection extends BaseMetadata {
 
-  @Column
-  @Setter
-  private String metadataId;
+  @Column @Setter private String metadataId;
 
   @Formula("(iso_metadata->>'title')")
   private String title;
 
-  @Column
-  @Setter
-  private Boolean approved;
+  @Column @Setter private Boolean approved;
 
   @Column
   @Setter
@@ -45,15 +40,9 @@ public class MetadataCollection extends BaseMetadata {
   @KeywordField(name = "team_member_sort", sortable = Sortable.YES)
   private Set<String> teamMemberIds;
 
-  @Column
-  @Setter
-  @KeywordField
-  private String ownerId;
+  @Column @Setter @KeywordField private String ownerId;
 
-  @Column
-  @Setter
-  @KeywordField
-  private String assignedUserId;
+  @Column @Setter @KeywordField private String assignedUserId;
 
   @Column
   @Setter
@@ -80,12 +69,11 @@ public class MetadataCollection extends BaseMetadata {
   @Setter
   private JsonTechnicalMetadata technicalMetadata;
 
-  public MetadataCollection (String metadataId) {
+  public MetadataCollection(String metadataId) {
     super();
     setMetadataId(metadataId);
     setIsoMetadata(new JsonIsoMetadata());
     setClientMetadata(new JsonClientMetadata());
     setTechnicalMetadata(new JsonTechnicalMetadata());
   }
-
 }

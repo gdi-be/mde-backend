@@ -1,6 +1,8 @@
 package de.terrestris.mde.mde_backend.service;
 
 import de.terrestris.mde.mde_backend.model.dto.UserDetails;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.extern.log4j.Log4j2;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UserResource;
@@ -10,15 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Service
 @Log4j2
-public class KeycloakService  {
+public class KeycloakService {
 
-  @Autowired
-  protected RealmResource keycloakRealm;
+  @Autowired protected RealmResource keycloakRealm;
 
   public UserResource getUserResource(String id) {
     UsersResource kcUsers = this.keycloakRealm.users();
@@ -45,9 +43,10 @@ public class KeycloakService  {
     try {
       roles = userResource.roles().realmLevel().listEffective();
     } catch (Exception e) {
-      log.warn("Could not get the realm roles for the user with Keycloak ID {}. " +
-          "This may happen if the user is not available in Keycloak.",
-        userId);
+      log.warn(
+          "Could not get the realm roles for the user with Keycloak ID {}. "
+              + "This may happen if the user is not available in Keycloak.",
+          userId);
       log.trace("Full stack trace: ", e);
     }
 
@@ -68,5 +67,4 @@ public class KeycloakService  {
     details.setEmail(user.getEmail() == null ? "" : user.getEmail());
     return details;
   }
-
 }

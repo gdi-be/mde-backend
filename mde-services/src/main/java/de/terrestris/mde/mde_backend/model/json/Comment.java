@@ -1,12 +1,10 @@
 package de.terrestris.mde.mde_backend.model.json;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,5 +33,4 @@ public class Comment {
     this.userName = userName;
     this.date = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
   }
-
 }

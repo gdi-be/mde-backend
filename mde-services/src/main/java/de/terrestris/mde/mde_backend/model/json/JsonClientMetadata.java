@@ -2,12 +2,11 @@ package de.terrestris.mde.mde_backend.model.json;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.util.List;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
-import java.util.Map;
 
 @Data
 @JsonDeserialize(as = JsonClientMetadata.class)
@@ -35,5 +34,4 @@ public class JsonClientMetadata {
 
   // Map of service.serviceIdentification and List of layers
   private Map<String, List<Layer>> layers;
-
 }

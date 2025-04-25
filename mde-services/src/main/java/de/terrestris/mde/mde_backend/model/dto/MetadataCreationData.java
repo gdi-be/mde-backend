@@ -9,11 +9,9 @@ import lombok.Data;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class MetadataCreationData {
 
-    private MetadataProfile metadataProfile;
+  private MetadataProfile metadataProfile;
 
-    private String title;
+  private String title;
 
-    @Null
-    private String cloneMetadataId;
-
+  @Null private String cloneMetadataId;
 }

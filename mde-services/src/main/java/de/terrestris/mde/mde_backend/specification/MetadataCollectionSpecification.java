@@ -3,25 +3,22 @@ package de.terrestris.mde.mde_backend.specification;
 import de.terrestris.mde.mde_backend.model.MetadataCollection;
 import de.terrestris.mde.mde_backend.model.dto.QueryConfig;
 import jakarta.persistence.criteria.*;
-import org.springframework.data.jpa.domain.Specification;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.data.jpa.domain.Specification;
 
 public class MetadataCollectionSpecification {
 
-  public static Specification<MetadataCollection> searchMetadata(QueryConfig config, String myKeycloakId) {
+  public static Specification<MetadataCollection> searchMetadata(
+      QueryConfig config, String myKeycloakId) {
     return (Root<MetadataCollection> root, CriteriaQuery<?> query, CriteriaBuilder cb) -> {
-
       List<Predicate> predicates = new ArrayList<>();
 
       // Text-Filter
       if (config.getSearchTerm() != null && !config.getSearchTerm().isEmpty()) {
-        predicates.add(cb.like(
-          cb.lower(root.get("title")),
-          "%" + config.getSearchTerm().toLowerCase() + "%"
-        ));
+        predicates.add(
+            cb.like(cb.lower(root.get("title")), "%" + config.getSearchTerm().toLowerCase() + "%"));
       }
 
       // Valid-Filter
@@ -39,12 +36,13 @@ public class MetadataCollectionSpecification {
       }
 
       // Team-Member-Filter (reused in sortPriority)
-      Expression<Boolean> isTeamMember = cb.isNotNull(cb.function(
-        "array_position",
-        Integer.class,
-        root.get("teamMemberIds"),
-        cb.literal(myKeycloakId)
-      ));
+      Expression<Boolean> isTeamMember =
+          cb.isNotNull(
+              cb.function(
+                  "array_position",
+                  Integer.class,
+                  root.get("teamMemberIds"),
+                  cb.literal(myKeycloakId)));
       if (config.getIsTeamMember() != null) {
         if (config.getIsTeamMember()) {
           predicates.add(cb.isTrue(isTeamMember));
@@ -58,22 +56,22 @@ public class MetadataCollectionSpecification {
         predicates.add(root.get("responsibleRole").in(config.getAssignedRoles()));
       }
 
-      Expression<Object> sortPriority = cb.selectCase()
-        .when(cb.equal(root.get("assignedUserId"), myKeycloakId), 0)
-        .when(cb.isTrue(isTeamMember), 1)
-        .otherwise(2);
+      Expression<Object> sortPriority =
+          cb.selectCase()
+              .when(cb.equal(root.get("assignedUserId"), myKeycloakId), 0)
+              .when(cb.isTrue(isTeamMember), 1)
+              .otherwise(2);
 
       query.orderBy(
-        // first sort by priority (assigned to me, team member, not assigned)
-        cb.asc(sortPriority),
-        // sub sort by modified date if assigned to me
-        cb.desc(cb.selectCase()
-          .when(cb.equal(root.get("assignedUserId"), myKeycloakId), root.get("modified"))
-          .otherwise(cb.nullLiteral(Instant.class))
-        ),
-        // ... otherwise sort by title
-        cb.asc(root.get("title"))
-      );
+          // first sort by priority (assigned to me, team member, not assigned)
+          cb.asc(sortPriority),
+          // sub sort by modified date if assigned to me
+          cb.desc(
+              cb.selectCase()
+                  .when(cb.equal(root.get("assignedUserId"), myKeycloakId), root.get("modified"))
+                  .otherwise(cb.nullLiteral(Instant.class))),
+          // ... otherwise sort by title
+          cb.asc(root.get("title")));
 
       return cb.and(predicates.toArray(new Predicate[0]));
     };

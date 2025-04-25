@@ -1,10 +1,17 @@
 package de.terrestris.mde.mde_backend.model.json;
 
+import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import de.terrestris.mde.mde_backend.enumeration.MetadataProfile;
 import de.terrestris.mde.mde_backend.model.json.codelists.MD_MaintenanceFrequencyCode;
+import java.math.BigInteger;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,14 +19,6 @@ import org.hibernate.search.engine.backend.types.Sortable;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
-
-import java.math.BigInteger;
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
 
 @Data
 @JsonDeserialize(as = JsonIsoMetadata.class)
@@ -136,16 +135,13 @@ public class JsonIsoMetadata implements FileIdentifier {
 
   private String contentDescription;
 
-  @IndexedEmbedded
-  private List<Lineage> lineage;
+  @IndexedEmbedded private List<Lineage> lineage;
 
-  @GenericField
-  private boolean valid;
+  @GenericField private boolean valid;
 
   private List<String> topicCategory;
 
   private BigInteger termsOfUseId;
 
   private String termsOfUseSource;
-
 }

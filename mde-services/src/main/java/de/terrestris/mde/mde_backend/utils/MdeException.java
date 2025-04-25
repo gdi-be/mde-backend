@@ -5,5 +5,4 @@ public class MdeException extends RuntimeException {
   public MdeException(String message, Throwable cause) {
     super(message, cause);
   }
-
 }

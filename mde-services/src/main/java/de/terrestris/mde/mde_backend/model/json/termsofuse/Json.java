@@ -20,5 +20,4 @@ public class Json {
   private String url;
 
   private String quelle;
-
 }

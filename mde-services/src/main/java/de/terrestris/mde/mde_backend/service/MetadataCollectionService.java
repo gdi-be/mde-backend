@@ -1,5 +1,7 @@
 package de.terrestris.mde.mde_backend.service;
 
+import static de.terrestris.mde.mde_backend.service.IsoGenerator.replaceValues;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,6 +18,11 @@ import de.terrestris.mde.mde_backend.model.json.*;
 import de.terrestris.mde.mde_backend.specification.MetadataCollectionSpecification;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.*;
+import javax.imageio.ImageIO;
 import lombok.extern.log4j.Log4j2;
 import org.hibernate.search.engine.search.query.SearchResult;
 import org.hibernate.search.mapper.orm.Search;
@@ -36,368 +43,416 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.imageio.ImageIO;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.*;
-
-import static de.terrestris.mde.mde_backend.service.IsoGenerator.replaceValues;
-
 @Service
 @Log4j2
-public class MetadataCollectionService extends BaseMetadataService<MetadataCollectionRepository, MetadataCollection> {
+public class MetadataCollectionService
+    extends BaseMetadataService<MetadataCollectionRepository, MetadataCollection> {
 
-    @PersistenceContext
-    private EntityManager entityManager;
+  @PersistenceContext private EntityManager entityManager;
 
-    @Autowired
-    @Lazy
-    ObjectMapper objectMapper;
+  @Autowired @Lazy ObjectMapper objectMapper;
 
-    @Autowired
-    KeycloakService keycloakService;
+  @Autowired KeycloakService keycloakService;
 
-    @PreAuthorize("isAuthenticated()")
-    @Transactional(readOnly = true)
-    public Page<MetadataCollection> query(QueryConfig config, Pageable pageable) {
-      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-      String myKeycloakId = ((JwtAuthenticationToken) authentication).getTokenAttributes().get("sub").toString();
+  @PreAuthorize("isAuthenticated()")
+  @Transactional(readOnly = true)
+  public Page<MetadataCollection> query(QueryConfig config, Pageable pageable) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String myKeycloakId =
+        ((JwtAuthenticationToken) authentication).getTokenAttributes().get("sub").toString();
 
-      Specification<MetadataCollection> specification = MetadataCollectionSpecification.searchMetadata(config, myKeycloakId);
+    Specification<MetadataCollection> specification =
+        MetadataCollectionSpecification.searchMetadata(config, myKeycloakId);
 
-      return findAllBy(specification, pageable);
-    }
+    return findAllBy(specification, pageable);
+  }
 
-    @PreAuthorize("isAuthenticated()")
-    @Transactional(readOnly = true)
-    public Optional<MetadataCollection> findOneByMetadataId(String metadataId) {
-        return repository.findByMetadataId(metadataId);
-    }
+  @PreAuthorize("isAuthenticated()")
+  @Transactional(readOnly = true)
+  public Optional<MetadataCollection> findOneByMetadataId(String metadataId) {
+    return repository.findByMetadataId(metadataId);
+  }
 
-    @PreAuthorize("isAuthenticated()")
-    @Transactional(readOnly = true)
-    public SearchResult<MetadataCollection> search(String searchTerm, Integer offset, Integer limit) {
-      SearchSession searchSession = Search.session(entityManager);
+  @PreAuthorize("isAuthenticated()")
+  @Transactional(readOnly = true)
+  public SearchResult<MetadataCollection> search(String searchTerm, Integer offset, Integer limit) {
+    SearchSession searchSession = Search.session(entityManager);
 
-      return searchSession.search(MetadataCollection.class)
-        .where(f -> f.simpleQueryString()
-          .fields("isoMetadata.title")
-          .matching(searchTerm + "*")
-        )
+    return searchSession
+        .search(MetadataCollection.class)
+        .where(f -> f.simpleQueryString().fields("isoMetadata.title").matching(searchTerm + "*"))
         .fetch(offset, limit);
+  }
+
+  @PreAuthorize("isAuthenticated()")
+  @Transactional(readOnly = true)
+  public List<Lineage> searchLineage(String searchTerm, String property) {
+    SearchSession searchSession = Search.session(entityManager);
+
+    if (!property.equals("title") && !property.equals("identifier")) {
+      return Collections.emptyList();
     }
 
-    @PreAuthorize("isAuthenticated()")
-    @Transactional(readOnly = true)
-    public List<Lineage> searchLineage(String searchTerm, String property) {
-        SearchSession searchSession = Search.session(entityManager);
-
-        if (!property.equals("title") && !property.equals("identifier")) {
-            return Collections.emptyList();
-        }
-
-        SearchResult<MetadataCollection> result = searchSession.search(MetadataCollection.class)
-            .where(f -> {
-                if ("identifier".equals(property)) {
-                    return f.match()
-                        .field("isoMetadata.lineage.identifier")
-                        .matching(searchTerm);
-                }
-                return f.simpleQueryString()
-                    .fields("isoMetadata.lineage.title")
-                    .matching(searchTerm + "*");
-            })
+    SearchResult<MetadataCollection> result =
+        searchSession
+            .search(MetadataCollection.class)
+            .where(
+                f -> {
+                  if ("identifier".equals(property)) {
+                    return f.match().field("isoMetadata.lineage.identifier").matching(searchTerm);
+                  }
+                  return f.simpleQueryString()
+                      .fields("isoMetadata.lineage.title")
+                      .matching(searchTerm + "*");
+                })
             .fetchAll();
 
-        return result.hits().stream()
-            .flatMap(mc -> mc.getIsoMetadata().getLineage().stream())
-            .toList();
+    return result.hits().stream().flatMap(mc -> mc.getIsoMetadata().getLineage().stream()).toList();
+  }
+
+  @PreAuthorize("isAuthenticated()")
+  @Transactional(isolation = Isolation.SERIALIZABLE)
+  public String create(String title) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String myKeycloakId =
+        ((JwtAuthenticationToken) authentication).getTokenAttributes().get("sub").toString();
+    Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+
+    String metadataId = UUID.randomUUID().toString();
+
+    MetadataCollection metadataCollection = new MetadataCollection(metadataId);
+
+    metadataCollection.getIsoMetadata().setTitle(title);
+    metadataCollection.getIsoMetadata().setIdentifier(metadataId);
+
+    // default values
+    metadataCollection.getIsoMetadata().setMetadataProfile(MetadataProfile.ISO);
+    metadataCollection.getIsoMetadata().setCrs("http://www.opengis.net/def/crs/EPSG/0/25833");
+
+    // User and role assignment. Set responsibleRole, ownerId, assignedUserId, teamMemberIds.
+    Role roleToSet = null;
+    List<String> roleNames = authorities.stream().map(GrantedAuthority::getAuthority).toList();
+    if (roleNames.contains("MdeEditor")) {
+      roleToSet = Role.MdeEditor;
+    } else if (roleNames.contains("MdeDataOwner")) {
+      roleToSet = Role.MdeDataOwner;
     }
-
-    @PreAuthorize("isAuthenticated()")
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public String create(String title) {
-      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-      String myKeycloakId = ((JwtAuthenticationToken) authentication).getTokenAttributes().get("sub").toString();
-      Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-
-      String metadataId = UUID.randomUUID().toString();
-
-      MetadataCollection metadataCollection = new MetadataCollection(metadataId);
-
-      metadataCollection.getIsoMetadata().setTitle(title);
-      metadataCollection.getIsoMetadata().setIdentifier(metadataId);
-
-      // default values
-      metadataCollection.getIsoMetadata().setMetadataProfile(MetadataProfile.ISO);
-      metadataCollection.getIsoMetadata().setCrs("http://www.opengis.net/def/crs/EPSG/0/25833");
-
-      // User and role assignment. Set responsibleRole, ownerId, assignedUserId, teamMemberIds.
-      Role roleToSet = null;
-      List<String> roleNames = authorities.stream().map(GrantedAuthority::getAuthority).toList();
-      if (roleNames.contains("MdeEditor")) {
-        roleToSet = Role.MdeEditor;
-      } else if (roleNames.contains("MdeDataOwner")) {
-        roleToSet = Role.MdeDataOwner;
-      }
-      if (roleToSet != null) {
-        metadataCollection.setResponsibleRole(roleToSet);
-      }
-      metadataCollection.setAssignedUserId(myKeycloakId);
-      metadataCollection.setOwnerId(myKeycloakId);
-      metadataCollection.setStatus(Status.NEW);
-
-      repository.save(metadataCollection);
-
-      addToTeam(metadataId, myKeycloakId);
-
-      return metadataId;
+    if (roleToSet != null) {
+      metadataCollection.setResponsibleRole(roleToSet);
     }
+    metadataCollection.setAssignedUserId(myKeycloakId);
+    metadataCollection.setOwnerId(myKeycloakId);
+    metadataCollection.setStatus(Status.NEW);
 
-    @PreAuthorize("isAuthenticated()")
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public String create(String title, String cloneMetadataId) throws IOException {
-      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-      String myKeycloakId = ((JwtAuthenticationToken) authentication).getTokenAttributes().get("sub").toString();
-      Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+    repository.save(metadataCollection);
 
-      String metadataId = UUID.randomUUID().toString();
+    addToTeam(metadataId, myKeycloakId);
 
-      MetadataCollection metadataCollection = new MetadataCollection(metadataId);
+    return metadataId;
+  }
 
-      MetadataCollection originalMetadataCollection = repository.findByMetadataId(cloneMetadataId)
-        .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + cloneMetadataId));
+  @PreAuthorize("isAuthenticated()")
+  @Transactional(isolation = Isolation.SERIALIZABLE)
+  public String create(String title, String cloneMetadataId) throws IOException {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String myKeycloakId =
+        ((JwtAuthenticationToken) authentication).getTokenAttributes().get("sub").toString();
+    Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
 
-      JsonIsoMetadata clonedIsoData = objectMapper.readValue(
-        objectMapper.writeValueAsString(originalMetadataCollection.getIsoMetadata()),
-        new TypeReference<JsonIsoMetadata>() {}
-      );
-      clonedIsoData.setTitle(title);
+    String metadataId = UUID.randomUUID().toString();
 
-      JsonClientMetadata clonedClientData = objectMapper.readValue(
-        objectMapper.writeValueAsString(originalMetadataCollection.getClientMetadata()),
-        new TypeReference<JsonClientMetadata>() {}
-      );
+    MetadataCollection metadataCollection = new MetadataCollection(metadataId);
 
-      JsonTechnicalMetadata clonedTechnicalData = objectMapper.readValue(
-        objectMapper.writeValueAsString(originalMetadataCollection.getTechnicalMetadata()),
-        new TypeReference<JsonTechnicalMetadata>() {}
-      );
-      clonedIsoData.setIdentifier(metadataId);
-      clonedIsoData.setFileIdentifier(null);
+    MetadataCollection originalMetadataCollection =
+        repository
+            .findByMetadataId(cloneMetadataId)
+            .orElseThrow(
+                () ->
+                    new NoSuchElementException(
+                        "MetadataCollection not found for metadataId: " + cloneMetadataId));
 
-      metadataCollection.setIsoMetadata(clonedIsoData);
-      metadataCollection.setClientMetadata(clonedClientData);
-      metadataCollection.setTechnicalMetadata(clonedTechnicalData);
+    JsonIsoMetadata clonedIsoData =
+        objectMapper.readValue(
+            objectMapper.writeValueAsString(originalMetadataCollection.getIsoMetadata()),
+            new TypeReference<JsonIsoMetadata>() {});
+    clonedIsoData.setTitle(title);
 
-      // User and role assignment. Set responsibleRole, ownerId, assignedUserId, teamMemberIds.
-      Role roleToSet = null;
-      List<String> roleNames = authorities.stream().map(GrantedAuthority::getAuthority).toList();
-      if (roleNames.contains("MdeEditor")) {
-        roleToSet = Role.MdeEditor;
-      } else if (roleNames.contains("MdeDataOwner")) {
-        roleToSet = Role.MdeDataOwner;
-      }
-      if (roleToSet != null) {
-        metadataCollection.setResponsibleRole(roleToSet);
-      }
-      metadataCollection.setAssignedUserId(myKeycloakId);
-      metadataCollection.setOwnerId(myKeycloakId);
-      metadataCollection.setStatus(Status.NEW);
+    JsonClientMetadata clonedClientData =
+        objectMapper.readValue(
+            objectMapper.writeValueAsString(originalMetadataCollection.getClientMetadata()),
+            new TypeReference<JsonClientMetadata>() {});
 
-      repository.save(metadataCollection);
+    JsonTechnicalMetadata clonedTechnicalData =
+        objectMapper.readValue(
+            objectMapper.writeValueAsString(originalMetadataCollection.getTechnicalMetadata()),
+            new TypeReference<JsonTechnicalMetadata>() {});
+    clonedIsoData.setIdentifier(metadataId);
+    clonedIsoData.setFileIdentifier(null);
 
-      addToTeam(metadataId, myKeycloakId);
+    metadataCollection.setIsoMetadata(clonedIsoData);
+    metadataCollection.setClientMetadata(clonedClientData);
+    metadataCollection.setTechnicalMetadata(clonedTechnicalData);
 
-      return metadataId;
+    // User and role assignment. Set responsibleRole, ownerId, assignedUserId, teamMemberIds.
+    Role roleToSet = null;
+    List<String> roleNames = authorities.stream().map(GrantedAuthority::getAuthority).toList();
+    if (roleNames.contains("MdeEditor")) {
+      roleToSet = Role.MdeEditor;
+    } else if (roleNames.contains("MdeDataOwner")) {
+      roleToSet = Role.MdeDataOwner;
     }
+    if (roleToSet != null) {
+      metadataCollection.setResponsibleRole(roleToSet);
+    }
+    metadataCollection.setAssignedUserId(myKeycloakId);
+    metadataCollection.setOwnerId(myKeycloakId);
+    metadataCollection.setStatus(Status.NEW);
 
-    private void updateLegendSize(JsonIsoMetadata data) {
-      if (data.getServices() == null) {
-        return;
-      }
-      for (var service : data.getServices()) {
-        try {
-          if (service.getLegendImage() != null && service.getLegendImage().getUrl() != null) {
-            var img = ImageIO.read(new URI(replaceValues(service.getLegendImage().getUrl())).toURL());
-            service.getLegendImage().setWidth(img.getWidth());
-            service.getLegendImage().setHeight(img.getHeight());
-          }
-        } catch (IOException | URISyntaxException | IllegalArgumentException e) {
-          log.warn("Unable to determine size of legend: {}", e.getMessage());
-          log.trace("Stack trace:", e);
+    repository.save(metadataCollection);
+
+    addToTeam(metadataId, myKeycloakId);
+
+    return metadataId;
+  }
+
+  private void updateLegendSize(JsonIsoMetadata data) {
+    if (data.getServices() == null) {
+      return;
+    }
+    for (var service : data.getServices()) {
+      try {
+        if (service.getLegendImage() != null && service.getLegendImage().getUrl() != null) {
+          var img = ImageIO.read(new URI(replaceValues(service.getLegendImage().getUrl())).toURL());
+          service.getLegendImage().setWidth(img.getWidth());
+          service.getLegendImage().setHeight(img.getHeight());
         }
+      } catch (IOException | URISyntaxException | IllegalArgumentException e) {
+        log.warn("Unable to determine size of legend: {}", e.getMessage());
+        log.trace("Stack trace:", e);
       }
     }
+  }
 
-    @PreAuthorize("isAuthenticated()")
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public MetadataCollection updateIsoJsonValue(String metadataId, String key, JsonNode value) throws IOException, IllegalArgumentException {
-      MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
-            .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
+  @PreAuthorize("isAuthenticated()")
+  @Transactional(isolation = Isolation.SERIALIZABLE)
+  public MetadataCollection updateIsoJsonValue(String metadataId, String key, JsonNode value)
+      throws IOException, IllegalArgumentException {
+    MetadataCollection metadataCollection =
+        repository
+            .findByMetadataId(metadataId)
+            .orElseThrow(
+                () ->
+                    new NoSuchElementException(
+                        "MetadataCollection not found for metadataId: " + metadataId));
 
-        JsonIsoMetadata data = metadataCollection.getIsoMetadata();
-        String jsonString = objectMapper.writeValueAsString(data);
+    JsonIsoMetadata data = metadataCollection.getIsoMetadata();
+    String jsonString = objectMapper.writeValueAsString(data);
 
-        ObjectNode jsonNode = (ObjectNode) objectMapper.readTree(jsonString);
-        jsonNode.replace(key, value);
+    ObjectNode jsonNode = (ObjectNode) objectMapper.readTree(jsonString);
+    jsonNode.replace(key, value);
 
-        JsonIsoMetadata updatedData = objectMapper.treeToValue(jsonNode, JsonIsoMetadata.class);
-        updateLegendSize(updatedData);
-        metadataCollection.setIsoMetadata(updatedData);
-        if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
-          metadataCollection.setStatus(Status.IN_EDIT);
-        }
-
-        return repository.save(metadataCollection);
+    JsonIsoMetadata updatedData = objectMapper.treeToValue(jsonNode, JsonIsoMetadata.class);
+    updateLegendSize(updatedData);
+    metadataCollection.setIsoMetadata(updatedData);
+    if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
+      metadataCollection.setStatus(Status.IN_EDIT);
     }
 
-    @PreAuthorize("isAuthenticated()")
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public MetadataCollection updateClientJsonValue(String metadataId, String key, JsonNode value) throws IOException, JsonPatchException {
-        MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
-            .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
+    return repository.save(metadataCollection);
+  }
 
-        JsonClientMetadata data = metadataCollection.getClientMetadata();
-        String jsonString = objectMapper.writeValueAsString(data);
+  @PreAuthorize("isAuthenticated()")
+  @Transactional(isolation = Isolation.SERIALIZABLE)
+  public MetadataCollection updateClientJsonValue(String metadataId, String key, JsonNode value)
+      throws IOException, JsonPatchException {
+    MetadataCollection metadataCollection =
+        repository
+            .findByMetadataId(metadataId)
+            .orElseThrow(
+                () ->
+                    new NoSuchElementException(
+                        "MetadataCollection not found for metadataId: " + metadataId));
 
-        ObjectNode jsonNode = (ObjectNode) objectMapper.readTree(jsonString);
-        jsonNode.replace(key, value);
+    JsonClientMetadata data = metadataCollection.getClientMetadata();
+    String jsonString = objectMapper.writeValueAsString(data);
 
-        JsonClientMetadata updatedData = objectMapper.treeToValue(jsonNode, JsonClientMetadata.class);
-        metadataCollection.setClientMetadata(updatedData);
-      if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
-        metadataCollection.setStatus(Status.IN_EDIT);
+    ObjectNode jsonNode = (ObjectNode) objectMapper.readTree(jsonString);
+    jsonNode.replace(key, value);
+
+    JsonClientMetadata updatedData = objectMapper.treeToValue(jsonNode, JsonClientMetadata.class);
+    metadataCollection.setClientMetadata(updatedData);
+    if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
+      metadataCollection.setStatus(Status.IN_EDIT);
+    }
+
+    return repository.save(metadataCollection);
+  }
+
+  @PreAuthorize("isAuthenticated()")
+  @Transactional(isolation = Isolation.SERIALIZABLE)
+  public MetadataCollection updateTechnicalJsonValue(String metadataId, String key, JsonNode value)
+      throws IOException, JsonPatchException {
+    MetadataCollection metadataCollection =
+        repository
+            .findByMetadataId(metadataId)
+            .orElseThrow(
+                () ->
+                    new NoSuchElementException(
+                        "MetadataCollection not found for metadataId: " + metadataId));
+
+    JsonTechnicalMetadata data = metadataCollection.getTechnicalMetadata();
+    String jsonString = objectMapper.writeValueAsString(data);
+
+    ObjectNode jsonNode = (ObjectNode) objectMapper.readTree(jsonString);
+    jsonNode.replace(key, value);
+
+    JsonTechnicalMetadata updatedData =
+        objectMapper.treeToValue(jsonNode, JsonTechnicalMetadata.class);
+    metadataCollection.setTechnicalMetadata(updatedData);
+    if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
+      metadataCollection.setStatus(Status.IN_EDIT);
+    }
+
+    return repository.save(metadataCollection);
+  }
+
+  @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR')")
+  @Transactional(isolation = Isolation.SERIALIZABLE)
+  public void assignUser(String metadataId, String userId) {
+    MetadataCollection metadataCollection =
+        repository
+            .findByMetadataId(metadataId)
+            .orElseThrow(
+                () ->
+                    new NoSuchElementException(
+                        "MetadataCollection not found for metadataId: " + metadataId));
+    metadataCollection.setAssignedUserId(userId);
+
+    // everyone who is assigned to the metadata collection should be added to the team
+    addToTeam(metadataId, userId);
+
+    // set the responsible role of the assigned user
+    List<String> possibleRolesNames = Arrays.stream(Role.values()).map(Enum::name).toList();
+    List<RoleRepresentation> keycloakUserRoles = keycloakService.getRealmRoles(userId);
+    List<String> keycloakUserRoleNames =
+        keycloakUserRoles.stream().map(RoleRepresentation::getName).toList();
+
+    for (String keycloakUserRoleName : keycloakUserRoleNames) {
+      if (possibleRolesNames.contains(keycloakUserRoleName)) {
+        metadataCollection.setResponsibleRole(Role.valueOf(keycloakUserRoleName));
+        break;
       }
-
-        return repository.save(metadataCollection);
+    }
+    if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
+      metadataCollection.setStatus(Status.IN_EDIT);
     }
 
-    @PreAuthorize("isAuthenticated()")
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public MetadataCollection updateTechnicalJsonValue(String metadataId, String key, JsonNode value) throws IOException, JsonPatchException {
-        MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
-            .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
+    repository.save(metadataCollection);
+  }
 
-        JsonTechnicalMetadata data = metadataCollection.getTechnicalMetadata();
-        String jsonString = objectMapper.writeValueAsString(data);
+  @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR')")
+  @Transactional(isolation = Isolation.SERIALIZABLE)
+  public void unassignUser(String metadataId) {
+    MetadataCollection metadataCollection =
+        repository
+            .findByMetadataId(metadataId)
+            .orElseThrow(
+                () ->
+                    new NoSuchElementException(
+                        "MetadataCollection not found for metadataId: " + metadataId));
 
-        ObjectNode jsonNode = (ObjectNode) objectMapper.readTree(jsonString);
-        jsonNode.replace(key, value);
+    metadataCollection.setAssignedUserId(null);
+    repository.save(metadataCollection);
+  }
 
-        JsonTechnicalMetadata updatedData = objectMapper.treeToValue(jsonNode, JsonTechnicalMetadata.class);
-        metadataCollection.setTechnicalMetadata(updatedData);
-      if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
-        metadataCollection.setStatus(Status.IN_EDIT);
+  @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR')")
+  @Transactional(isolation = Isolation.SERIALIZABLE)
+  public void addToTeam(String metadataId, String userId) {
+    MetadataCollection metadataCollection =
+        repository
+            .findByMetadataId(metadataId)
+            .orElseThrow(
+                () ->
+                    new NoSuchElementException(
+                        "MetadataCollection not found for metadataId: " + metadataId));
+
+    Set<String> teamMemberIds = metadataCollection.getTeamMemberIds();
+    if (teamMemberIds == null) {
+      teamMemberIds = new HashSet<>();
+      metadataCollection.setTeamMemberIds(teamMemberIds);
+    }
+    teamMemberIds.add(userId);
+
+    repository.save(metadataCollection);
+  }
+
+  @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR')")
+  @Transactional(isolation = Isolation.SERIALIZABLE)
+  public void removeFromTeam(String metadataId, String userId) {
+    MetadataCollection metadataCollection =
+        repository
+            .findByMetadataId(metadataId)
+            .orElseThrow(
+                () ->
+                    new NoSuchElementException(
+                        "MetadataCollection not found for metadataId: " + metadataId));
+
+    Set<String> teamMemberIds = metadataCollection.getTeamMemberIds();
+
+    if (teamMemberIds == null) {
+      return;
+    }
+
+    metadataCollection.getTeamMemberIds().remove(userId);
+    repository.save(metadataCollection);
+  }
+
+  @PreAuthorize(
+      "hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR') or hasRole('ROLE_MDEQUALITYASSURANCE')")
+  @Transactional(isolation = Isolation.SERIALIZABLE)
+  public void assignRole(String metadataId, String role) {
+    MetadataCollection metadataCollection =
+        repository
+            .findByMetadataId(metadataId)
+            .orElseThrow(
+                () ->
+                    new NoSuchElementException(
+                        "MetadataCollection not found for metadataId: " + metadataId));
+
+    String assignedUserId = metadataCollection.getAssignedUserId();
+
+    if (assignedUserId != null) {
+      List<RoleRepresentation> keycloakUserRoles = keycloakService.getRealmRoles(assignedUserId);
+      List<String> keycloakUserRoleNames =
+          keycloakUserRoles.stream().map(RoleRepresentation::getName).toList();
+
+      if (!keycloakUserRoleNames.contains(role)) {
+        this.unassignUser(metadataId);
       }
-
-        return repository.save(metadataCollection);
+    }
+    if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
+      metadataCollection.setStatus(Status.IN_EDIT);
     }
 
-    @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR')")
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void assignUser(String metadataId, String userId) {
-        MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
-          .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
-        metadataCollection.setAssignedUserId(userId);
+    metadataCollection.setResponsibleRole(Role.valueOf(role));
+    repository.save(metadataCollection);
+  }
 
-        // everyone who is assigned to the metadata collection should be added to the team
-        addToTeam(metadataId, userId);
+  @PreAuthorize(
+      "hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR') or hasRole('ROLE_MDEQUALITYASSURANCE')")
+  @Transactional(isolation = Isolation.SERIALIZABLE)
+  public void unassignRole(String metadataId) {
+    MetadataCollection metadataCollection =
+        repository
+            .findByMetadataId(metadataId)
+            .orElseThrow(
+                () ->
+                    new NoSuchElementException(
+                        "MetadataCollection not found for metadataId: " + metadataId));
 
-        // set the responsible role of the assigned user
-        List<String> possibleRolesNames = Arrays.stream(Role.values()).map(Enum::name).toList();
-        List<RoleRepresentation> keycloakUserRoles = keycloakService.getRealmRoles(userId);
-        List<String> keycloakUserRoleNames = keycloakUserRoles.stream().map(RoleRepresentation::getName).toList();
-
-        for (String keycloakUserRoleName : keycloakUserRoleNames) {
-          if (possibleRolesNames.contains(keycloakUserRoleName)) {
-              metadataCollection.setResponsibleRole(Role.valueOf(keycloakUserRoleName));
-            break;
-          }
-        }
-      if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
-        metadataCollection.setStatus(Status.IN_EDIT);
-      }
-
-        repository.save(metadataCollection);
-    }
-
-    @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR')")
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void unassignUser(String metadataId) {
-        MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
-          .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
-
-        metadataCollection.setAssignedUserId(null);
-        repository.save(metadataCollection);
-    }
-
-    @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR')")
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void addToTeam(String metadataId, String userId) {
-        MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
-          .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
-
-        Set<String> teamMemberIds = metadataCollection.getTeamMemberIds();
-        if (teamMemberIds == null) {
-          teamMemberIds = new HashSet<>();
-          metadataCollection.setTeamMemberIds(teamMemberIds);
-        }
-        teamMemberIds.add(userId);
-
-        repository.save(metadataCollection);
-    }
-
-    @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR')")
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void removeFromTeam(String metadataId, String userId) {
-        MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
-          .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
-
-        Set<String> teamMemberIds = metadataCollection.getTeamMemberIds();
-
-        if (teamMemberIds == null) {
-          return;
-        }
-
-        metadataCollection.getTeamMemberIds().remove(userId);
-        repository.save(metadataCollection);
-    }
-
-    @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR') or hasRole('ROLE_MDEQUALITYASSURANCE')")
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void assignRole(String metadataId, String role) {
-      MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
-        .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
-
-      String assignedUserId = metadataCollection.getAssignedUserId();
-
-      if (assignedUserId != null) {
-        List<RoleRepresentation> keycloakUserRoles = keycloakService.getRealmRoles(assignedUserId);
-        List<String> keycloakUserRoleNames = keycloakUserRoles.stream().map(RoleRepresentation::getName).toList();
-
-        if (!keycloakUserRoleNames.contains(role)) {
-          this.unassignUser(metadataId);
-        }
-      }
-      if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
-        metadataCollection.setStatus(Status.IN_EDIT);
-      }
-
-      metadataCollection.setResponsibleRole(Role.valueOf(role));
-      repository.save(metadataCollection);
-    }
-
-    @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR') or hasRole('ROLE_MDEQUALITYASSURANCE')")
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public void unassignRole(String metadataId) {
-        MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
-          .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
-
-        metadataCollection.setResponsibleRole(null);
-        repository.save(metadataCollection);
-    }
+    metadataCollection.setResponsibleRole(null);
+    repository.save(metadataCollection);
+  }
 
   @PreAuthorize("isAuthenticated()")
   @Transactional(isolation = Isolation.SERIALIZABLE)
@@ -408,12 +463,21 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
       throw new IllegalStateException("User must be authenticated to add a comment");
     }
 
-    MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
-      .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
+    MetadataCollection metadataCollection =
+        repository
+            .findByMetadataId(metadataId)
+            .orElseThrow(
+                () ->
+                    new NoSuchElementException(
+                        "MetadataCollection not found for metadataId: " + metadataId));
 
     JsonClientMetadata data = metadataCollection.getClientMetadata();
 
-    String userName = ((JwtAuthenticationToken) authentication).getTokenAttributes().get("preferred_username").toString();
+    String userName =
+        ((JwtAuthenticationToken) authentication)
+            .getTokenAttributes()
+            .get("preferred_username")
+            .toString();
     Comment comment = new Comment(text, authentication.getName(), userName);
 
     if (data.getComments() == null) {
@@ -429,8 +493,13 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
   @PreAuthorize("isAuthenticated()")
   @Transactional(isolation = Isolation.SERIALIZABLE)
   public void deleteComment(String metadataId, UUID commentId) {
-    MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
-      .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
+    MetadataCollection metadataCollection =
+        repository
+            .findByMetadataId(metadataId)
+            .orElseThrow(
+                () ->
+                    new NoSuchElementException(
+                        "MetadataCollection not found for metadataId: " + metadataId));
 
     JsonClientMetadata data = metadataCollection.getClientMetadata();
 
@@ -443,11 +512,17 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
     repository.save(metadataCollection);
   }
 
-  @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR') or hasRole('ROLE_MDEQUALITYASSURANCE')")
+  @PreAuthorize(
+      "hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR') or hasRole('ROLE_MDEQUALITYASSURANCE')")
   @Transactional(readOnly = true)
   public List<UserData> getTeamWithRoles(String metadataId) {
-    MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
-      .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
+    MetadataCollection metadataCollection =
+        repository
+            .findByMetadataId(metadataId)
+            .orElseThrow(
+                () ->
+                    new NoSuchElementException(
+                        "MetadataCollection not found for metadataId: " + metadataId));
 
     Set<String> teamMemberIds = metadataCollection.getTeamMemberIds();
 
@@ -456,38 +531,48 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
     }
 
     return teamMemberIds.stream()
-      .map(userId -> {
-        UserData userData = new UserData();
-        userData.setKeycloakId(userId);
+        .map(
+            userId -> {
+              UserData userData = new UserData();
+              userData.setKeycloakId(userId);
 
+              // set the responsible role of the assigned user
+              List<String> possibleRolesNames =
+                  Arrays.stream(Role.values()).map(Enum::name).toList();
+              List<RoleRepresentation> keycloakUserRoles = keycloakService.getRealmRoles(userId);
+              List<String> keycloakUserRoleNames =
+                  keycloakUserRoles.stream().map(RoleRepresentation::getName).toList();
 
-        // set the responsible role of the assigned user
-        List<String> possibleRolesNames = Arrays.stream(Role.values()).map(Enum::name).toList();
-        List<RoleRepresentation> keycloakUserRoles = keycloakService.getRealmRoles(userId);
-        List<String> keycloakUserRoleNames = keycloakUserRoles.stream().map(RoleRepresentation::getName).toList();
+              for (String keycloakUserRoleName : keycloakUserRoleNames) {
+                if (possibleRolesNames.contains(keycloakUserRoleName)) {
+                  userData.setRole(keycloakUserRoleName);
+                  break;
+                }
+              }
 
-        for (String keycloakUserRoleName : keycloakUserRoleNames) {
-          if (possibleRolesNames.contains(keycloakUserRoleName)) {
-            userData.setRole(keycloakUserRoleName);
-            break;
-          }
-        }
+              UserResource userResource = keycloakService.getUserResource(userId);
+              if (userResource != null) {
+                userData.setDisplayName(
+                    userResource.toRepresentation().getFirstName()
+                        + " "
+                        + userResource.toRepresentation().getLastName());
+              }
 
-        UserResource userResource = keycloakService.getUserResource(userId);
-        if (userResource != null) {
-          userData.setDisplayName(userResource.toRepresentation().getFirstName() + " " + userResource.toRepresentation().getLastName());
-        }
-
-        return userData;
-      })
-      .toList();
+              return userData;
+            })
+        .toList();
   }
 
   @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEQUALITYASSURANCE')")
   @Transactional(isolation = Isolation.SERIALIZABLE)
   public void setApprovalState(String metadataId, Boolean approved) {
-    MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
-      .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
+    MetadataCollection metadataCollection =
+        repository
+            .findByMetadataId(metadataId)
+            .orElseThrow(
+                () ->
+                    new NoSuchElementException(
+                        "MetadataCollection not found for metadataId: " + metadataId));
 
     metadataCollection.setApproved(approved);
     repository.save(metadataCollection);
@@ -496,8 +581,13 @@ public class MetadataCollectionService extends BaseMetadataService<MetadataColle
   @PreAuthorize("isAuthenticated()")
   @Transactional(isolation = Isolation.SERIALIZABLE)
   public String updateLayers(String metadataId, String serviceIdentification, List<Layer> layers) {
-    MetadataCollection metadataCollection = repository.findByMetadataId(metadataId)
-      .orElseThrow(() -> new NoSuchElementException("MetadataCollection not found for metadataId: " + metadataId));
+    MetadataCollection metadataCollection =
+        repository
+            .findByMetadataId(metadataId)
+            .orElseThrow(
+                () ->
+                    new NoSuchElementException(
+                        "MetadataCollection not found for metadataId: " + metadataId));
 
     JsonClientMetadata clientMetadata = metadataCollection.getClientMetadata();
     Map<String, List<Layer>> layerMap = clientMetadata.getLayers();

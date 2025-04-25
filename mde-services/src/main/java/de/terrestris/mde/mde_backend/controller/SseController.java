@@ -23,37 +23,34 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RequestMapping("/events")
 public class SseController {
 
-  @Autowired
-  protected MessageSource messageSource;
+  @Autowired protected MessageSource messageSource;
 
-  @Autowired
-  private SseService service;
+  @Autowired private SseService service;
 
   @GetMapping("/subscribe")
   @ResponseStatus(HttpStatus.OK)
   @Operation(
-    summary = "Subscribe to server sent events",
-    description = "Calling this endpoint will create a new server sent event emitter and return it. " +
-      "The client can then listen to the events sent by the server, e.g. for updates of the validation process.",
-    security = { @SecurityRequirement(name = "Bearer Authentication") }
-  )
-  @ApiResponses(value = {
-    @ApiResponse(
-      responseCode = "200",
-      description = "Ok: Successfully subscribed to the events",
-      content = @Content
-    ),
-    @ApiResponse(
-      responseCode = "401",
-      description = "Unauthorized: You need to provide a bearer token",
-      content = @Content
-    ),
-    @ApiResponse(
-      responseCode = "500",
-      description = "Internal Server Error: Something internal went wrong while subscribing to the server sent events",
-      content = @Content
-    )
-  })
+      summary = "Subscribe to server sent events",
+      description =
+          "Calling this endpoint will create a new server sent event emitter and return it. "
+              + "The client can then listen to the events sent by the server, e.g. for updates of the validation process.",
+      security = {@SecurityRequirement(name = "Bearer Authentication")})
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Ok: Successfully subscribed to the events",
+            content = @Content),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized: You need to provide a bearer token",
+            content = @Content),
+        @ApiResponse(
+            responseCode = "500",
+            description =
+                "Internal Server Error: Something internal went wrong while subscribing to the server sent events",
+            content = @Content)
+      })
   public SseEmitter subscribe() {
     try {
       return service.createEmitter();
@@ -62,14 +59,10 @@ public class SseController {
       log.trace("Full stack trace: ", e);
 
       throw new ResponseStatusException(
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        messageSource.getMessage(
-          "BASE_CONTROLLER.INTERNAL_SERVER_ERROR",
-          null,
-          LocaleContextHolder.getLocale()
-        ),
-        e
-      );
+          HttpStatus.INTERNAL_SERVER_ERROR,
+          messageSource.getMessage(
+              "BASE_CONTROLLER.INTERNAL_SERVER_ERROR", null, LocaleContextHolder.getLocale()),
+          e);
     }
   }
 }

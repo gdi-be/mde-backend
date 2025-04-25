@@ -20,5 +20,4 @@ public class UserDetails {
   private String city;
 
   private String email;
-
 }
