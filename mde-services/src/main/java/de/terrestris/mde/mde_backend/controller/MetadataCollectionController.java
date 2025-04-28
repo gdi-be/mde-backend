@@ -1,5 +1,6 @@
 package de.terrestris.mde.mde_backend.controller;
 
+import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -41,6 +42,8 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -606,24 +609,42 @@ public class MetadataCollectionController
                 "Not found: The provided metadata collection does not exist (or you don't have the permission to delete it)",
             content = @Content),
         @ApiResponse(
+            responseCode = "409",
+            description =
+                "Conflict: The metadata collection is assigned to a user or you are not the owner or in the team and cannot be deleted",
+            content = @Content),
+        @ApiResponse(
             responseCode = "500",
             description =
                 "Internal Server Error: Something internal went wrong while deleting the metadata collection",
             content = @Content)
       })
-  public ResponseEntity<?> delete(@PathVariable("metadataId") String metadataId) {
+  public ResponseEntity<?> delete(
+      @PathVariable("metadataId") String metadataId, Authentication auth) {
     try {
-      Optional<MetadataCollection> metadataCollection = service.findOneByMetadataId(metadataId);
-
-      if (metadataCollection.isEmpty()) {
-        log.warn("Could not find metadata collection with ID {}", metadataId);
-        return new ResponseEntity<>(NOT_FOUND);
+      MetadataCollection metadataCollection =
+          service
+              .findOneByMetadataId(metadataId)
+              .orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
+      if (metadataCollection.getAssignedUserId() != null) {
+        return new ResponseEntity<>(CONFLICT);
+      }
+      if (!auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_MDEADMINISTRATOR"))) {
+        var userId = auth.getName();
+        if (metadataCollection.getOwnerId() == null
+            || metadataCollection.getTeamMemberIds() == null) {
+          return new ResponseEntity<>(CONFLICT);
+        }
+        if (!metadataCollection.getOwnerId().equals(userId)
+            && !metadataCollection.getTeamMemberIds().contains(userId)) {
+          return new ResponseEntity<>(CONFLICT);
+        }
       }
 
       var response = new MetadataDeletionResponse();
       var catalogRecords = new ArrayList<String>();
 
-      List<Service> services = metadataCollection.get().getIsoMetadata().getServices();
+      List<Service> services = metadataCollection.getIsoMetadata().getServices();
       if (services != null) {
         services.forEach(
             service -> {
@@ -644,7 +665,7 @@ public class MetadataCollectionController
         log.warn("No services found for metadata collection with ID {}", metadataId);
       }
 
-      service.delete(metadataCollection.get());
+      service.delete(metadataCollection);
 
       response.setDeletedCatalogRecords(catalogRecords);
       response.setDeletedMetadataCollection(metadataId);
