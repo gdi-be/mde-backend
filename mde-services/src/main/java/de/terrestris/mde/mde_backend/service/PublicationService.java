@@ -203,10 +203,11 @@ public class PublicationService {
       throw new PublicationException("Metadata with ID " + metadataId + " is not approved.");
     }
 
-    if (metadata.getAssignedUserId() == null) {
-      throw new PublicationException(
-          "Metadata with ID " + metadataId + " is not assigned to a user.");
-    }
+    // TODO Check if this is needed
+    //    if (metadata.getAssignedUserId() == null) {
+    //      throw new PublicationException(
+    //          "Metadata with ID " + metadataId + " is not assigned to a user.");
+    //    }
 
     if (metadata.getResponsibleRole() == null
         || !metadata.getResponsibleRole().equals(Role.MdeEditor)) {
