@@ -10,7 +10,10 @@ import de.terrestris.mde.mde_backend.model.Status;
 import de.terrestris.mde.mde_backend.model.json.FileIdentifier;
 import de.terrestris.mde.mde_backend.utils.PublicationException;
 import jakarta.annotation.PostConstruct;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
@@ -19,7 +22,6 @@ import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ForkJoinPool;
 import java.util.function.Function;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
@@ -81,74 +83,7 @@ public class PublicationService {
   private void sendTransaction(
       Function<XMLStreamWriter, Void> generator, boolean insert, FileIdentifier object)
       throws URISyntaxException, IOException, InterruptedException, XMLStreamException {
-    var publisher =
-        HttpRequest.BodyPublishers.ofInputStream(
-            () -> {
-              var in = new PipedInputStream();
-              try (var pool = ForkJoinPool.commonPool()) {
-                pool.submit(
-                    () -> {
-                      var out = new BufferedOutputStream(new PipedOutputStream(in));
-                      var writer = FACTORY.createXMLStreamWriter(out);
-                      setNamespaceBindings(writer);
-                      writer.setPrefix("csw", CSW);
-                      writer.writeStartDocument();
-                      writer.writeStartElement(CSW, "Transaction");
-                      writeNamespaceBindings(writer);
-                      writer.writeNamespace("csw", CSW);
-                      writer.writeAttribute("service", "CSW");
-                      writer.writeAttribute("version", "2.0.2");
-                      writer.writeStartElement(CSW, insert ? "Insert" : "Update");
-                      writer.writeStartElement(GMD, "MD_Metadata");
-                      log.debug("Writing document");
-                      generator.apply(writer);
-                      log.debug("Wrote document");
-                      writer.writeEndElement(); // MD_Metadata
-                      writer.writeEndElement(); // Insert/Update
-                      writer.writeEndElement(); // Transaction
-                      writer.flush();
-                      writer.close();
-                      out.flush();
-                      out.close();
-                      return null;
-                    });
-              }
-              return in;
-            });
-    try (var client = HttpClient.newHttpClient()) {
-      var builder = HttpRequest.newBuilder(new URI(cswServer));
-      var req = builder.POST(publisher);
-      var encoded = Base64.encode(String.format("%s:%s", cswUser, cswPassword)).toString();
-      req.header("Authorization", "Basic " + encoded).header("Content-Type", "application/xml");
-      log.debug("Sending request");
-      var response = client.send(req.build(), HttpResponse.BodyHandlers.ofInputStream());
-      log.debug("Sent request");
-      var in = response.body();
-      if (log.isTraceEnabled()) {
-        var bs = IOUtils.toByteArray(in);
-        in = new ByteArrayInputStream(bs);
-        log.debug("Response: {}", new String(bs, UTF_8));
-      }
-      var reader = INPUT_FACTORY.createXMLStreamReader(in);
-      while (reader.hasNext()) {
-        reader.next();
-        if (!reader.isStartElement()) {
-          continue;
-        }
-        if (reader.getLocalName().equals("identifier")) {
-          var id = reader.getElementText();
-          log.debug("Extracted file identifier {}", id);
-          object.setFileIdentifier(id);
-        }
-      }
-    }
-  }
-
-  private void saveTransaction(Function<XMLStreamWriter, Void> generator, boolean insert)
-      throws IOException, XMLStreamException {
-    var tmp = Files.createTempFile(null, null);
-    log.debug("Writing transaction to {}", tmp);
-    var out = new BufferedOutputStream(Files.newOutputStream(tmp));
+    var out = new ByteArrayOutputStream();
     var writer = FACTORY.createXMLStreamWriter(out);
     setNamespaceBindings(writer);
     writer.setPrefix("csw", CSW);
@@ -170,36 +105,71 @@ public class PublicationService {
     writer.close();
     out.flush();
     out.close();
+    var in = new ByteArrayInputStream(out.toByteArray());
+    if (log.isTraceEnabled()) {
+      var tmp = Files.createTempFile(null, null);
+      log.debug("Writing transaction to {}", tmp);
+      IOUtils.copy(new ByteArrayInputStream(out.toByteArray()), Files.newOutputStream(tmp));
+    }
+    var publisher = HttpRequest.BodyPublishers.ofInputStream(() -> in);
+    try (var client = HttpClient.newHttpClient()) {
+      var builder = HttpRequest.newBuilder(new URI(cswServer));
+      var req = builder.POST(publisher);
+      var encoded = Base64.encode(String.format("%s:%s", cswUser, cswPassword)).toString();
+      req.header("Authorization", "Basic " + encoded).header("Content-Type", "application/xml");
+      log.debug("Sending request");
+      var response = client.send(req.build(), HttpResponse.BodyHandlers.ofInputStream());
+      log.debug("Sent request");
+      var is = response.body();
+      if (log.isTraceEnabled()) {
+        var bs = IOUtils.toByteArray(is);
+        is = new ByteArrayInputStream(bs);
+        log.debug("Response: {}", new String(bs, UTF_8));
+      }
+      var reader = INPUT_FACTORY.createXMLStreamReader(is);
+      while (reader.hasNext()) {
+        reader.next();
+        if (!reader.isStartElement()) {
+          continue;
+        }
+        if (reader.getLocalName().equals("identifier")) {
+          var id = reader.getElementText();
+          log.debug("Extracted file identifier {}", id);
+          object.setFileIdentifier(id);
+        }
+      }
+    }
   }
 
   private void publishRecords(List<String> uuids)
       throws URISyntaxException, IOException, InterruptedException {
-    try (var client = HttpClient.newHttpClient()) {
-      var builder = HttpRequest.newBuilder(new URI(meUrl));
-      var req = builder.GET();
-      var response = client.send(req.build(), HttpResponse.BodyHandlers.ofInputStream());
-      var cookiesList = response.headers().allValues("set-cookie");
-      var csrf =
-          cookiesList.stream()
-              .map(s -> s.split(";")[0])
-              .filter(s -> s.startsWith("XSRF"))
-              .findFirst()
-              .get()
-              .split("=")[1];
-      var cookies = String.join("; ", cookiesList.stream().map(s -> s.split(";")[0]).toList());
-      for (var uuid : uuids) {
-        var url = String.format("%s/%s/publish?publicationType=", publicationUrl, uuid);
-        builder = HttpRequest.newBuilder(new URI(url));
-        req = builder.PUT(HttpRequest.BodyPublishers.ofString(""));
-        var encoded = Base64.encode(String.format("%s:%s", cswUser, cswPassword)).toString();
-        req.header("Authorization", "Basic " + encoded)
-            .header("X-XSRF-TOKEN", csrf)
-            .header("Cookie", cookies);
-        log.debug("Publishing record");
-        response = client.send(req.build(), HttpResponse.BodyHandlers.ofInputStream());
-        log.debug("Published record");
-        log.debug("Response status: {}", response.statusCode());
-      }
+    // HBD: when using try-with-resources the publish request hangs indefinitely for an unknown
+    // reason
+    var client = HttpClient.newHttpClient();
+    var builder = HttpRequest.newBuilder(new URI(meUrl));
+    var req = builder.GET();
+    var response = client.send(req.build(), HttpResponse.BodyHandlers.ofInputStream());
+    var cookiesList = response.headers().allValues("set-cookie");
+    var csrf =
+        cookiesList.stream()
+            .map(s -> s.split(";")[0])
+            .filter(s -> s.startsWith("XSRF"))
+            .findFirst()
+            .get()
+            .split("=")[1];
+    var cookies = String.join("; ", cookiesList.stream().map(s -> s.split(";")[0]).toList());
+    for (var uuid : uuids) {
+      var url = String.format("%s/%s/publish?publicationType=", publicationUrl, uuid);
+      builder = HttpRequest.newBuilder(new URI(url));
+      req = builder.PUT(HttpRequest.BodyPublishers.ofString(""));
+      var encoded = Base64.encode(String.format("%s:%s", cswUser, cswPassword)).toString();
+      req.header("Authorization", "Basic " + encoded)
+          .header("X-XSRF-TOKEN", csrf)
+          .header("Cookie", cookies);
+      log.debug("Publishing record");
+      response = client.send(req.build(), HttpResponse.BodyHandlers.ofInputStream());
+      log.debug("Published record");
+      log.debug("Response status: {}", response.statusCode());
     }
   }
 
@@ -242,19 +212,6 @@ public class PublicationService {
     var isoMetadata = metadata.getIsoMetadata();
     var uuids = new ArrayList<String>();
     var insert = isoMetadata.getFileIdentifier() == null;
-    if (log.isTraceEnabled()) {
-      saveTransaction(
-          writer -> {
-            try {
-              datasetIsoGenerator.generateDatasetMetadata(isoMetadata, metadataId, writer);
-            } catch (IOException | XMLStreamException e) {
-              log.warn("Unable to generate dataset metadata: {}", e.getMessage());
-              log.trace("Stack trace:", e);
-            }
-            return null;
-          },
-          insert);
-    }
     sendTransaction(
         writer -> {
           try {
@@ -274,20 +231,6 @@ public class PublicationService {
           .forEach(
               service -> {
                 try {
-                  if (log.isTraceEnabled()) {
-                    saveTransaction(
-                        writer -> {
-                          try {
-                            serviceIsoGenerator.generateServiceMetadata(
-                                isoMetadata, service, writer);
-                          } catch (IOException | XMLStreamException e) {
-                            log.warn("Unable to generate service metadata: {}", e.getMessage());
-                            log.trace("Stack trace:", e);
-                          }
-                          return null;
-                        },
-                        insert);
-                  }
                   sendTransaction(
                       writer -> {
                         try {
