@@ -143,33 +143,45 @@ public class PublicationService {
 
   private void publishRecords(List<String> uuids)
       throws URISyntaxException, IOException, InterruptedException {
-    // HBD: when using try-with-resources the publish request hangs indefinitely for an unknown
-    // reason
-    var client = HttpClient.newHttpClient();
-    var builder = HttpRequest.newBuilder(new URI(meUrl));
-    var req = builder.GET();
-    var response = client.send(req.build(), HttpResponse.BodyHandlers.ofInputStream());
-    var cookiesList = response.headers().allValues("set-cookie");
-    var csrf =
-        cookiesList.stream()
-            .map(s -> s.split(";")[0])
-            .filter(s -> s.startsWith("XSRF"))
-            .findFirst()
-            .get()
-            .split("=")[1];
-    var cookies = String.join("; ", cookiesList.stream().map(s -> s.split(";")[0]).toList());
-    for (var uuid : uuids) {
-      var url = String.format("%s/%s/publish?publicationType=", publicationUrl, uuid);
-      builder = HttpRequest.newBuilder(new URI(url));
-      req = builder.PUT(HttpRequest.BodyPublishers.ofString(""));
-      var encoded = Base64.encode(String.format("%s:%s", cswUser, cswPassword)).toString();
-      req.header("Authorization", "Basic " + encoded)
-          .header("X-XSRF-TOKEN", csrf)
-          .header("Cookie", cookies);
-      log.debug("Publishing record");
-      response = client.send(req.build(), HttpResponse.BodyHandlers.ofInputStream());
-      log.debug("Published record");
-      log.debug("Response status: {}", response.statusCode());
+
+    try (var client = HttpClient.newHttpClient()) {
+      var builder = HttpRequest.newBuilder(new URI(meUrl));
+      var req = builder.GET();
+      var response = client.send(req.build(), HttpResponse.BodyHandlers.ofString());
+
+      if (response.statusCode() != 200) {
+        throw new IOException("Error while getting the XSRF token.");
+      }
+
+      var cookiesList = response.headers().allValues("set-cookie");
+      var csrf =
+          cookiesList.stream()
+              .map(s -> s.split(";")[0])
+              .filter(s -> s.startsWith("XSRF"))
+              .findFirst()
+              .get()
+              .split("=")[1];
+      var cookies = String.join("; ", cookiesList.stream().map(s -> s.split(";")[0]).toList());
+
+      for (var uuid : uuids) {
+        var url = String.format("%s/%s/publish?publicationType=", publicationUrl, uuid);
+        builder = HttpRequest.newBuilder(new URI(url));
+        req = builder.PUT(HttpRequest.BodyPublishers.ofString(""));
+        var encoded = Base64.encode(String.format("%s:%s", cswUser, cswPassword)).toString();
+        req.header("Authorization", "Basic " + encoded)
+            .header("X-XSRF-TOKEN", csrf)
+            .header("Cookie", cookies);
+        log.debug("Publishing record");
+        response = client.send(req.build(), HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 204) {
+          log.error(
+              "Could not publish record with ID {}. Status code: {}", uuid, response.statusCode());
+        }
+
+        log.debug("Successfully published the record");
+        log.debug("Response status: {}", response.statusCode());
+      }
     }
   }
 
