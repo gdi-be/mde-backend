@@ -1,6 +1,8 @@
 package de.terrestris.mde.mde_backend.controller;
 
 import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.OK;
 
 import de.terrestris.mde.mde_backend.enumeration.MetadataType;
 import de.terrestris.mde.mde_backend.model.BaseMetadata;
@@ -9,7 +11,6 @@ import de.terrestris.mde.mde_backend.model.dto.*;
 import de.terrestris.mde.mde_backend.model.json.Comment;
 import de.terrestris.mde.mde_backend.model.json.Layer;
 import de.terrestris.mde.mde_backend.model.json.Lineage;
-import de.terrestris.mde.mde_backend.model.json.Service;
 import de.terrestris.mde.mde_backend.service.*;
 import de.terrestris.mde.mde_backend.thread.TrackedTask;
 import de.terrestris.mde.mde_backend.thread.TrackingExecutorService;
@@ -41,7 +42,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -619,67 +619,7 @@ public class MetadataCollectionController
       })
   public ResponseEntity<?> delete(
       @PathVariable("metadataId") String metadataId, Authentication auth) {
-    try {
-      MetadataCollection metadataCollection =
-          service
-              .findOneByMetadataId(metadataId)
-              .orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
-      if (metadataCollection.getAssignedUserId() != null) {
-        return new ResponseEntity<>(CONFLICT);
-      }
-      if (!auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_MDEADMINISTRATOR"))) {
-        var userId = auth.getName();
-        if (metadataCollection.getOwnerId() == null
-            || metadataCollection.getTeamMemberIds() == null) {
-          return new ResponseEntity<>(CONFLICT);
-        }
-        if (!metadataCollection.getOwnerId().equals(userId)
-            && !metadataCollection.getTeamMemberIds().contains(userId)) {
-          return new ResponseEntity<>(CONFLICT);
-        }
-      }
-
-      var response = new MetadataDeletionResponse();
-      var catalogRecords = new ArrayList<String>();
-
-      List<Service> services = metadataCollection.getIsoMetadata().getServices();
-      if (services != null) {
-        services.forEach(
-            service -> {
-              var fileIdentifier = service.getFileIdentifier();
-              try {
-                // TODO security
-                publicationService.removeMetadata(fileIdentifier);
-                catalogRecords.add(fileIdentifier);
-              } catch (Exception e) {
-                log.error(
-                    "Error while removing catalog entry with id {}: \n {}",
-                    fileIdentifier,
-                    e.getMessage());
-                log.trace("Full stack trace: ", e);
-              }
-            });
-      } else {
-        log.warn("No services found for metadata collection with ID {}", metadataId);
-      }
-
-      service.delete(metadataCollection);
-
-      response.setDeletedCatalogRecords(catalogRecords);
-      response.setDeletedMetadataCollection(metadataId);
-
-      return new ResponseEntity<>(response, OK);
-    } catch (Exception e) {
-      log.error(
-          "Error while removing metadata collection with id {}: \n {}", metadataId, e.getMessage());
-      log.trace("Full stack trace: ", e);
-
-      throw new ResponseStatusException(
-          HttpStatus.INTERNAL_SERVER_ERROR,
-          messageSource.getMessage(
-              "BASE_CONTROLLER.INTERNAL_SERVER_ERROR", null, LocaleContextHolder.getLocale()),
-          e);
-    }
+    return new ResponseEntity<>(publicationService.deleteMetadata(metadataId, auth), OK);
   }
 
   @GetMapping("/{metadataId}/team")
