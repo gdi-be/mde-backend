@@ -148,11 +148,6 @@ public class PublicationService {
       var builder = HttpRequest.newBuilder(new URI(meUrl));
       var req = builder.GET();
       var response = client.send(req.build(), HttpResponse.BodyHandlers.ofString());
-
-      if (response.statusCode() != 200) {
-        throw new IOException("Error while getting the XSRF token.");
-      }
-
       var cookiesList = response.headers().allValues("set-cookie");
       var csrf =
           cookiesList.stream()
@@ -162,6 +157,10 @@ public class PublicationService {
               .get()
               .split("=")[1];
       var cookies = String.join("; ", cookiesList.stream().map(s -> s.split(";")[0]).toList());
+
+      if (csrf.isEmpty()) {
+        throw new IOException("CSRF token not found in response headers");
+      }
 
       for (var uuid : uuids) {
         var url = String.format("%s/%s/publish?publicationType=", publicationUrl, uuid);
