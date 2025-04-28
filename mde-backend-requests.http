@@ -16,6 +16,11 @@ client_id=mde&client_secret={{client_secret}}&grant_type=client_credentials
 DELETE https://{{backend_url}}/api/metadata/123
 Authorization: Bearer {{token}}
 
+### Publish record
+@token = {{login.response.body.access_token}}
+POST https://{{backend_url}}/api/metadata/123/publish
+Authorization: Bearer {{token}}
+
 ## Geonetwork
 
 ### Get all records
