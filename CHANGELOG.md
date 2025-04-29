@@ -1,3 +1,28 @@
+# [3.1.0](https://github.com/gdi-be/mde-backend/compare/v3.0.0...v3.1.0) (2025-04-29)
+
+
+### Bug Fixes
+
+* add checks when deleting datasets ([7cc99e7](https://github.com/gdi-be/mde-backend/commit/7cc99e774fa40852e1f6225db8caa8e93fdfe5ea))
+* add spotless maven plugin ([e3d57c9](https://github.com/gdi-be/mde-backend/commit/e3d57c900eba9689c8f5f8cddc92be91977bca85))
+* apply spotless ([8894227](https://github.com/gdi-be/mde-backend/commit/88942270f64d3d1832e7a49c9f2d921dc7dc9760))
+* check for csrf content instead of return code ([cea5963](https://github.com/gdi-be/mde-backend/commit/cea596302c174f1f5ce1d5cadfa692e7de6cb2d7))
+* close client and add some error handling ([a25518b](https://github.com/gdi-be/mde-backend/commit/a25518baa206f38e2ac3678972cb6fdccc4719a5))
+* don't check for and assigned user ([3f1a937](https://github.com/gdi-be/mde-backend/commit/3f1a937eb3913732103538ef150f29270fe8e754))
+* fix exporting keywords if no thesaurus is set ([966dac8](https://github.com/gdi-be/mde-backend/commit/966dac804901a01f3d5ab6603e2e3e027ed19acc))
+* fix publication issues ([7f56dc0](https://github.com/gdi-be/mde-backend/commit/7f56dc0a6fba72da9c2e5989ac6282a7efd765e4))
+* return succesfully published records ([44941b5](https://github.com/gdi-be/mde-backend/commit/44941b54e95c0f4984b40f06509f349be857f2a0))
+* some error handling and generate fileIdentifier if needed ([ab62584](https://github.com/gdi-be/mde-backend/commit/ab625842f54a992ac88e5e8de38fbd6b04c63181))
+* throw if prerequisites are not met ([1989430](https://github.com/gdi-be/mde-backend/commit/1989430ef9e516b2dc6d84c824c33df052e7fe87))
+* use default contact role if not set ([0df39f6](https://github.com/gdi-be/mde-backend/commit/0df39f6a9ba4003b473c4d984efd03f34531b606))
+
+
+### Features
+
+* add edit status ([dcc8042](https://github.com/gdi-be/mde-backend/commit/dcc80428ce72b72303a5f23fa31ebbcba282769f))
+* adds clonedFromId and removes properties on clone ([ab2cf6c](https://github.com/gdi-be/mde-backend/commit/ab2cf6c51d78c17e328d7a6598937dcc4e9b15a9))
+* cleanup security configuration and add controller for publishing ([35f2641](https://github.com/gdi-be/mde-backend/commit/35f26416d6696c5c782876ee7203cba12eaf1140))
+
 # [3.0.0](https://github.com/gdi-be/mde-backend/compare/v2.0.1...v3.0.0) (2025-04-24)
 
 
