@@ -153,7 +153,7 @@ public class MetadataCollectionService
 
   @PreAuthorize("isAuthenticated()")
   @Transactional(isolation = Isolation.SERIALIZABLE)
-  public String create(String title, String cloneMetadataId) throws IOException {
+  public String clone(String title, String cloneMetadataId) throws IOException {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String myKeycloakId =
         ((JwtAuthenticationToken) authentication).getTokenAttributes().get("sub").toString();
@@ -171,6 +171,8 @@ public class MetadataCollectionService
                     new NoSuchElementException(
                         "MetadataCollection not found for metadataId: " + cloneMetadataId));
 
+    metadataCollection.setClonedFromId(cloneMetadataId);
+
     JsonIsoMetadata clonedIsoData =
         objectMapper.readValue(
             objectMapper.writeValueAsString(originalMetadataCollection.getIsoMetadata()),
@@ -187,7 +189,33 @@ public class MetadataCollectionService
             objectMapper.writeValueAsString(originalMetadataCollection.getTechnicalMetadata()),
             new TypeReference<JsonTechnicalMetadata>() {});
     clonedIsoData.setIdentifier(metadataId);
+
+    // remove old values according to metadatenprofil-berlin.xlsx column "neuer Jahresstand".
+    // all checked properties are set to null / removed
     clonedIsoData.setFileIdentifier(null);
+    clonedIsoData.setDescription(null);
+    clonedIsoData.setInspireTheme(null);
+    clonedIsoData.setInspireAnnexVersion(null);
+    clonedIsoData.setCreated(null);
+    clonedIsoData.setPublished(null);
+    clonedIsoData.setModified(null);
+    clonedIsoData.setValidFrom(null);
+    clonedIsoData.setValidTo(null);
+    clonedIsoData.setScale(null);
+    clonedIsoData.setResolutions(null);
+    clonedIsoData.setPreview(null);
+    clonedIsoData.setTechnicalDescription(null);
+    clonedIsoData.setContentDescription(null);
+    clonedIsoData.setContentDescriptions(null);
+    clonedIsoData.setLineage(null);
+    clonedIsoData.setValid(false);
+    clonedIsoData.setServices(null);
+    clonedClientData.setRelatedTopics(null);
+    clonedClientData.setComments(null);
+    clonedTechnicalData.setDeliveredCrs(null);
+
+    // default values
+    metadataCollection.getIsoMetadata().setMetadataProfile(MetadataProfile.ISO);
 
     metadataCollection.setIsoMetadata(clonedIsoData);
     metadataCollection.setClientMetadata(clonedClientData);

@@ -24,6 +24,8 @@ public class MetadataCollection extends BaseMetadata {
 
   @Column @Setter private String metadataId;
 
+  @Column @Setter private String clonedFromId;
+
   @Formula("(iso_metadata->>'title')")
   private String title;
 

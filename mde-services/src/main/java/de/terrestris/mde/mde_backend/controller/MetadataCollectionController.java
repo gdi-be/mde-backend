@@ -148,7 +148,7 @@ public class MetadataCollectionController
     try {
       String metadataId;
       if (creationData.getCloneMetadataId() != null) {
-        metadataId = service.create(creationData.getTitle(), creationData.getCloneMetadataId());
+        metadataId = service.clone(creationData.getTitle(), creationData.getCloneMetadataId());
       } else {
         metadataId = service.create(creationData.getTitle());
       }
