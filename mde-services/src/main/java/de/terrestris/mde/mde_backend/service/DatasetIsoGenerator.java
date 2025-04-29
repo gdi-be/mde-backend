@@ -305,7 +305,7 @@ public class DatasetIsoGenerator {
         }
         writer.writeEndElement(); // keyword
       }
-      if (thesaurus.getTitle() != null) {
+      if (thesaurus != null && thesaurus.getTitle() != null) {
         writer.writeStartElement(GMD, "thesaurusName");
         writer.writeStartElement(GMD, "CI_Citation");
         writer.writeStartElement(GMD, "title");
