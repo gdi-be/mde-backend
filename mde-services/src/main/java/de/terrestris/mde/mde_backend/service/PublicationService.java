@@ -121,11 +121,13 @@ public class PublicationService {
       var response = client.send(req.build(), HttpResponse.BodyHandlers.ofInputStream());
       log.debug("Sent request");
       var is = response.body();
+
       if (log.isTraceEnabled()) {
         var bs = IOUtils.toByteArray(is);
         is = new ByteArrayInputStream(bs);
         log.debug("Response: {}", new String(bs, UTF_8));
       }
+
       var reader = INPUT_FACTORY.createXMLStreamReader(is);
       while (reader.hasNext()) {
         reader.next();
@@ -141,8 +143,10 @@ public class PublicationService {
     }
   }
 
-  private void publishRecords(List<String> uuids)
+  private ArrayList<String> publishRecords(List<String> uuids)
       throws URISyntaxException, IOException, InterruptedException {
+
+    var successfullyPublishedUuids = new ArrayList<String>();
 
     try (var client = HttpClient.newHttpClient()) {
       var builder = HttpRequest.newBuilder(new URI(meUrl));
@@ -180,12 +184,16 @@ public class PublicationService {
 
         log.debug("Successfully published the record");
         log.debug("Response status: {}", response.statusCode());
+
+        successfullyPublishedUuids.add(uuid);
       }
     }
+
+    return successfullyPublishedUuids;
   }
 
   @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR')")
-  public void publishMetadata(String metadataId)
+  public ArrayList<String> publishMetadata(String metadataId)
       throws XMLStreamException,
           IOException,
           URISyntaxException,
@@ -267,7 +275,8 @@ public class PublicationService {
     }
 
     metadataCollectionRepository.save(metadata);
-    publishRecords(uuids);
+
+    return publishRecords(uuids);
   }
 
   /**
