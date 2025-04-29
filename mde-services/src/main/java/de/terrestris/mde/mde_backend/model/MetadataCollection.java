@@ -22,7 +22,13 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordFie
 @Data
 public class MetadataCollection extends BaseMetadata {
 
-  @Column @Setter private String metadataId;
+  @Column
+  @Setter
+  private String metadataId;
+
+  @Column
+  @Setter
+  private String clonedFromId;
 
   @Formula("(iso_metadata->>'title')")
   private String title;
@@ -40,9 +46,15 @@ public class MetadataCollection extends BaseMetadata {
   @KeywordField(name = "team_member_sort", sortable = Sortable.YES)
   private Set<String> teamMemberIds;
 
-  @Column @Setter @KeywordField private String ownerId;
+  @Column
+  @Setter
+  @KeywordField
+  private String ownerId;
 
-  @Column @Setter @KeywordField private String assignedUserId;
+  @Column
+  @Setter
+  @KeywordField
+  private String assignedUserId;
 
   @Column
   @Setter
