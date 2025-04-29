@@ -1,8 +1,6 @@
 package de.terrestris.mde.mde_backend.controller;
 
 import static org.springframework.http.HttpStatus.*;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.http.HttpStatus.OK;
 
 import de.terrestris.mde.mde_backend.enumeration.MetadataType;
 import de.terrestris.mde.mde_backend.model.BaseMetadata;
@@ -758,7 +756,23 @@ public class MetadataCollectionController
         @ApiResponse(
             responseCode = "200",
             description = "Ok: The metadata was successfully published",
-            content = @Content),
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = MetadataPublishResponse.class),
+                    examples = {
+                      @ExampleObject(
+                          name = "MetadataPublishResponse",
+                          description =
+                              "The response contains the published metadata catalog records.",
+                          value =
+                              "{ "
+                                  + "\"publishedCatalogRecords\": ["
+                                  + "\"7a34c154-6cdc-40fe-a338-db546d60155f\", "
+                                  + "\"73a1ce13-da31-4395-8b2a-c961794fd112\""
+                                  + "]"
+                                  + "}")
+                    })),
         @ApiResponse(
             responseCode = "409",
             description = "Conflict: Prerequisites for publishing the metadata are not met",
@@ -770,11 +784,16 @@ public class MetadataCollectionController
             content = @Content)
       })
   @ResponseStatus(HttpStatus.OK)
-  @PostMapping("/{metadataId}/publish")
-  public ResponseEntity<Void> publishMetadata(@PathVariable("metadataId") String metadataId) {
+  @PostMapping(value = "/{metadataId}/publish", produces = "application/json")
+  public ResponseEntity<MetadataPublishResponse> publishMetadata(
+      @PathVariable("metadataId") String metadataId) {
     try {
-      publicationService.publishMetadata(metadataId);
-      return new ResponseEntity<>(OK);
+      ArrayList<String> uuids = publicationService.publishMetadata(metadataId);
+
+      var response = new MetadataPublishResponse();
+      response.setPublishedCatalogRecords(uuids);
+
+      return new ResponseEntity<>(response, OK);
     } catch (PublicationException e) {
       log.error("Prerequisites for publishing the metadata are not met: {}", e.getMessage());
       log.trace("Full stack trace: ", e);
