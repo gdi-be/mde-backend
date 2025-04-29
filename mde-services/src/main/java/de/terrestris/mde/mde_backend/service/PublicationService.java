@@ -20,8 +20,10 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Function;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
@@ -129,16 +131,37 @@ public class PublicationService {
       }
 
       var reader = INPUT_FACTORY.createXMLStreamReader(is);
+
+      var insertedRecords = 0;
+      var updatedRecords = 0;
+
       while (reader.hasNext()) {
         reader.next();
+
         if (!reader.isStartElement()) {
           continue;
         }
+
+        if (insert && reader.getLocalName().equals("totalInserted")) {
+          insertedRecords = Integer.parseInt(reader.getElementText());
+          log.debug("Inserted {} record(s)", insertedRecords);
+        }
+
+        if (!insert && reader.getLocalName().equals("totalUpdated")) {
+          updatedRecords = Integer.parseInt(reader.getElementText());
+          log.debug("Updated {} record(s)", updatedRecords);
+        }
+
         if (reader.getLocalName().equals("identifier")) {
           var id = reader.getElementText();
           log.debug("Extracted file identifier {}", id);
           object.setFileIdentifier(id);
         }
+      }
+
+      if (insertedRecords == 0 && updatedRecords == 0) {
+        log.error("No records inserted or updated");
+        throw new IOException("No records inserted or updated");
       }
     }
   }
@@ -151,20 +174,21 @@ public class PublicationService {
     try (var client = HttpClient.newHttpClient()) {
       var builder = HttpRequest.newBuilder(new URI(meUrl));
       var req = builder.GET();
-      var response = client.send(req.build(), HttpResponse.BodyHandlers.ofString());
+      var response = client.send(req.build(), HttpResponse.BodyHandlers.discarding());
       var cookiesList = response.headers().allValues("set-cookie");
-      var csrf =
+      var csrfCandidate =
           cookiesList.stream()
               .map(s -> s.split(";")[0])
               .filter(s -> s.startsWith("XSRF"))
-              .findFirst()
-              .get()
-              .split("=")[1];
-      var cookies = String.join("; ", cookiesList.stream().map(s -> s.split(";")[0]).toList());
+              .findFirst();
 
-      if (csrf.isEmpty()) {
-        throw new IOException("CSRF token not found in response headers");
+      if (csrfCandidate.isEmpty()) {
+        throw new IOException("XSRF token not found in response headers");
       }
+
+      var csrf = csrfCandidate.get().split("=")[1];
+
+      var cookies = String.join("; ", cookiesList.stream().map(s -> s.split(";")[0]).toList());
 
       for (var uuid : uuids) {
         var url = String.format("%s/%s/publish?publicationType=", publicationUrl, uuid);
@@ -175,11 +199,12 @@ public class PublicationService {
             .header("X-XSRF-TOKEN", csrf)
             .header("Cookie", cookies);
         log.debug("Publishing record");
-        response = client.send(req.build(), HttpResponse.BodyHandlers.ofString());
+        response = client.send(req.build(), HttpResponse.BodyHandlers.discarding());
 
         if (response.statusCode() != 204) {
           log.error(
               "Could not publish record with ID {}. Status code: {}", uuid, response.statusCode());
+          continue;
         }
 
         log.debug("Successfully published the record");
@@ -227,14 +252,16 @@ public class PublicationService {
               + ".");
     }
 
-    metadata.setStatus(Status.PUBLISHED);
-
     var isoMetadata = metadata.getIsoMetadata();
     var uuids = new ArrayList<String>();
     var insert = isoMetadata.getFileIdentifier() == null;
+
     sendTransaction(
         writer -> {
           try {
+            if (insert) {
+              isoMetadata.setFileIdentifier(UUID.randomUUID().toString());
+            }
             datasetIsoGenerator.generateDatasetMetadata(isoMetadata, metadataId, writer);
             uuids.add(isoMetadata.getFileIdentifier());
           } catch (IOException | XMLStreamException e) {
@@ -254,6 +281,9 @@ public class PublicationService {
                   sendTransaction(
                       writer -> {
                         try {
+                          if (insert) {
+                            service.setFileIdentifier(UUID.randomUUID().toString());
+                          }
                           serviceIsoGenerator.generateServiceMetadata(isoMetadata, service, writer);
                           uuids.add(service.getFileIdentifier());
                         } catch (IOException | XMLStreamException e) {
@@ -273,6 +303,9 @@ public class PublicationService {
                 }
               });
     }
+
+    metadata.setStatus(Status.PUBLISHED);
+    metadata.getIsoMetadata().setPublished(Instant.now());
 
     metadataCollectionRepository.save(metadata);
 
