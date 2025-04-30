@@ -1,3 +1,10 @@
+## [3.1.1](https://github.com/gdi-be/mde-backend/compare/v3.1.0...v3.1.1) (2025-04-30)
+
+
+### Bug Fixes
+
+* add security checks for deletion ([a2c28b3](https://github.com/gdi-be/mde-backend/commit/a2c28b327fa5f47104602cbc99c431430049df68))
+
 # [3.1.0](https://github.com/gdi-be/mde-backend/compare/v3.0.0...v3.1.0) (2025-04-29)
 
 
