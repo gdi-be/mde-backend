@@ -2,12 +2,16 @@ package de.terrestris.mde.mde_backend.service;
 
 import static de.terrestris.utils.xml.MetadataNamespaceUtils.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.springframework.http.HttpStatus.CONFLICT;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 import com.nimbusds.jose.util.Base64;
 import de.terrestris.mde.mde_backend.enumeration.Role;
 import de.terrestris.mde.mde_backend.jpa.MetadataCollectionRepository;
 import de.terrestris.mde.mde_backend.model.Status;
+import de.terrestris.mde.mde_backend.model.dto.MetadataDeletionResponse;
 import de.terrestris.mde.mde_backend.model.json.FileIdentifier;
+import de.terrestris.mde.mde_backend.model.json.Service;
 import de.terrestris.mde.mde_backend.utils.PublicationException;
 import jakarta.annotation.PostConstruct;
 import java.io.ByteArrayInputStream;
@@ -35,9 +39,13 @@ import org.codehaus.stax2.XMLInputFactory2;
 import org.codehaus.stax2.XMLOutputFactory2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
 @Component
 @Log4j2
@@ -71,6 +79,8 @@ public class PublicationService {
   @Autowired private MetadataCollectionService metadataCollectionService;
 
   @Autowired private MetadataCollectionRepository metadataCollectionRepository;
+
+  @Autowired protected MessageSource messageSource;
 
   @PostConstruct
   public void completeCswUrl() {
@@ -310,6 +320,58 @@ public class PublicationService {
     metadataCollectionRepository.save(metadata);
 
     return publishRecords(uuids);
+  }
+
+  @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR')")
+  public MetadataDeletionResponse deleteMetadata(String metadataId, Authentication auth) {
+    var metadataCollection =
+        metadataCollectionRepository
+            .findByMetadataId(metadataId)
+            .orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
+    if (metadataCollection.getAssignedUserId() != null) {
+      throw new ResponseStatusException(CONFLICT);
+    }
+    if (!auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_MDEADMINISTRATOR"))) {
+      var userId = auth.getName();
+      if (metadataCollection.getOwnerId() == null
+          || metadataCollection.getTeamMemberIds() == null) {
+        throw new ResponseStatusException(CONFLICT);
+      }
+      if (!metadataCollection.getOwnerId().equals(userId)
+          && !metadataCollection.getTeamMemberIds().contains(userId)) {
+        throw new ResponseStatusException(CONFLICT);
+      }
+    }
+
+    var response = new MetadataDeletionResponse();
+    var catalogRecords = new ArrayList<String>();
+
+    List<Service> services = metadataCollection.getIsoMetadata().getServices();
+    if (services != null) {
+      services.forEach(
+          service -> {
+            var fileIdentifier = service.getFileIdentifier();
+            try {
+              removeMetadata(fileIdentifier);
+              catalogRecords.add(fileIdentifier);
+            } catch (Exception e) {
+              log.error(
+                  "Error while removing catalog entry with id {}: \n {}",
+                  fileIdentifier,
+                  e.getMessage());
+              log.trace("Full stack trace: ", e);
+            }
+          });
+    } else {
+      log.warn("No services found for metadata collection with ID {}", metadataId);
+    }
+
+    metadataCollectionRepository.delete(metadataCollection);
+
+    response.setDeletedCatalogRecords(catalogRecords);
+    response.setDeletedMetadataCollection(metadataId);
+
+    return response;
   }
 
   /**
