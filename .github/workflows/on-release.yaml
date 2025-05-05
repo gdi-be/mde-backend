@@ -44,6 +44,7 @@ jobs:
             @semantic-release/git
             @semantic-release/commit-analyzer
             @semantic-release/release-notes-generator
+            @terrestris/maven-semantic-release
 
       - name: Run the Maven install phase
         run: mvn -B install
