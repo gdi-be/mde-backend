@@ -11,13 +11,13 @@
 
   <artifactId>mde-services</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <name>mde-servics</name>
+  <name>mde-services</name>
   <description>Services for metadata editor</description>
 
   <properties>
-    <docker.registry>${env.REGISTRY}</docker.registry>
-    <docker.imageName>${env.IMAGE_NAME}</docker.imageName>
-    <docker.releaseTag>${env.RELEASE_TAG}</docker.releaseTag>
+    <docker.registry>ghcr.io</docker.registry>
+    <docker.imageName>gdi-be/mde-backend</docker.imageName>
+    <docker.releaseTag>${project.version}</docker.releaseTag>
   </properties>
 
   <dependencies>
@@ -171,6 +171,22 @@
         <groupId>com.google.cloud.tools</groupId>
         <artifactId>jib-maven-plugin</artifactId>
         <version>3.4.4</version>
+        <executions>
+          <execution>
+            <id>dockerBuild</id>
+            <goals>
+              <goal>dockerBuild</goal>
+            </goals>
+            <phase>package</phase>
+          </execution>
+          <execution>
+            <id>build</id>
+            <goals>
+              <goal>build</goal>
+            </goals>
+            <phase>deploy</phase>
+          </execution>
+        </executions>
         <configuration>
           <container>
             <mainClass>de.terrestris.mde.mde_backend.MdeBackendApplication</mainClass>
