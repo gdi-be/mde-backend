@@ -5,5 +5,13 @@ plugins:
   - "@semantic-release/commit-analyzer"
   - "@semantic-release/release-notes-generator"
   - "@semantic-release/changelog"
-  - "@semantic-release/github"
+  - - "@terrestris/maven-semantic-release"
+    - mavenTarget: deploy
+      clean: false
+      updateSnapshotVersion: true
+      processAllModules: true
+  - - "@semantic-release/github"
+    - assets:
+      - path: "mde-importer/target/mde-importer-*.jar"
+      - path: "mde-services/target/mde-services-*.jar"
   - "@semantic-release/git"
