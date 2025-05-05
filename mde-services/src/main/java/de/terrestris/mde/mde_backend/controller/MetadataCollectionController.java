@@ -1,6 +1,5 @@
 package de.terrestris.mde.mde_backend.controller;
 
-import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -232,12 +231,48 @@ public class MetadataCollectionController
     return new ResponseEntity<>(DatasetIsoGenerator.getAutomaticKeywords(isoMetadata), OK);
   }
 
+  @GetMapping(value = "/{metadataId}/validate", produces = "application/json")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(
+      summary = "Validate a metadata collection by its ID",
+      description =
+          "Starts a validation job for the given metadata collection in the background. To get the results you"
+              + " need to be subscribed to the server sent events (SSE) endpoint at /events/subscribe.",
+      security = {@SecurityRequirement(name = "bearer-key")})
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Ok: The validation job was successfully started",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = String.class),
+                    examples = {
+                      @ExampleObject(
+                          description =
+                              "The response contains the metadata ID of the metadata collection that is going to be validated.",
+                          value = "87e4d4b4-412d-46a6-ac82-184941128aab")
+                    })),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized: You need to provide a bearer token",
+            content = @Content),
+        @ApiResponse(
+            responseCode = "409",
+            description = "Conflict: The validation job is already running for this metadata ID",
+            content = @Content),
+        @ApiResponse(
+            responseCode = "500",
+            description =
+                "Internal Server Error: Something internal went wrong while starting the validation job",
+            content = @Content)
+      })
   // TODO Make validation canceable?
-  // TODO Add openapi annotations
-  @GetMapping("/{metadataId}/validate")
   public ResponseEntity<String> validate(@PathVariable("metadataId") String metadataId) {
     Set<Runnable> tasks = executor.getRunningTasks();
 
+    // TODO Check for metadataId existence?
     for (Runnable task : tasks) {
       if (task instanceof TrackedTask trackedTask) {
         if (trackedTask.getTaskId().equals(metadataId)) {
