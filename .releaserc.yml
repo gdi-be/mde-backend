@@ -7,7 +7,7 @@ plugins:
   - "@semantic-release/changelog"
   - - "@terrestris/maven-semantic-release"
     - mavenTarget: deploy
-      clean: false
+      clean: true
       updateSnapshotVersion: true
       processAllModules: true
   - - "@semantic-release/github"
