@@ -1,3 +1,10 @@
+## [3.1.2](https://github.com/gdi-be/mde-backend/compare/v3.1.1...v3.1.2) (2025-05-05)
+
+
+### Bug Fixes
+
+* add open api docs for the validation interface ([59c3668](https://github.com/gdi-be/mde-backend/commit/59c3668740186e2082b361231f664cce2960760b))
+
 ## [3.1.1](https://github.com/gdi-be/mde-backend/compare/v3.1.0...v3.1.1) (2025-04-30)
 
 
