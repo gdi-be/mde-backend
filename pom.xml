@@ -16,9 +16,9 @@
   <packaging>pom</packaging>
 
   <scm>
-    <url>https://code.terrestris.de/gdi-berlin/mde/mde-backend</url>
-    <connection>scm:git:git@code.terrestris.de:gdi-berlin/mde/mde-backend.git</connection>
-    <developerConnection>scm:git:git@code.terrestris.de:gdi-berlin/mde/mde-backend.git</developerConnection>
+    <url>https://github.com/gdi-be/mde-backend</url>
+    <connection>scm:git:git@github.com:gdi-be/mde-backend.git</connection>
+    <developerConnection>scm:git:git@github.com:gdi-be/mde-backend.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
 
