@@ -59,7 +59,9 @@ public class SseService {
         });
     emitter.onError(
         e -> {
-          log.info("Error in emitter: {}", e.getMessage());
+          log.error("Error in emitter: {}", e.getMessage());
+          log.trace("Full stack trace: ", e);
+
           emitters.remove(keycloakId);
         });
 
@@ -88,6 +90,9 @@ public class SseService {
               .name(name)
               .data(message));
     } catch (IOException e) {
+      log.error("Error sending message to emitter: {}", e.getMessage());
+      log.trace("Full stack trace: ", e);
+
       emitter.completeWithError(e);
       emitters.remove(keycloakId);
     }
@@ -105,6 +110,9 @@ public class SseService {
           try {
             emitter.send(SseEmitter.event().name(name).data(message));
           } catch (IOException e) {
+            log.error("Error broadcasting message to all emitters: {}", e.getMessage());
+            log.trace("Full stack trace: ", e);
+
             emitter.completeWithError(e);
             emitters.remove(keycloakId);
           }
