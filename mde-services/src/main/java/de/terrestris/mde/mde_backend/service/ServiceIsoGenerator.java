@@ -1,19 +1,5 @@
 package de.terrestris.mde.mde_backend.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import de.terrestris.mde.mde_backend.enumeration.MetadataProfile;
-import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
-import de.terrestris.mde.mde_backend.model.json.Service;
-import de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode;
-import org.codehaus.stax2.XMLOutputFactory2;
-import org.springframework.stereotype.Component;
-
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-import java.io.IOException;
-import java.io.OutputStream;
-
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_DateTypeCode.*;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode.information;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_PresentationFormCode.mapDigital;
@@ -23,6 +9,19 @@ import static de.terrestris.mde.mde_backend.service.IsoGenerator.TERMS_OF_USE_BY
 import static de.terrestris.mde.mde_backend.service.IsoGenerator.replaceValues;
 import static de.terrestris.utils.xml.MetadataNamespaceUtils.*;
 import static de.terrestris.utils.xml.XmlUtils.writeSimpleElement;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import de.terrestris.mde.mde_backend.enumeration.MetadataProfile;
+import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
+import de.terrestris.mde.mde_backend.model.json.Service;
+import de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode;
+import java.io.IOException;
+import java.io.OutputStream;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+import org.codehaus.stax2.XMLOutputFactory2;
+import org.springframework.stereotype.Component;
 
 @Component
 public class ServiceIsoGenerator {

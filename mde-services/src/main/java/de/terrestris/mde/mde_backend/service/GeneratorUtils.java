@@ -1,18 +1,5 @@
 package de.terrestris.mde.mde_backend.service;
 
-import de.terrestris.mde.mde_backend.model.json.Contact;
-import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
-import de.terrestris.mde.mde_backend.model.json.codelists.CI_DateTypeCode;
-import de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode;
-
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
-
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode.information;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_RoleCode.distributor;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_RoleCode.pointOfContact;
@@ -22,13 +9,34 @@ import static de.terrestris.mde.mde_backend.service.IsoGenerator.replaceValues;
 import static de.terrestris.utils.xml.MetadataNamespaceUtils.*;
 import static de.terrestris.utils.xml.XmlUtils.writeSimpleElement;
 
+import de.terrestris.mde.mde_backend.model.json.Contact;
+import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
+import de.terrestris.mde.mde_backend.model.json.codelists.CI_DateTypeCode;
+import de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+
 public class GeneratorUtils {
 
   public static final Map<String, JsonIsoMetadata.InspireTheme> INSPIRE_THEME_MAP;
 
   public static final Map<JsonIsoMetadata.InspireTheme, String> INSPIRE_THEME_KEYWORD_MAP;
 
-  public static final Contact DEFAULT_CONTACT = new Contact("GDI Berlin", "Senatsverwaltung für Standtentwicklung, Baune und Wohnen", null, null, "geoportal@senstadt.berlin.de", null, null, distributor);
+  public static final Contact DEFAULT_CONTACT =
+      new Contact(
+          "GDI Berlin",
+          "Senatsverwaltung für Standtentwicklung, Baune und Wohnen",
+          null,
+          null,
+          "geoportal@senstadt.berlin.de",
+          null,
+          null,
+          distributor);
 
   static {
     INSPIRE_THEME_MAP = new HashMap<>();
