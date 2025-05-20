@@ -1,5 +1,27 @@
 package de.terrestris.mde.mde_backend.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.terrestris.mde.mde_backend.model.json.Extent;
+import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
+import de.terrestris.mde.mde_backend.model.json.Service;
+import de.terrestris.mde.mde_backend.model.json.codelists.MD_MaintenanceFrequencyCode;
+import de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode;
+import de.terrestris.mde.mde_backend.model.json.termsofuse.TermsOfUse;
+import lombok.extern.log4j.Log4j2;
+import org.codehaus.stax2.XMLOutputFactory2;
+import org.springframework.stereotype.Component;
+
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+
 import static de.terrestris.mde.mde_backend.enumeration.MetadataProfile.ISO;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_DateTypeCode.*;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode.information;
@@ -11,27 +33,6 @@ import static de.terrestris.mde.mde_backend.service.IsoGenerator.TERMS_OF_USE_BY
 import static de.terrestris.mde.mde_backend.service.IsoGenerator.replaceValues;
 import static de.terrestris.utils.xml.MetadataNamespaceUtils.*;
 import static de.terrestris.utils.xml.XmlUtils.writeSimpleElement;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import de.terrestris.mde.mde_backend.model.json.Extent;
-import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
-import de.terrestris.mde.mde_backend.model.json.Service;
-import de.terrestris.mde.mde_backend.model.json.codelists.MD_MaintenanceFrequencyCode;
-import de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode;
-import de.terrestris.mde.mde_backend.model.json.termsofuse.TermsOfUse;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-import lombok.extern.log4j.Log4j2;
-import org.codehaus.stax2.XMLOutputFactory2;
-import org.springframework.stereotype.Component;
 
 @Component
 @Log4j2
@@ -215,8 +216,10 @@ public class DatasetIsoGenerator {
     writer.writeStartElement(GMD, "abstract");
     writeSimpleElement(writer, GCO, "CharacterString", metadata.getDescription());
     writer.writeEndElement(); // abstract
-    for (var contact : metadata.getPointsOfContact()) {
-      writeContact(writer, contact, "pointOfContact");
+    if (metadata.getPointsOfContact() != null) {
+      for (var contact : metadata.getPointsOfContact()) {
+        writeContact(writer, contact, "pointOfContact");
+      }
     }
     writeMaintenanceInfo(writer, metadata.getMaintenanceFrequency());
     writePreview(writer, metadata.getPreview());
@@ -640,6 +643,7 @@ public class DatasetIsoGenerator {
     writeLanguage(writer);
     writeCharacterSet(writer);
     writeHierarchyLevel(writer, dataset);
+    writeContact(writer, DEFAULT_CONTACT, "contact");
     if (metadata.getContacts() != null) {
       for (var contact : metadata.getContacts()) {
         writeContact(writer, contact, "contact");
