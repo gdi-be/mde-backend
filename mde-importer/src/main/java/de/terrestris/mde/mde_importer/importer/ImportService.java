@@ -522,9 +522,13 @@ public class ImportService {
         }
         skipToOneOf(reader, "Anchor", "CharacterString", "MD_RestrictionCode");
         if (reader.getLocalName().equals("CharacterString")) {
-          String text = reader.getElementText();
-          if (TERMS_OF_USE_MAP.get(text) != null) {
-            json.setTermsOfUseId(BigInteger.valueOf(TERMS_OF_USE_MAP.get(text).getId()));
+          var text = reader.getElementText();
+          var termsOfUse = TERMS_OF_USE_MAP.get(text);
+          if (termsOfUse != null) {
+            json.setTermsOfUseId(BigInteger.valueOf(termsOfUse.getId()));
+            if (termsOfUse.getJson() != null) {
+              json.setTermsOfUseSource(termsOfUse.getJson().getQuelle());
+            }
           }
         }
       }

@@ -149,7 +149,9 @@ public class ServiceIsoGenerator {
     }
     if (metadata.getTermsOfUseId() != null) {
       writeResourceConstraints(
-          writer, TERMS_OF_USE_BY_ID.get(metadata.getTermsOfUseId().intValue()));
+          writer,
+          TERMS_OF_USE_BY_ID.get(metadata.getTermsOfUseId().intValue()),
+          metadata.getTermsOfUseSource());
     }
     writer.writeStartElement(SRV, "serviceType");
     writer.writeStartElement(GCO, "LocalName");
