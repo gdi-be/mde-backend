@@ -1,6 +1,7 @@
 package de.terrestris.mde.mde_backend.service;
 
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode.information;
+import static de.terrestris.mde.mde_backend.model.json.codelists.CI_RoleCode.distributor;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_RoleCode.pointOfContact;
 import static de.terrestris.mde.mde_backend.model.json.codelists.MD_CharacterSetCode.utf8;
 import static de.terrestris.mde.mde_backend.model.json.codelists.MD_GeometricObjectTypeCode.complex;
@@ -25,6 +26,17 @@ public class GeneratorUtils {
   public static final Map<String, JsonIsoMetadata.InspireTheme> INSPIRE_THEME_MAP;
 
   public static final Map<JsonIsoMetadata.InspireTheme, String> INSPIRE_THEME_KEYWORD_MAP;
+
+  public static final Contact DEFAULT_CONTACT =
+      new Contact(
+          "GDI Berlin",
+          "Senatsverwaltung für Standtentwicklung, Baune und Wohnen",
+          null,
+          null,
+          "geoportal@senstadt.berlin.de",
+          null,
+          null,
+          distributor);
 
   static {
     INSPIRE_THEME_MAP = new HashMap<>();

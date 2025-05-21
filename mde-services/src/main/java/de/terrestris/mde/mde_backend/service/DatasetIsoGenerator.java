@@ -215,8 +215,10 @@ public class DatasetIsoGenerator {
     writer.writeStartElement(GMD, "abstract");
     writeSimpleElement(writer, GCO, "CharacterString", metadata.getDescription());
     writer.writeEndElement(); // abstract
-    for (var contact : metadata.getPointsOfContact()) {
-      writeContact(writer, contact, "pointOfContact");
+    if (metadata.getPointsOfContact() != null) {
+      for (var contact : metadata.getPointsOfContact()) {
+        writeContact(writer, contact, "pointOfContact");
+      }
     }
     writeMaintenanceInfo(writer, metadata.getMaintenanceFrequency());
     writePreview(writer, metadata.getPreview());
@@ -640,6 +642,7 @@ public class DatasetIsoGenerator {
     writeLanguage(writer);
     writeCharacterSet(writer);
     writeHierarchyLevel(writer, dataset);
+    writeContact(writer, DEFAULT_CONTACT, "contact");
     if (metadata.getContacts() != null) {
       for (var contact : metadata.getContacts()) {
         writeContact(writer, contact, "contact");

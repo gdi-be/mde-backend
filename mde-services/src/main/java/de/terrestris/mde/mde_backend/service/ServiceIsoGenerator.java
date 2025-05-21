@@ -131,8 +131,10 @@ public class ServiceIsoGenerator {
     writer.writeStartElement(GMD, "abstract");
     writeSimpleElement(writer, GCO, "CharacterString", service.getShortDescription());
     writer.writeEndElement(); // abstract
-    for (var contact : metadata.getPointsOfContact()) {
-      writeContact(writer, contact, "pointOfContact");
+    if (metadata.getPointsOfContact() != null) {
+      for (var contact : metadata.getPointsOfContact()) {
+        writeContact(writer, contact, "pointOfContact");
+      }
     }
     if (service.getPreview() != null) {
       writePreview(writer, service.getPreview());
@@ -218,8 +220,11 @@ public class ServiceIsoGenerator {
     writeCharacterSet(writer);
     writeHierarchyLevel(writer, MD_ScopeCode.service);
     writeHierarchyLevelName(writer, metadata.getTitle());
-    for (var contact : metadata.getContacts()) {
-      writeContact(writer, contact, "contact");
+    writeContact(writer, DEFAULT_CONTACT, "contact");
+    if (metadata.getContacts() != null) {
+      for (var contact : metadata.getContacts()) {
+        writeContact(writer, contact, "contact");
+      }
     }
     writeDateStamp(writer, metadata);
     writeMetadataInfo(writer, !metadata.getMetadataProfile().equals(MetadataProfile.ISO));
