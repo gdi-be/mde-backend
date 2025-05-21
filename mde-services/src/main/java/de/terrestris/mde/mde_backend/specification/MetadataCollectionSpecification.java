@@ -36,12 +36,9 @@ public class MetadataCollectionSpecification {
       }
 
       // Team-Member-Filter (reused in sortPriority)
-      Expression<Integer> arrayPos = cb.function(
-        "array_position",
-        Integer.class,
-        root.get("teamMemberIds"),
-        cb.literal(myKeycloakId)
-      );
+      Expression<Integer> arrayPos =
+          cb.function(
+              "array_position", Integer.class, root.get("teamMemberIds"), cb.literal(myKeycloakId));
       Expression<Boolean> isTeamMember = cb.greaterThan(arrayPos, 0);
 
       if (config.getIsTeamMember() != null) {
