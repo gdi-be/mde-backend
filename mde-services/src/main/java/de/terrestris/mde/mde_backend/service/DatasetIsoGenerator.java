@@ -213,7 +213,9 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // CI_Citation
     writer.writeEndElement(); // citation
     writer.writeStartElement(GMD, "abstract");
-    writeSimpleElement(writer, GCO, "CharacterString", metadata.getDescription());
+    if (metadata.getDescription() != null) {
+      writeSimpleElement(writer, GCO, "CharacterString", metadata.getDescription());
+    }
     writer.writeEndElement(); // abstract
     if (metadata.getPointsOfContact() != null) {
       for (var contact : metadata.getPointsOfContact()) {
@@ -221,16 +223,23 @@ public class DatasetIsoGenerator {
       }
     }
     writeMaintenanceInfo(writer, metadata.getMaintenanceFrequency());
-    writePreview(writer, metadata.getPreview());
+    if (metadata.getPreview() != null) {
+      writePreview(writer, metadata.getPreview());
+    }
     writeKeywords(writer, metadata);
     writeInspireThemeKeywords(writer, metadata);
-    writeResourceConstraints(writer, TERMS_OF_USE_BY_ID.get(metadata.getTermsOfUseId().intValue()));
+    if (metadata.getTermsOfUseId() != null) {
+      writeResourceConstraints(
+          writer, TERMS_OF_USE_BY_ID.get(metadata.getTermsOfUseId().intValue()));
+    }
     writeSpatialRepresentationType(writer);
     writeSpatialResolution(writer, metadata);
     writeLanguage(writer);
     writeCharacterSet(writer);
     writeTopicCategory(writer, metadata.getTopicCategory());
-    writeExtent(writer, metadata.getExtent(), GMD);
+    if (metadata.getExtent() != null) {
+      writeExtent(writer, metadata.getExtent(), GMD);
+    }
     writer.writeEndElement(); // MD_DataIdentification
     writer.writeEndElement(); // identificationInfo
   }
@@ -389,60 +398,62 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // version
     writer.writeEndElement(); // MD_Format
     writer.writeEndElement(); // distributionFormat
-    for (var service : metadata.getServices()) {
-      writer.writeStartElement(GMD, "transferOptions");
-      writer.writeStartElement(GMD, "MD_DigitalTransferOptions");
-      writer.writeStartElement(GMD, "onLine");
-      writer.writeStartElement(GMD, "CI_OnlineResource");
-      writer.writeStartElement(GMD, "linkage");
-      var capas = service.getCapabilitiesUrl();
-      if (!service.getServiceType().equals(Service.ServiceType.ATOM)) {
-        capas += "?request=GetCapabilities&service=" + service.getServiceType();
+    if (metadata.getServices() != null) {
+      for (var service : metadata.getServices()) {
+        writer.writeStartElement(GMD, "transferOptions");
+        writer.writeStartElement(GMD, "MD_DigitalTransferOptions");
+        writer.writeStartElement(GMD, "onLine");
+        writer.writeStartElement(GMD, "CI_OnlineResource");
+        writer.writeStartElement(GMD, "linkage");
+        var capas = service.getCapabilitiesUrl();
+        if (!service.getServiceType().equals(Service.ServiceType.ATOM)) {
+          capas += "?request=GetCapabilities&service=" + service.getServiceType();
+        }
+        writeSimpleElement(writer, GMD, "URL", replaceValues(capas));
+        writer.writeEndElement(); // linkage
+        writer.writeStartElement(GMD, "protocol");
+        writer.writeStartElement(GMX, "Anchor");
+        var type =
+            switch (service.getServiceType()) {
+              case WFS -> "http://www.opengis.net/def/serviceType/ogc/wfs";
+              case WMS -> "http://www.opengis.net/def/serviceType/ogc/wms";
+              case ATOM -> "https://tools.ietf.org/html/rfc4287";
+              case WMTS -> "http://www.opengis.net/def/serviceType/ogc/wmts";
+            };
+        var text =
+            switch (service.getServiceType()) {
+              case WFS -> "OGC Web Feature Service";
+              case WMS -> "OGC Web Map Service";
+              case ATOM -> "ATOM Syndication Format";
+              case WMTS -> "OGC Web Map Tile Service";
+            };
+        writer.writeAttribute(XLINK, "href", type);
+        writer.writeCharacters(text);
+        writer.writeEndElement(); // Anchor
+        writer.writeEndElement(); // protocol
+        writer.writeStartElement(GMD, "applicationProfile");
+        writer.writeStartElement(GMX, "Anchor");
+        var inspireType =
+            switch (service.getServiceType()) {
+              case WFS, ATOM ->
+                  "http://inspire.ec.europa.eu/metadata-codelist/SpatialDataServiceType/download";
+              case WMS, WMTS ->
+                  "http://inspire.ec.europa.eu/metadata-codelist/SpatialDataServiceType/view";
+            };
+        var inspireText =
+            switch (service.getServiceType()) {
+              case WFS, ATOM -> "Download Service";
+              case WMS, WMTS -> "View Service";
+            };
+        writer.writeAttribute(XLINK, "href", inspireType);
+        writer.writeCharacters(inspireText);
+        writer.writeEndElement(); // Anchor
+        writer.writeEndElement(); // applicationProfile
+        writer.writeEndElement(); // CI_OnlineResource
+        writer.writeEndElement(); // onLine
+        writer.writeEndElement(); // MD_DigitalTransferOptions
+        writer.writeEndElement(); // transferOptions
       }
-      writeSimpleElement(writer, GMD, "URL", replaceValues(capas));
-      writer.writeEndElement(); // linkage
-      writer.writeStartElement(GMD, "protocol");
-      writer.writeStartElement(GMX, "Anchor");
-      var type =
-          switch (service.getServiceType()) {
-            case WFS -> "http://www.opengis.net/def/serviceType/ogc/wfs";
-            case WMS -> "http://www.opengis.net/def/serviceType/ogc/wms";
-            case ATOM -> "https://tools.ietf.org/html/rfc4287";
-            case WMTS -> "http://www.opengis.net/def/serviceType/ogc/wmts";
-          };
-      var text =
-          switch (service.getServiceType()) {
-            case WFS -> "OGC Web Feature Service";
-            case WMS -> "OGC Web Map Service";
-            case ATOM -> "ATOM Syndication Format";
-            case WMTS -> "OGC Web Map Tile Service";
-          };
-      writer.writeAttribute(XLINK, "href", type);
-      writer.writeCharacters(text);
-      writer.writeEndElement(); // Anchor
-      writer.writeEndElement(); // protocol
-      writer.writeStartElement(GMD, "applicationProfile");
-      writer.writeStartElement(GMX, "Anchor");
-      var inspireType =
-          switch (service.getServiceType()) {
-            case WFS, ATOM ->
-                "http://inspire.ec.europa.eu/metadata-codelist/SpatialDataServiceType/download";
-            case WMS, WMTS ->
-                "http://inspire.ec.europa.eu/metadata-codelist/SpatialDataServiceType/view";
-          };
-      var inspireText =
-          switch (service.getServiceType()) {
-            case WFS, ATOM -> "Download Service";
-            case WMS, WMTS -> "View Service";
-          };
-      writer.writeAttribute(XLINK, "href", inspireType);
-      writer.writeCharacters(inspireText);
-      writer.writeEndElement(); // Anchor
-      writer.writeEndElement(); // applicationProfile
-      writer.writeEndElement(); // CI_OnlineResource
-      writer.writeEndElement(); // onLine
-      writer.writeEndElement(); // MD_DigitalTransferOptions
-      writer.writeEndElement(); // transferOptions
     }
     writeSpecialDescriptions(writer, metadata);
     writer.writeStartElement(GMD, "transferOptions");
@@ -539,24 +550,27 @@ public class DatasetIsoGenerator {
       writeReport(writer, metadata);
     }
 
-    writer.writeStartElement(GMD, "lineage");
-    writer.writeStartElement(GMD, "LI_Lineage");
-    writer.writeStartElement(GMD, "statement");
-    writeSimpleElement(writer, GCO, "CharacterString", metadata.getLineage().getFirst().getTitle());
-    writer.writeEndElement(); // statement
-    if (service != null && service.getDataBases() != null) {
-      for (var ds : service.getDataBases()) {
-        writer.writeStartElement(GMD, "source");
-        writer.writeStartElement(GMD, "LI_Source");
-        writer.writeStartElement(GMD, "description");
-        writeSimpleElement(writer, GCO, "CharacterString", ds.getContent());
-        writer.writeEndElement(); // description
-        writer.writeEndElement(); // LI_Source
-        writer.writeEndElement(); // source
+    if (metadata.getLineage() != null) {
+      writer.writeStartElement(GMD, "lineage");
+      writer.writeStartElement(GMD, "LI_Lineage");
+      writer.writeStartElement(GMD, "statement");
+      writeSimpleElement(
+          writer, GCO, "CharacterString", metadata.getLineage().getFirst().getTitle());
+      writer.writeEndElement(); // statement
+      if (service != null && service.getDataBases() != null) {
+        for (var ds : service.getDataBases()) {
+          writer.writeStartElement(GMD, "source");
+          writer.writeStartElement(GMD, "LI_Source");
+          writer.writeStartElement(GMD, "description");
+          writeSimpleElement(writer, GCO, "CharacterString", ds.getContent());
+          writer.writeEndElement(); // description
+          writer.writeEndElement(); // LI_Source
+          writer.writeEndElement(); // source
+        }
       }
+      writer.writeEndElement(); // LI_Lineage
+      writer.writeEndElement(); // lineage
     }
-    writer.writeEndElement(); // LI_Lineage
-    writer.writeEndElement(); // lineage
 
     writer.writeEndElement(); // DQ_DataQuality
     writer.writeEndElement(); // dataQualityInfo
