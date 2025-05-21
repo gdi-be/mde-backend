@@ -437,7 +437,7 @@ public class MetadataCollectionService
   }
 
   @PreAuthorize(
-      "hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR') or hasRole('ROLE_MDEQUALITYASSURANCE')")
+      "hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR') or hasRole('ROLE_MDEQUALITYASSURANCE') or hasRole('ROLE_MDEDATAOWNER')")
   @Transactional(isolation = Isolation.SERIALIZABLE)
   public void assignRole(String metadataId, String role) {
     MetadataCollection metadataCollection =
