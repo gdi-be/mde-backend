@@ -138,7 +138,7 @@ public class ServiceIsoGenerator {
     }
     if (service.getPreview() != null) {
       writePreview(writer, service.getPreview());
-    } else {
+    } else if (metadata.getPreview() != null) {
       writePreview(writer, metadata.getPreview());
     }
     writeKeywords(writer, metadata);
@@ -147,7 +147,10 @@ public class ServiceIsoGenerator {
       case WFS, ATOM -> writeServiceKeyword(writer, "infoFeatureAccessService");
       case WMS, WMTS -> writeServiceKeyword(writer, "infoMapAccessService");
     }
-    writeResourceConstraints(writer, TERMS_OF_USE_BY_ID.get(metadata.getTermsOfUseId().intValue()));
+    if (metadata.getTermsOfUseId() != null) {
+      writeResourceConstraints(
+          writer, TERMS_OF_USE_BY_ID.get(metadata.getTermsOfUseId().intValue()));
+    }
     writer.writeStartElement(SRV, "serviceType");
     writer.writeStartElement(GCO, "LocalName");
     writer.writeAttribute(
@@ -177,7 +180,9 @@ public class ServiceIsoGenerator {
       case ATOM -> writeVersion(writer, "predefined ATOM");
       case WMTS -> writeVersion(writer, "OGC:WMTS 1.0.0");
     }
-    writeExtent(writer, metadata.getExtent(), SRV);
+    if (metadata.getExtent() != null) {
+      writeExtent(writer, metadata.getExtent(), SRV);
+    }
     writer.writeStartElement(SRV, "couplingType");
     writer.writeStartElement(SRV, "SV_CouplingType");
     writer.writeAttribute(
