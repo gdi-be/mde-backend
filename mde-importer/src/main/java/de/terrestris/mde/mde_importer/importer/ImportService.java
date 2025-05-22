@@ -79,6 +79,8 @@ public class ImportService {
 
   private final Map<String, List<Path>> servicesMap = new HashMap<>();
 
+  private static final Set<String> TERMS_OF_USE_SET = new HashSet<>();
+
   @Bean
   public JwtDecoder jwtDecoder() {
     return NimbusJwtDecoder.withJwkSetUri("https://localhost/auth/realms/metadata-editor").build();
@@ -114,6 +116,7 @@ public class ImportService {
       log.trace("Stack trace", e);
       throw new ImportException(e);
     }
+    log.info("Unmapped terms of use: {}", TERMS_OF_USE_SET);
     return true;
   }
 
@@ -529,6 +532,8 @@ public class ImportService {
             if (termsOfUse.getJson() != null) {
               json.setTermsOfUseSource(termsOfUse.getJson().getQuelle());
             }
+          } else {
+            TERMS_OF_USE_SET.add(text);
           }
         }
       }
