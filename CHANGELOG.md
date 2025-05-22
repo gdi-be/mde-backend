@@ -1,3 +1,18 @@
+## [3.1.3](https://github.com/gdi-be/mde-backend/compare/v3.1.2...v3.1.3) (2025-05-22)
+
+
+### Bug Fixes
+
+* add error/trace loggers ([02d5c78](https://github.com/gdi-be/mde-backend/commit/02d5c78ebd8c5d0770dab47632911769ff02f206))
+* add logging of unmapped terms of use texts ([a611a60](https://github.com/gdi-be/mde-backend/commit/a611a600389dab6b197a31d872fc86c7abb02978))
+* add null pointer checks ([6eaf420](https://github.com/gdi-be/mde-backend/commit/6eaf420a31de5bb40dc086d37345ae329af8d235))
+* allow qs to assign themselves ([ab493b9](https://github.com/gdi-be/mde-backend/commit/ab493b987b29e91f93cd27de8d8dee7dbef92044))
+* allow role assignment for data owners ([d68bd5d](https://github.com/gdi-be/mde-backend/commit/d68bd5da526d34ec7e871b89b7e96adca98648bb))
+* fix formatting ([532affc](https://github.com/gdi-be/mde-backend/commit/532affc1c64036a0cf303fdca968c1e6fb323df3))
+* import and export terms of use source ([ab85f8f](https://github.com/gdi-be/mde-backend/commit/ab85f8fc265a1e2f183116ecc08571ed58f710f8))
+* updates isTeamMember filter in specfication ([3878924](https://github.com/gdi-be/mde-backend/commit/387892410654dfe571145a9806b9bd44b797c5a1))
+* write default contact when exporting metadata ([8db90bd](https://github.com/gdi-be/mde-backend/commit/8db90bddc3b33e3b36aa503252867936dbb975c2))
+
 ## [3.1.2](https://github.com/gdi-be/mde-backend/compare/v3.1.1...v3.1.2) (2025-05-05)
 
 
