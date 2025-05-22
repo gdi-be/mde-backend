@@ -78,8 +78,14 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // graphicOverview
   }
 
-  protected static void writeResourceConstraints(XMLStreamWriter writer, TermsOfUse terms)
+  protected static void writeResourceConstraints(
+      XMLStreamWriter writer, TermsOfUse terms, String source)
       throws XMLStreamException, JsonProcessingException {
+    var val = MAPPER.writeValueAsString(terms);
+    terms = MAPPER.readValue(val, TermsOfUse.class);
+    if (source != null) {
+      terms.getJson().setQuelle(source);
+    }
     writer.writeStartElement(GMD, "resourceConstraints");
     writer.writeStartElement(GMD, "MD_LegalConstraints");
     writer.writeStartElement(GMD, "accessConstraints");
@@ -230,7 +236,9 @@ public class DatasetIsoGenerator {
     writeInspireThemeKeywords(writer, metadata);
     if (metadata.getTermsOfUseId() != null) {
       writeResourceConstraints(
-          writer, TERMS_OF_USE_BY_ID.get(metadata.getTermsOfUseId().intValue()));
+          writer,
+          TERMS_OF_USE_BY_ID.get(metadata.getTermsOfUseId().intValue()),
+          metadata.getTermsOfUseSource());
     }
     writeSpatialRepresentationType(writer);
     writeSpatialResolution(writer, metadata);
