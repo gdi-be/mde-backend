@@ -83,7 +83,7 @@ public class DatasetIsoGenerator {
       throws XMLStreamException, JsonProcessingException {
     var val = MAPPER.writeValueAsString(terms);
     terms = MAPPER.readValue(val, TermsOfUse.class);
-    if (source != null) {
+    if (source != null && terms.getJson() != null) {
       terms.getJson().setQuelle(source);
     }
     writer.writeStartElement(GMD, "resourceConstraints");
