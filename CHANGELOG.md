@@ -1,3 +1,10 @@
+## [3.1.5](https://github.com/gdi-be/mde-backend/compare/v3.1.4...v3.1.5) (2025-05-26)
+
+
+### Bug Fixes
+
+* update README.md ([fedb47f](https://github.com/gdi-be/mde-backend/commit/fedb47f1faf6abbd72061ccde4513e9442e18476))
+
 ## [3.1.4](https://github.com/gdi-be/mde-backend/compare/v3.1.3...v3.1.4) (2025-05-26)
 
 
