@@ -1,3 +1,10 @@
+## [3.1.4](https://github.com/gdi-be/mde-backend/compare/v3.1.3...v3.1.4) (2025-05-26)
+
+
+### Bug Fixes
+
+* add null check ([d63b20b](https://github.com/gdi-be/mde-backend/commit/d63b20b1511e126034676c16af42bbc3cf07cbf2))
+
 ## [3.1.3](https://github.com/gdi-be/mde-backend/compare/v3.1.2...v3.1.3) (2025-05-22)
 
 
