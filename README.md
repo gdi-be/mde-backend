@@ -29,7 +29,6 @@ temporarily expose the postgres port to your machine, for example by adding a po
     ...
 ```
 
-
 ## Activate debug logging
 
 In order to activate debug or trace logging for a specific package run:
