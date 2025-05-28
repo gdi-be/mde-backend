@@ -183,7 +183,7 @@ public class ServiceIsoGenerator {
       case WMTS -> writeVersion(writer, "OGC:WMTS 1.0.0");
     }
     if (metadata.getExtent() != null) {
-      writeExtent(writer, metadata.getExtent(), SRV);
+      writeExtent(writer, metadata.getExtent(), SRV, metadata);
     }
     writer.writeStartElement(SRV, "couplingType");
     writer.writeStartElement(SRV, "SV_CouplingType");

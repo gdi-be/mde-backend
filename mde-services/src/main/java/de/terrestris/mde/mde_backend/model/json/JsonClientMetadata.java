@@ -24,9 +24,9 @@ public class JsonClientMetadata {
 
   private List<Comment> comments;
 
-  private Privacy privacy;
+  private Privacy privacy = Privacy.NONE;
 
-  private boolean highValueDataset;
+  private boolean highValueDataset = false;
 
   private Extent initialExtent;
 
