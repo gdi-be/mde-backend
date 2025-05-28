@@ -1,10 +1,12 @@
 package de.terrestris.mde.mde_importer.importer;
 
+import static de.terrestris.mde.mde_backend.model.json.codelists.MD_MaintenanceFrequencyCode.notPlanned;
 import static de.terrestris.mde.mde_backend.service.IsoGenerator.TERMS_OF_USE_MAP;
 import static de.terrestris.mde.mde_backend.service.IsoGenerator.replaceValues;
 import static de.terrestris.utils.xml.MetadataNamespaceUtils.XLINK;
 import static de.terrestris.utils.xml.XmlUtils.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.terrestris.mde.mde_backend.enumeration.MetadataProfile;
 import de.terrestris.mde.mde_backend.jpa.MetadataCollectionRepository;
 import de.terrestris.mde.mde_backend.model.MetadataCollection;
@@ -38,6 +40,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.stereotype.Component;
@@ -45,6 +48,8 @@ import org.springframework.stereotype.Component;
 @Component
 @Log4j2
 public class ImportService {
+
+  @Autowired @Lazy ObjectMapper objectMapper;
 
   private static final Pattern ID_REGEXP = Pattern.compile(".*/([^/]+)");
 
@@ -279,6 +284,9 @@ public class ImportService {
       if (reader.isStartElement() && reader.getLocalName().equals("title")) {
         skipToElement(reader, "CharacterString");
         isoMetadata.setTitle(reader.getElementText());
+        if (isoMetadata.getTitle().contains("Umweltatlas")) {
+          isoMetadata.setMaintenanceFrequency(notPlanned);
+        }
       }
       if (reader.isStartElement() && reader.getLocalName().equals("abstract")) {
         skipToElement(reader, "CharacterString");
@@ -307,11 +315,16 @@ public class ImportService {
             MD_MaintenanceFrequencyCode.valueOf(reader.getAttributeValue(null, "codeListValue")));
       }
       extractExtent(reader, isoMetadata);
+      extractTemporalExtent(reader, isoMetadata);
       extractSpatialResolution(reader, isoMetadata);
       extractGraphicOverview(reader, isoMetadata);
       extractTransferOptions(reader, isoMetadata);
       extractResourceConstraints(reader, isoMetadata);
       extractDistributionFormat(reader, isoMetadata);
+      if (isoMetadata.getMetadataProfile().equals(MetadataProfile.INSPIRE_HARMONISED)) {
+        isoMetadata.setInspireAnnexVersion(
+            isoMetadata.getDistributionVersions().getFirst().getVersion());
+      }
 
       if (reader.isStartElement() && reader.getLocalName().equals("statement")) {
         skipToElement(reader, "CharacterString");
@@ -322,6 +335,31 @@ public class ImportService {
         isoMetadata.setLineage(lineageList);
       }
       extractDate(reader, isoMetadata);
+    }
+  }
+
+  private static void extractTemporalExtent(XMLStreamReader reader, JsonIsoMetadata metadata)
+      throws XMLStreamException, ParseException {
+    if (reader.isStartElement() && reader.getLocalName().equals("temporalElement")) {
+      while (reader.hasNext()
+          && !(reader.isEndElement() && reader.getLocalName().equals("temporalElement"))) {
+        reader.next();
+        if (!reader.isStartElement()) {
+          continue;
+        }
+        if (reader.getLocalName().equals("EX_TemporalExtent")) {
+          skipToElement(reader, "beginPosition");
+          var begin = reader.getElementText();
+          skipToElement(reader, "endPosition");
+          var end = reader.getElementText();
+          if (begin != null && !begin.isEmpty()) {
+            metadata.setValidFrom(FORMAT.parse(begin).toInstant());
+          }
+          if (end != null && !end.isEmpty()) {
+            metadata.setValidTo(FORMAT.parse(end).toInstant());
+          }
+        }
+      }
     }
   }
 
@@ -663,33 +701,47 @@ public class ImportService {
       if (isoMetadata.getServices() == null) {
         isoMetadata.setServices(new ArrayList<>());
       }
-      isoMetadata.getServices().add(service);
       service.setServiceDescriptions(new ArrayList<>());
-      service.setDataBases(new ArrayList<>());
+      isoMetadata.setDataBases(new ArrayList<>());
       service.setPublications(new ArrayList<>());
 
       var reader = FACTORY.createXMLStreamReader(Files.newInputStream(file));
       nextElement(reader);
+      if (technicalMetadata.getCategories() == null) {
+        technicalMetadata.setCategories(new ArrayList<>());
+      }
+      if (service.getFeatureTypes() == null) {
+        service.setFeatureTypes(new ArrayList<>());
+        var featureType = new FeatureType();
+        featureType.setColumns(new ArrayList<>());
+        service.getFeatureTypes().add(featureType);
+      }
+
       List<Layer> layers = null;
-      while (reader.hasNext()
-          && !reader.getLocalName().equals("IsoMetadata")
-          && !reader.getLocalName().equals("IsoMetadataWMTS")) {
-        var res = extractMetadataFields(reader, service, technicalMetadata);
-        if (!res.isEmpty()) {
-          layers = res;
+      var res = extractMetadataFields(reader, service, technicalMetadata, isoMetadata);
+      if (!res.isEmpty()) {
+        layers = res;
+      }
+
+      while (reader.hasNext()) {
+        if (reader.isStartElement()
+            && (reader.getLocalName().equals("IsoMetadata")
+                || reader.getLocalName().equals("IsoMetadataWMTS"))) {
+          log.info("Found " + reader.getLocalName());
+          var clone = objectMapper.writeValueAsString(service);
+          service = objectMapper.readValue(clone, Service.class);
+          extractIsoFields(reader, service);
+          parseCapabilities(service, clientMetadata);
+          isoMetadata.getServices().add(service);
+
+          if (replaceValues(service.getUrl()).contains("fbadmin.senstadtdmz.verwalt-berlin.de")) {
+            isoMetadata.getServices().removeLast();
+            log.info("Removing service as it's not migrated yet.");
+          } else {
+            clientMetadata.getLayers().put(service.getServiceIdentification(), layers);
+          }
         }
       }
-
-      extractIsoFields(reader, service);
-      parseCapabilities(service, clientMetadata);
-
-      if (replaceValues(service.getUrl()).contains("fbadmin.senstadtdmz.verwalt-berlin.de")) {
-        isoMetadata.getServices().removeLast();
-        log.info("Removing service as it's not migrated yet.");
-      } else {
-        clientMetadata.getLayers().put(service.getServiceIdentification(), layers);
-      }
-
     } catch (XMLStreamException | IOException | ParseException | URISyntaxException e) {
       log.warn("Problem while adding service from {}: {}", file, e.getMessage());
       log.trace("Stack trace", e);
@@ -706,27 +758,47 @@ public class ImportService {
     skipToElement(reader, "SV_ServiceIdentification");
     id = reader.getAttributeValue(null, "uuid");
     service.setServiceIdentification(id);
-    skipToElement(reader, "serviceTypeVersion");
-    skipToElement(reader, "CharacterString");
-    var serviceType = reader.getElementText();
-    ServiceType type = null;
-    if (serviceType.contains("WFS")) {
-      type = ServiceType.WFS;
+
+    while (reader.hasNext()) {
+      reader.next();
+      if (reader.isEndElement() && reader.getLocalName().equals("MD_Metadata")) {
+        break;
+      }
+      if (!reader.isStartElement()) {
+        continue;
+      }
+      switch (reader.getLocalName()) {
+        case "graphicOverview":
+          skipToElement(reader, "fileName");
+          skipToElement(reader, "CharacterString");
+          service.setPreview(reader.getElementText());
+          break;
+        case "serviceTypeVersion":
+          skipToElement(reader, "CharacterString");
+          skipToElement(reader, "CharacterString");
+          var serviceType = reader.getElementText();
+          ServiceType type = null;
+          if (serviceType.contains("WFS")) {
+            type = ServiceType.WFS;
+          }
+          if (serviceType.contains("ATOM")) {
+            type = ServiceType.ATOM;
+          }
+          if (serviceType.contains("WMS")) {
+            type = ServiceType.WMS;
+          }
+          if (serviceType.contains("WMTS")) {
+            type = ServiceType.WMTS;
+          }
+          service.setServiceType(type);
+          break;
+        case "SV_OperationMetadata":
+          skipToElement(reader, "URL");
+          var url = reader.getElementText();
+          service.setUrl(url);
+          break;
+      }
     }
-    if (serviceType.contains("ATOM")) {
-      type = ServiceType.ATOM;
-    }
-    if (serviceType.contains("WMS")) {
-      type = ServiceType.WMS;
-    }
-    if (serviceType.contains("WMTS")) {
-      type = ServiceType.WMTS;
-    }
-    service.setServiceType(type);
-    skipToElement(reader, "SV_OperationMetadata");
-    skipToElement(reader, "URL");
-    var url = reader.getElementText();
-    service.setUrl(url);
   }
 
   private static void parseLayer(XMLStreamReader reader, List<Layer> layers)
@@ -817,186 +889,189 @@ public class ImportService {
   }
 
   private static List<Layer> extractMetadataFields(
-      XMLStreamReader reader, Service service, JsonTechnicalMetadata technical)
+      XMLStreamReader reader,
+      Service service,
+      JsonTechnicalMetadata technical,
+      JsonIsoMetadata metadata)
       throws XMLStreamException, ParseException, URISyntaxException {
     var layers = new ArrayList<Layer>();
-    if (service.getFeatureTypes() == null) {
-      service.setFeatureTypes(new ArrayList<>());
-    }
-    if (technical.getCategories() == null) {
-      technical.setCategories(new ArrayList<>());
-    }
-    switch (reader.getLocalName()) {
-      case "Dienstebeschreibung":
-        var desc =
-            new ServiceDescription(
-                reader.getAttributeValue(null, "typ"), reader.getAttributeValue(null, "url"));
-        service.getServiceDescriptions().add(desc);
-        break;
-      case "Title":
-        service.setTitle(reader.getElementText());
-        break;
-      case "CapabilitiesUrl":
-        service.setCapabilitiesUrl(reader.getElementText());
-        break;
-      case "Kurzbeschreibung":
-        service.setShortDescription(reader.getElementText());
-        break;
-      case "InhaltlicheBeschreibung":
-        service.setContentDescription(reader.getElementText());
-        break;
-      case "TechnischeBeschreibung":
-        service.setTechnicalDescription(reader.getElementText());
-        break;
-      case "GIS-Typ":
-        if (reader.getElementText().equals("ogcmap")) {
-          service.setServiceType(ServiceType.WMS);
-        }
-        break;
-      case "LegendImage":
-        var img =
-            new LegendImage(
-                reader.getAttributeValue(null, "format"),
-                reader.getAttributeValue(null, "url"),
-                Integer.parseInt(reader.getAttributeValue(null, "width")),
-                Integer.parseInt(reader.getAttributeValue(null, "height")));
-        service.setLegendImage(img);
-        break;
-      case "Datengrundlage":
-        var source = new Source();
-        source.setType(reader.getAttributeValue(null, "Typ"));
-        skipToElement(reader, "Inhalt");
-        source.setContent(reader.getElementText());
-        service.getDataBases().add(source);
-        break;
-      case "Veroeffentlichung":
-        var publication = new Source();
-        publication.setType(reader.getAttributeValue(null, "Typ"));
-        skipToElement(reader, "Inhalt");
-        publication.setContent(reader.getElementText());
-        service.getPublications().add(publication);
-        break;
-      case "Erstellungsdatum":
-        {
-          var txt = reader.getElementText();
-          service.setCreated(FORMAT.parse(txt + (txt.endsWith("Z") ? "" : "Z")).toInstant());
+    while (!(reader.isStartElement()
+        && (reader.getLocalName().equals("IsoMetadata")
+            || reader.getLocalName().equals("IsoMetadataWMTS")))) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+      switch (reader.getLocalName()) {
+        case "Dienstebeschreibung":
+          var desc =
+              new ServiceDescription(
+                  reader.getAttributeValue(null, "typ"), reader.getAttributeValue(null, "url"));
+          service.getServiceDescriptions().add(desc);
           break;
-        }
-      case "Revisionsdatum":
-        {
-          var txt = reader.getElementText();
-          service.setUpdated(FORMAT.parse(txt + (txt.endsWith("Z") ? "" : "Z")).toInstant());
+        case "Titel":
+          service.setTitle(reader.getElementText());
           break;
-        }
-      case "Veroeffentlichungsdatum":
-        {
-          var txt = reader.getElementText();
-          service.setPublished(FORMAT.parse(txt + (txt.endsWith("Z") ? "" : "Z")).toInstant());
+        case "CapabilitiesUrl":
+          service.setCapabilitiesUrl(reader.getElementText());
           break;
-        }
-      case "Vorschau":
-        // ignored
-        break;
-      case "Kategorie":
-        while (reader.hasNext()
-            && !(reader.isEndElement() && reader.getLocalName().equals("Kategorie"))) {
-          reader.next();
-          if (!reader.isStartElement()) {
-            continue;
+        case "Kurzbeschreibung":
+          service.setShortDescription(reader.getElementText());
+          break;
+        case "InhaltlicheBeschreibung":
+          service.setContentDescription(reader.getElementText());
+          break;
+        case "TechnischeBeschreibung":
+          service.setTechnicalDescription(reader.getElementText());
+          break;
+        case "GIS-Typ":
+          if (reader.getElementText().equals("ogcmap")) {
+            service.setServiceType(ServiceType.WMS);
           }
-          if (reader.getLocalName().equals("Link")) {
-            technical
-                .getCategories()
-                .add(
-                    new Category(
-                        reader.getAttributeValue(null, "title"),
-                        reader.getAttributeValue(null, "type"),
-                        reader.getElementText()));
+          break;
+        case "LegendImage":
+          var img =
+              new LegendImage(
+                  reader.getAttributeValue(null, "format"),
+                  reader.getAttributeValue(null, "url"),
+                  Integer.parseInt(reader.getAttributeValue(null, "width")),
+                  Integer.parseInt(reader.getAttributeValue(null, "height")));
+          service.setLegendImage(img);
+          break;
+        case "Datengrundlage":
+          var source = new Source();
+          source.setType(reader.getAttributeValue(null, "Typ"));
+          skipToElement(reader, "Inhalt");
+          source.setContent(reader.getElementText());
+          metadata.getDataBases().add(source);
+          break;
+        case "Veroeffentlichung":
+          var publication = new Source();
+          publication.setType(reader.getAttributeValue(null, "Typ"));
+          skipToElement(reader, "Inhalt");
+          publication.setContent(reader.getElementText());
+          service.getPublications().add(publication);
+          break;
+        case "Erstellungsdatum":
+          {
+            var txt = reader.getElementText();
+            service.setCreated(FORMAT.parse(txt + (txt.endsWith("Z") ? "" : "Z")).toInstant());
+            break;
           }
-        }
-        break;
-      case "SelectColumn":
-        var columnInfo = new ColumnInfo();
-        var featureTypes = service.getFeatureTypes();
+        case "Revisionsdatum":
+          {
+            var txt = reader.getElementText();
+            service.setUpdated(FORMAT.parse(txt + (txt.endsWith("Z") ? "" : "Z")).toInstant());
+            break;
+          }
+        case "Veroeffentlichungsdatum":
+          {
+            var txt = reader.getElementText();
+            service.setPublished(FORMAT.parse(txt + (txt.endsWith("Z") ? "" : "Z")).toInstant());
+            break;
+          }
+        case "Vorschau":
+          // ignored
+          break;
+        case "Sachdaten":
+          service.getFeatureTypes().getFirst().setName(reader.getAttributeValue(null, "mt_klasse"));
+          break;
+        case "Kategorie":
+          while (reader.hasNext()
+              && !(reader.isEndElement() && reader.getLocalName().equals("Kategorie"))) {
+            reader.next();
+            if (!reader.isStartElement()) {
+              continue;
+            }
+            if (reader.getLocalName().equals("Link")) {
+              technical
+                  .getCategories()
+                  .add(
+                      new Category(
+                          reader.getAttributeValue(null, "title"),
+                          reader.getAttributeValue(null, "type"),
+                          reader.getElementText()));
+            }
+          }
+          break;
+        case "SelectColumn":
+          var columnInfo = new ColumnInfo();
+          var featureTypes = service.getFeatureTypes();
+          var featureType = featureTypes.getFirst();
+          featureType.getColumns().add(columnInfo);
 
-        // TODO: handle multiple featuretypes in xml
-        var featureType = new FeatureType();
-        featureType.setColumns(new ArrayList<>());
-        featureType.getColumns().add(columnInfo);
-        featureTypes.add(featureType);
-
-        while (reader.hasNext()
-            && !(reader.isEndElement() && reader.getLocalName().equals("SelectColumn"))) {
-          reader.next();
-          if (!reader.isStartElement()) {
-            continue;
-          }
-          switch (reader.getLocalName()) {
-            case "ColumnName":
-              columnInfo.setName(reader.getElementText());
-              break;
-            case "ColumnAlias":
-              columnInfo.setAlias(reader.getElementText());
-              break;
-            case "ColumnType":
-              String tp = reader.getElementText();
-              if (tp.equals("T")) {
-                tp = "Text";
-              }
-              if (tp.equals("N")) {
-                tp = "Long";
-              }
-              columnInfo.setType(ColumnType.valueOf(tp));
-              break;
-            case "ColumnFilter":
-              while (reader.hasNext()
-                  && !(reader.isEndElement() && reader.getLocalName().equals("ColumnFilter"))) {
-                reader.next();
-                if (!reader.isStartElement()) {
-                  continue;
+          while (reader.hasNext()
+              && !(reader.isEndElement() && reader.getLocalName().equals("SelectColumn"))) {
+            reader.next();
+            if (!reader.isStartElement()) {
+              continue;
+            }
+            switch (reader.getLocalName()) {
+              case "ColumnName":
+                columnInfo.setName(reader.getElementText());
+                break;
+              case "ColumnAlias":
+                columnInfo.setAlias(reader.getElementText());
+                break;
+              case "ColumnType":
+                String tp = reader.getElementText();
+                if (tp.equals("T")) {
+                  tp = "Text";
                 }
-                if (reader.getLocalName().equals("FilterType")) {
-                  String value = reader.getElementText().trim();
-                  if (value.equals("Catalogbox")) {
-                    columnInfo.setFilterType(FilterType.CatalogBox);
-                  } else if (!value.isBlank()) {
-                    columnInfo.setFilterType(FilterType.valueOf(value));
+                if (tp.equals("N")) {
+                  tp = "Long";
+                }
+                columnInfo.setType(ColumnType.valueOf(tp));
+                break;
+              case "ColumnFilter":
+                while (reader.hasNext()
+                    && !(reader.isEndElement() && reader.getLocalName().equals("ColumnFilter"))) {
+                  reader.next();
+                  if (!reader.isStartElement()) {
+                    continue;
+                  }
+                  if (reader.getLocalName().equals("FilterType")) {
+                    String value = reader.getElementText().trim();
+                    if (value.equals("Catalogbox")) {
+                      columnInfo.setFilterType(FilterType.CatalogBox);
+                    } else if (!value.isBlank()) {
+                      columnInfo.setFilterType(FilterType.valueOf(value));
+                    }
                   }
                 }
-              }
-              break;
+                break;
+            }
           }
-        }
-        break;
-      case "Kartenebene":
-        var layer = new Layer();
-        layers.add(layer);
-        layer.setName(reader.getAttributeValue(null, "name"));
-        while (reader.hasNext()
-            && !(reader.isEndElement() && reader.getLocalName().equals("Kartenebene"))) {
-          reader.next();
-          if (!reader.isStartElement()) {
-            continue;
+          break;
+        case "Kartenebene":
+          var layer = new Layer();
+          layers.add(layer);
+          layer.setName(reader.getAttributeValue(null, "name"));
+          while (reader.hasNext()
+              && !(reader.isEndElement() && reader.getLocalName().equals("Kartenebene"))) {
+            reader.next();
+            if (!reader.isStartElement()) {
+              continue;
+            }
+            switch (reader.getLocalName()) {
+              case "Titel":
+                layer.setTitle(reader.getElementText());
+                break;
+              case "Kurzbeschreibung":
+                layer.setShortDescription(reader.getElementText());
+                break;
+              case "Style":
+                layer.setStyleName(reader.getAttributeValue(null, "name"));
+                layer.setStyleTitle(reader.getAttributeValue(null, "title"));
+                break;
+              case "LegendImage":
+                layer.setLegendImage(reader.getAttributeValue(null, "url"));
+                break;
+            }
           }
-          switch (reader.getLocalName()) {
-            case "Titel":
-              layer.setTitle(reader.getElementText());
-              break;
-            case "Kurzbeschreibung":
-              layer.setShortDescription(reader.getElementText());
-              break;
-            case "Style":
-              layer.setStyleName(reader.getAttributeValue(null, "name"));
-              layer.setStyleTitle(reader.getAttributeValue(null, "title"));
-              break;
-            case "LegendImage":
-              layer.setLegendImage(reader.getAttributeValue(null, "url"));
-              break;
-          }
-        }
-        break;
+          break;
+      }
     }
-    nextElement(reader);
     return layers;
   }
 }

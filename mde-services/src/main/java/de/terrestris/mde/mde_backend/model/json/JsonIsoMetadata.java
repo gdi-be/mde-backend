@@ -127,7 +127,7 @@ public class JsonIsoMetadata implements FileIdentifier {
 
   private Extent extent;
 
-  private MD_MaintenanceFrequencyCode maintenanceFrequency = MD_MaintenanceFrequencyCode.unknown;
+  private MD_MaintenanceFrequencyCode maintenanceFrequency = MD_MaintenanceFrequencyCode.asNeeded;
 
   private List<ContentDescription> contentDescriptions;
 
@@ -144,4 +144,6 @@ public class JsonIsoMetadata implements FileIdentifier {
   private BigInteger termsOfUseId;
 
   private String termsOfUseSource;
+
+  private List<Source> dataBases;
 }

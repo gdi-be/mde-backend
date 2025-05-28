@@ -25,6 +25,8 @@ public class GeneratorUtils {
 
   public static final Map<String, JsonIsoMetadata.InspireTheme> INSPIRE_THEME_MAP;
 
+  public static final Map<JsonIsoMetadata.InspireTheme, String> INSPIRE_THEME_SPECIFICATION_MAP;
+
   public static final Map<JsonIsoMetadata.InspireTheme, String> INSPIRE_THEME_KEYWORD_MAP;
 
   public static final Contact DEFAULT_CONTACT =
@@ -84,6 +86,88 @@ public class GeneratorUtils {
     for (var e : INSPIRE_THEME_MAP.entrySet()) {
       INSPIRE_THEME_KEYWORD_MAP.put(e.getValue(), e.getKey());
     }
+    INSPIRE_THEME_SPECIFICATION_MAP = new HashMap<>();
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.RS,
+        "D2.8.I.1 Data Specification on Coordinate Reference Systems");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.GG,
+        "D2.8.I.2 Data Specification on Geographical Grids and Grid Systems");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.GN, "D2.8.I.3 Data Specification on Geographical Names");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.AU, "D2.8.I.4 Data Specification on Administrative Units");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.AD, "D2.8.I.5 Data Specification on Addresses");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.CP, "D2.8.I.6 Data Specification on Cadastral Parcels");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.TN, "D2.8.I.7 Data Specification on Transport Networks");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.HY, "D2.8.I.8 Data Specification on Hydrography");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.PS, "D2.8.I.9 Data Specification on Protected Sites");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.EL, "D2.8.II.1 Data Specification on Elevation");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.LC, "D2.8.II.2 Data Specification on Land Cover");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.OI, "D2.8.II.3 Data Specification on Orthoimagery");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.GE, "D2.8.II.4 Data Specification on Geology");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.SU, "D2.8.III.1 Data Specification on Statistical Units");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.BU, "D2.8.III.2 Data Specification on Buildings");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.SO, "D2.8.III.3 Data Specification on Soil");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.LU, "D2.8.III.4 Data Specification on Land Use");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.HH,
+        "D2.8.III.5 Data Specification on Human Health and Safety");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.US,
+        "D2.8.III.6 Data Specification on Utility and Government Services");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.EF,
+        "D2.8.III.7 Data Specification on Environmental Monitoring Facilities");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.PF,
+        "D2.8.III.8 Data Specification on Production and Industrial Facilities");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.AF,
+        "D2.8.III.9 Data Specification on Agricultural and Aquaculture Facilities");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.PD,
+        "D2.8.III.10 Data Specification on Population Distribution – Demography");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.AM,
+        "D2.8.III.11 Data Specification on Area Management/Restriction/Regulation Zones");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.NZ, "D2.8.III.12 Data Specification on Natural Risk Zones");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.AC,
+        "D2.8.III.13 Data Specification on Atmospheric Conditions");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.MF,
+        "D2.8.III.14 Data Specification on Meteorological Geographical Features");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.OF,
+        "D2.8.III.15 Data Specification on Oceanographic Geographical Features");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.SR, "D2.8.III.16 Data Specification on Sea Regions");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.BR,
+        "D2.8.III.17 Data Specification on Bio-geographical Regions");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.HB, "D2.8.III.18 Data Specification on Habitats and Biotopes");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.SD, "D2.8.III.19 Data Specification on Species Distribution");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.ER, "D2.8.III.20 Data Specification on Energy Resources");
+    INSPIRE_THEME_SPECIFICATION_MAP.put(
+        JsonIsoMetadata.InspireTheme.MR, "D2.8.III.21 Data Specification on Mineral Resources");
   }
 
   protected static void writeLanguage(XMLStreamWriter writer) throws XMLStreamException {
