@@ -25,6 +25,8 @@ public class Service implements FileIdentifier {
     WMTS
   }
 
+  private String workspace;
+
   private String title;
 
   private String shortDescription;
