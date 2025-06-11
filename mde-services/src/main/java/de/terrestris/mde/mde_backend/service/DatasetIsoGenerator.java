@@ -525,6 +525,18 @@ public class DatasetIsoGenerator {
         writer.writeCharacters(inspireText);
         writer.writeEndElement(); // Anchor
         writer.writeEndElement(); // applicationProfile
+        writer.writeStartElement(GMD, "description");
+        writeSimpleElement(
+            writer,
+            GCO,
+            "CharacterString",
+            "GetCapabilities Aufruf des "
+                + service.getServiceType()
+                + " mit maschinenlesbarer Antwort");
+        writer.writeEndElement(); // description
+        writer.writeStartElement(GMD, "function");
+        writeCodelistValue(writer, information);
+        writer.writeEndElement(); // function
         writer.writeEndElement(); // CI_OnlineResource
         writer.writeEndElement(); // onLine
         writer.writeEndElement(); // MD_DigitalTransferOptions
@@ -626,7 +638,7 @@ public class DatasetIsoGenerator {
       writeReport(writer, metadata);
     }
 
-    if (metadata.getLineage() != null) {
+    if (metadata.getLineage() != null && service == null) {
       writer.writeStartElement(GMD, "lineage");
       writer.writeStartElement(GMD, "LI_Lineage");
       writer.writeStartElement(GMD, "statement");
