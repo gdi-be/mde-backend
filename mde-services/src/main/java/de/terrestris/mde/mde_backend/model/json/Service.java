@@ -49,8 +49,6 @@ public class Service implements FileIdentifier {
 
   private LegendImage legendImage;
 
-  private List<Source> dataBases;
-
   private List<Source> publications;
 
   @JsonFormat(shape = STRING)

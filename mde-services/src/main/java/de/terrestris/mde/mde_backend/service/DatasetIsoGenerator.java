@@ -1,5 +1,6 @@
 package de.terrestris.mde.mde_backend.service;
 
+import static de.terrestris.mde.mde_backend.enumeration.MetadataProfile.INSPIRE_HARMONISED;
 import static de.terrestris.mde.mde_backend.enumeration.MetadataProfile.ISO;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_DateTypeCode.*;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode.information;
@@ -72,8 +73,11 @@ public class DatasetIsoGenerator {
     writer.writeStartElement(GMD, "graphicOverview");
     writer.writeStartElement(GMD, "MD_BrowseGraphic");
     writer.writeStartElement(GMD, "fileName");
-    writeSimpleElement(writer, GCO, "CharacterString", preview);
+    writeSimpleElement(writer, GCO, "CharacterString", replaceValues(preview));
     writer.writeEndElement(); // fileName
+    writer.writeStartElement(GMD, "fileDescription");
+    writeSimpleElement(writer, GCO, "CharacterString", "Vorschaubild");
+    writer.writeEndElement(); // fileDescription
     writer.writeEndElement(); // MD_BrowseGraphic
     writer.writeEndElement(); // graphicOverview
   }
@@ -160,7 +164,8 @@ public class DatasetIsoGenerator {
     }
   }
 
-  protected static void writeExtent(XMLStreamWriter writer, Extent extent, String extentNamespace)
+  protected static void writeExtent(
+      XMLStreamWriter writer, Extent extent, String extentNamespace, JsonIsoMetadata metadata)
       throws XMLStreamException {
     writer.writeStartElement(extentNamespace, "extent");
     writer.writeStartElement(GMD, "EX_Extent");
@@ -197,6 +202,40 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // geographicIdentifier
     writer.writeEndElement(); // EX_GeographicDescription
     writer.writeEndElement(); // geographicElement
+    if (metadata.getValidFrom() != null) {
+      writer.writeStartElement(GMD, "temporalElement");
+      writer.writeStartElement(GMD, "EX_TemporalExtent");
+      writer.writeStartElement(GMD, "extent");
+      writer.writeStartElement(GMD, "TimePeriod");
+      writer.writeAttribute(GML, "id", "ID_1");
+      if (metadata.getValidFrom() != null) {
+        writeSimpleElement(
+            writer,
+            GMD,
+            "beginPosition",
+            DateTimeFormatter.ISO_DATE_TIME.format(
+                metadata.getValidFrom().atOffset(ZoneOffset.UTC)));
+      } else {
+        writer.writeStartElement(GMD, "beginPosition");
+        writer.writeAttribute("indeterminatePosition", "unknown");
+        writer.writeEndElement(); // beginPosition
+      }
+      if (metadata.getValidTo() != null) {
+        writeSimpleElement(
+            writer,
+            GMD,
+            "endPosition",
+            DateTimeFormatter.ISO_DATE_TIME.format(metadata.getValidTo().atOffset(ZoneOffset.UTC)));
+      } else {
+        writer.writeStartElement(GMD, "endPosition");
+        writer.writeAttribute("indeterminatePosition", "now");
+        writer.writeEndElement(); // beginPosition
+      }
+      writer.writeEndElement(); // TimePeriod
+      writer.writeEndElement(); // extent
+      writer.writeEndElement(); // EX_TemporalExtent
+      writer.writeEndElement(); // temporalElement
+    }
     writer.writeEndElement(); // EX_Extent
     writer.writeEndElement(); // extent
   }
@@ -246,7 +285,7 @@ public class DatasetIsoGenerator {
     writeCharacterSet(writer);
     writeTopicCategory(writer, metadata.getTopicCategory());
     if (metadata.getExtent() != null) {
-      writeExtent(writer, metadata.getExtent(), GMD);
+      writeExtent(writer, metadata.getExtent(), GMD, metadata);
     }
     writer.writeEndElement(); // MD_DataIdentification
     writer.writeEndElement(); // identificationInfo
@@ -354,6 +393,16 @@ public class DatasetIsoGenerator {
         writer.writeEndElement(); // date
         writer.writeEndElement(); // CI_Citation
         writer.writeEndElement(); // thesaurusName
+      } else {
+        writer.writeStartElement(GMD, "type");
+        writer.writeStartElement(GMD, "MD_KeywordTypeCode");
+        writer.writeAttribute(null, "codeListValue", "theme");
+        writer.writeAttribute(
+            null,
+            "codeList",
+            "http://standards.iso.org/iso/19115/resources/codeList.xml#MD_KeywordTypeCode");
+        writer.writeEndElement(); // MD_KeywordTypeCode
+        writer.writeEndElement(); // type
       }
       writer.writeEndElement(); // MD_Keywords
       writer.writeEndElement(); // descriptiveKeywords
@@ -396,16 +445,35 @@ public class DatasetIsoGenerator {
       throws XMLStreamException {
     writer.writeStartElement(GMD, "distributionInfo");
     writer.writeStartElement(GMD, "MD_Distribution");
-    writer.writeStartElement(GMD, "distributionFormat");
-    writer.writeStartElement(GMD, "MD_Format");
-    writer.writeStartElement(GMD, "name");
-    writeSimpleElement(writer, GCO, "CharacterString", "Text/HTML");
-    writer.writeEndElement(); // name
-    writer.writeStartElement(GMD, "version");
-    writeSimpleElement(writer, GCO, "CharacterString", "4.01");
-    writer.writeEndElement(); // version
-    writer.writeEndElement(); // MD_Format
-    writer.writeEndElement(); // distributionFormat
+    if (metadata.getMetadataProfile().equals(INSPIRE_HARMONISED)) {
+      for (var theme : metadata.getInspireTheme()) {
+        writer.writeStartElement(GMD, "distributionFormat");
+        writer.writeStartElement(GMD, "MD_Format");
+        writer.writeStartElement(GMD, "name");
+        writeSimpleElement(writer, GCO, "CharacterString", "INSPIRE GML");
+        writer.writeEndElement(); // name
+        writer.writeStartElement(GMD, "version");
+        writeSimpleElement(writer, GCO, "CharacterString", metadata.getInspireAnnexVersion());
+        writer.writeEndElement(); // version
+        writer.writeStartElement(GMD, "specification");
+        writeSimpleElement(
+            writer, GCO, "CharacterString", INSPIRE_THEME_SPECIFICATION_MAP.get(theme));
+        writer.writeEndElement(); // specification
+        writer.writeEndElement(); // MD_Format
+        writer.writeEndElement(); // distributionFormat
+      }
+    } else {
+      writer.writeStartElement(GMD, "distributionFormat");
+      writer.writeStartElement(GMD, "MD_Format");
+      writer.writeStartElement(GMD, "name");
+      writeSimpleElement(writer, GCO, "CharacterString", "Text/HTML");
+      writer.writeEndElement(); // name
+      writer.writeStartElement(GMD, "version");
+      writeSimpleElement(writer, GCO, "CharacterString", "4.01");
+      writer.writeEndElement(); // version
+      writer.writeEndElement(); // MD_Format
+      writer.writeEndElement(); // distributionFormat
+    }
     if (metadata.getServices() != null) {
       for (var service : metadata.getServices()) {
         writer.writeStartElement(GMD, "transferOptions");
@@ -565,8 +633,8 @@ public class DatasetIsoGenerator {
       writeSimpleElement(
           writer, GCO, "CharacterString", metadata.getLineage().getFirst().getTitle());
       writer.writeEndElement(); // statement
-      if (service != null && service.getDataBases() != null) {
-        for (var ds : service.getDataBases()) {
+      if (metadata.getDataBases() != null) {
+        for (var ds : metadata.getDataBases()) {
           writer.writeStartElement(GMD, "source");
           writer.writeStartElement(GMD, "LI_Source");
           writer.writeStartElement(GMD, "description");
