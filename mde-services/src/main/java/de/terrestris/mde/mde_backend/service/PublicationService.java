@@ -342,7 +342,8 @@ public class PublicationService {
         throw new ResponseStatusException(CONFLICT);
       }
 
-      // Editor can only delete metadata collections that are owned by them or where they are team members
+      // Editor can only delete metadata collections that are owned by them or where they are team
+      // members
       var isOwner = ownerId != null && ownerId.equals(userId);
       var isTeamMember = teamMemberIds != null && teamMemberIds.contains(userId);
       if (!isOwner && !isTeamMember) {
