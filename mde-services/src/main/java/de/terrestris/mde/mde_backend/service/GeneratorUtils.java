@@ -345,4 +345,42 @@ public class GeneratorUtils {
     writeSimpleElement(writer, GCO, "CharacterString", version);
     writer.writeEndElement(); // serviceTypeVersion
   }
+
+  protected static void writeHvdKeyword(XMLStreamWriter writer, JsonIsoMetadata metadata)
+      throws XMLStreamException {
+    if (metadata.isHighValueDataset()) {
+      for (var category : metadata.getHighValueDataCategory()) {
+        writer.writeStartElement(GMD, "descriptiveKeywords");
+        writer.writeStartElement(GMD, "MD_Keywords");
+        writer.writeStartElement(GMD, "keyword");
+        writer.writeStartElement(GMX, "Anchor");
+        writer.writeAttribute(XLINK, "href", "http://data.europa.eu/bna/c_ac64a52d");
+        writer.writeCharacters(category);
+        writer.writeEndElement(); // Anchor
+        writer.writeEndElement(); // keyword
+        writer.writeStartElement(GMD, "thesaurusName");
+        writer.writeStartElement(GMD, "CI_Citation");
+        writer.writeStartElement(GMD, "title");
+        writer.writeStartElement(GMX, "Anchor");
+        writer.writeAttribute(XLINK, "href", "http://data.europa.eu/bna/asd487ae75");
+        writer.writeCharacters("High-value dataset categories");
+        writer.writeEndElement(); // Anchor
+        writer.writeEndElement(); // title
+        writer.writeStartElement(GMD, "date");
+        writer.writeStartElement(GMD, "CI_Date");
+        writer.writeStartElement(GMD, "date");
+        writeSimpleElement(writer, GCO, "Date", "2023-09-27");
+        writer.writeEndElement(); // date
+        writer.writeStartElement(GMD, "dateType");
+        writeCodelistValue(writer, CI_DateTypeCode.publication);
+        writer.writeEndElement(); // dateType
+        writer.writeEndElement(); // CI_Date
+        writer.writeEndElement(); // date
+        writer.writeEndElement(); // CI_Citation
+        writer.writeEndElement(); // thesaurusName
+        writer.writeEndElement(); // MD_Keywords
+        writer.writeEndElement(); // descriptiveKeywords
+      }
+    }
+  }
 }

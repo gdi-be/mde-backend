@@ -26,8 +26,6 @@ public class JsonClientMetadata {
 
   private Privacy privacy = Privacy.NONE;
 
-  private boolean highValueDataset = false;
-
   private Extent initialExtent;
 
   private String relatedTopics;
