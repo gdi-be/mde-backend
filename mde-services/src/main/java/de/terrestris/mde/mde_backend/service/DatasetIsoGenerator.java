@@ -342,6 +342,7 @@ public class DatasetIsoGenerator {
 
   protected static void writeKeywords(XMLStreamWriter writer, JsonIsoMetadata metadata)
       throws XMLStreamException {
+    writeHvdKeyword(writer, metadata);
     for (var entry : metadata.getKeywords().entrySet()) {
       var thesaurus = metadata.getThesauri().get(entry.getKey());
       writer.writeStartElement(GMD, "descriptiveKeywords");
@@ -396,9 +397,8 @@ public class DatasetIsoGenerator {
       } else {
         writer.writeStartElement(GMD, "type");
         writer.writeStartElement(GMD, "MD_KeywordTypeCode");
-        writer.writeAttribute(null, "codeListValue", "theme");
+        writer.writeAttribute("codeListValue", "theme");
         writer.writeAttribute(
-            null,
             "codeList",
             "http://standards.iso.org/iso/19115/resources/codeList.xml#MD_KeywordTypeCode");
         writer.writeEndElement(); // MD_KeywordTypeCode

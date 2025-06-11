@@ -741,6 +741,7 @@ public class ImportService {
             clientMetadata.getLayers().put(service.getServiceIdentification(), layers);
           }
         }
+        reader.next();
       }
     } catch (XMLStreamException | IOException | ParseException | URISyntaxException e) {
       log.warn("Problem while adding service from {}: {}", file, e.getMessage());
