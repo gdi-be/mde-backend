@@ -328,17 +328,25 @@ public class PublicationService {
         metadataCollectionRepository
             .findByMetadataId(metadataId)
             .orElseThrow(() -> new ResponseStatusException(NOT_FOUND));
-    if (metadataCollection.getAssignedUserId() != null) {
-      throw new ResponseStatusException(CONFLICT);
-    }
+
+    var userId = auth.getName();
+
+    // Admin can always delete metadata collections
     if (!auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_MDEADMINISTRATOR"))) {
-      var userId = auth.getName();
-      if (metadataCollection.getOwnerId() == null
-          || metadataCollection.getTeamMemberIds() == null) {
+      var assignedUserId = metadataCollection.getAssignedUserId();
+      var ownerId = metadataCollection.getOwnerId();
+      var teamMemberIds = metadataCollection.getTeamMemberIds();
+
+      // Editor can only delete metadata collections that are assigned to them
+      if (assignedUserId != null && !assignedUserId.equals(userId)) {
         throw new ResponseStatusException(CONFLICT);
       }
-      if (!metadataCollection.getOwnerId().equals(userId)
-          && !metadataCollection.getTeamMemberIds().contains(userId)) {
+
+      // Editor can only delete metadata collections that are owned by them or where they are team
+      // members
+      var isOwner = ownerId != null && ownerId.equals(userId);
+      var isTeamMember = teamMemberIds != null && teamMemberIds.contains(userId);
+      if (!isOwner && !isTeamMember) {
         throw new ResponseStatusException(CONFLICT);
       }
     }
