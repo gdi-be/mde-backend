@@ -7,6 +7,8 @@ import lombok.Data;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserDetails {
 
+  private String organisation;
+
   private String firstName;
 
   private String lastName;

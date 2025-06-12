@@ -65,6 +65,7 @@ public class KeycloakService {
     details.setFirstName(user.getFirstName() == null ? "" : user.getFirstName());
     details.setLastName(user.getLastName() == null ? "" : user.getLastName());
     details.setEmail(user.getEmail() == null ? "" : user.getEmail());
+    details.setOrganisation(attributes.getOrDefault("organisation", List.of("")).getFirst());
     return details;
   }
 }
