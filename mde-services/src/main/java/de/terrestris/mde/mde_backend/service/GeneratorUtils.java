@@ -1,7 +1,6 @@
 package de.terrestris.mde.mde_backend.service;
 
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode.information;
-import static de.terrestris.mde.mde_backend.model.json.codelists.CI_RoleCode.distributor;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_RoleCode.pointOfContact;
 import static de.terrestris.mde.mde_backend.model.json.codelists.MD_CharacterSetCode.utf8;
 import static de.terrestris.mde.mde_backend.model.json.codelists.MD_GeometricObjectTypeCode.complex;
@@ -9,10 +8,14 @@ import static de.terrestris.mde.mde_backend.service.IsoGenerator.replaceValues;
 import static de.terrestris.utils.xml.MetadataNamespaceUtils.*;
 import static de.terrestris.utils.xml.XmlUtils.writeSimpleElement;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import de.terrestris.mde.mde_backend.model.json.Contact;
 import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
 import de.terrestris.mde.mde_backend.model.json.codelists.CI_DateTypeCode;
 import de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode;
+import java.io.File;
+import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -20,7 +23,9 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 public class GeneratorUtils {
 
   public static final Map<String, JsonIsoMetadata.InspireTheme> INSPIRE_THEME_MAP;
@@ -29,16 +34,7 @@ public class GeneratorUtils {
 
   public static final Map<JsonIsoMetadata.InspireTheme, String> INSPIRE_THEME_KEYWORD_MAP;
 
-  public static final Contact DEFAULT_CONTACT =
-      new Contact(
-          "GDI Berlin",
-          "Senatsverwaltung für Standtentwicklung, Baune und Wohnen",
-          null,
-          null,
-          "geoportal@senstadt.berlin.de",
-          null,
-          null,
-          distributor);
+  public static final Contact DEFAULT_CONTACT;
 
   static {
     INSPIRE_THEME_MAP = new HashMap<>();
@@ -168,6 +164,15 @@ public class GeneratorUtils {
         JsonIsoMetadata.InspireTheme.ER, "D2.8.III.20 Data Specification on Energy Resources");
     INSPIRE_THEME_SPECIFICATION_MAP.put(
         JsonIsoMetadata.InspireTheme.MR, "D2.8.III.21 Data Specification on Mineral Resources");
+    try {
+      var mapper = new ObjectMapper(new YAMLFactory());
+      DEFAULT_CONTACT =
+          mapper.readValue(new File(System.getenv("CODELISTS_DIR"), "contact.yaml"), Contact.class);
+    } catch (IOException e) {
+      log.error("Error when loading the default contact: {}", e.getMessage());
+      log.trace("Stack trace:", e);
+      throw new RuntimeException(e);
+    }
   }
 
   protected static void writeLanguage(XMLStreamWriter writer) throws XMLStreamException {
