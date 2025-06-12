@@ -1,3 +1,18 @@
+# [3.2.0](https://github.com/gdi-be/mde-backend/compare/v3.1.5...v3.2.0) (2025-06-12)
+
+
+### Bug Fixes
+
+* export issues ([5d5e3f4](https://github.com/gdi-be/mde-backend/commit/5d5e3f4befbc7e811c0270e6e7c0738dc94eda61))
+* fix issues from importer test ([e40df11](https://github.com/gdi-be/mde-backend/commit/e40df1146cdea7a5291c454d0ff21d19d09ab35b))
+* update checks in deleteMetadata ([585b725](https://github.com/gdi-be/mde-backend/commit/585b725f566e2ea9858276080e8a40b98b6aa276))
+
+
+### Features
+
+* add export of high value dataset categories/keywords ([45c7697](https://github.com/gdi-be/mde-backend/commit/45c76974f3150ca5c56121771e6b4b1bd0e291a8))
+* add workspace to Service ([11a31bd](https://github.com/gdi-be/mde-backend/commit/11a31bd662a27e1e2e31d4aa62b26ddb037c57d2))
+
 ## [3.1.5](https://github.com/gdi-be/mde-backend/compare/v3.1.4...v3.1.5) (2025-05-26)
 
 
