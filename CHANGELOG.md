@@ -1,3 +1,17 @@
+# [3.3.0](https://github.com/gdi-be/mde-backend/compare/v3.2.0...v3.3.0) (2025-06-13)
+
+
+### Bug Fixes
+
+* add license ([f506363](https://github.com/gdi-be/mde-backend/commit/f506363ad9f00919cf662ae101ba2e0d6f0cb98e))
+* add organisation to user details ([f9f5fef](https://github.com/gdi-be/mde-backend/commit/f9f5fefae2c3e1a2de9055c8894f1904aa9053ee))
+* import workspace ([a59593d](https://github.com/gdi-be/mde-backend/commit/a59593dd053b3e3bdeab65bffcbaba0656ff4ad5))
+
+
+### Features
+
+* load configured contact information ([9baf99b](https://github.com/gdi-be/mde-backend/commit/9baf99bdb841bb1bd29bcc2bdb8d4eed6431b8af))
+
 # [3.2.0](https://github.com/gdi-be/mde-backend/compare/v3.1.5...v3.2.0) (2025-06-12)
 
 
