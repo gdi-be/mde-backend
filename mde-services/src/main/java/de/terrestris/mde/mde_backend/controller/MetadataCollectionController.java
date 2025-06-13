@@ -490,36 +490,6 @@ public class MetadataCollectionController
     }
   }
 
-  @GetMapping(
-      path = "searchLineage",
-      produces = {"application/json"})
-  @ResponseStatus(HttpStatus.OK)
-  @Operation(security = {@SecurityRequirement(name = "bearer-key")})
-  @ApiResponses(
-      value = {
-        @ApiResponse(responseCode = "200", description = "Ok: The entity was successfully updated"),
-        @ApiResponse(
-            responseCode = "500",
-            description =
-                "Internal Server Error: Something internal went wrong while updating the entity")
-      })
-  public List<Lineage> searchLineage(
-      @RequestParam String searchTerm, @RequestParam String property) {
-    log.trace("Search request for Lineage with searchTerm: {}", searchTerm);
-    try {
-      return this.service.searchLineage(searchTerm, property);
-    } catch (Exception e) {
-      log.error("Error while searching for MetadataCollection with searchTerm: {}", searchTerm);
-      log.trace("Stack trace:", e);
-
-      throw new ResponseStatusException(
-          HttpStatus.INTERNAL_SERVER_ERROR,
-          messageSource.getMessage(
-              "BASE_CONTROLLER.INTERNAL_SERVER_ERROR", null, LocaleContextHolder.getLocale()),
-          e);
-    }
-  }
-
   @PostMapping(
       path = "/query",
       produces = {"application/json"})

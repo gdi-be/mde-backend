@@ -85,32 +85,6 @@ public class MetadataCollectionService
   }
 
   @PreAuthorize("isAuthenticated()")
-  @Transactional(readOnly = true)
-  public List<Lineage> searchLineage(String searchTerm, String property) {
-    SearchSession searchSession = Search.session(entityManager);
-
-    if (!property.equals("title") && !property.equals("identifier")) {
-      return Collections.emptyList();
-    }
-
-    SearchResult<MetadataCollection> result =
-        searchSession
-            .search(MetadataCollection.class)
-            .where(
-                f -> {
-                  if ("identifier".equals(property)) {
-                    return f.match().field("isoMetadata.lineage.identifier").matching(searchTerm);
-                  }
-                  return f.simpleQueryString()
-                      .fields("isoMetadata.lineage.title")
-                      .matching(searchTerm + "*");
-                })
-            .fetchAll();
-
-    return result.hits().stream().flatMap(mc -> mc.getIsoMetadata().getLineage().stream()).toList();
-  }
-
-  @PreAuthorize("isAuthenticated()")
   @Transactional(isolation = Isolation.SERIALIZABLE)
   public String create(String title) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
