@@ -9,7 +9,6 @@ import de.terrestris.mde.mde_backend.model.MetadataCollection;
 import de.terrestris.mde.mde_backend.model.dto.*;
 import de.terrestris.mde.mde_backend.model.json.Comment;
 import de.terrestris.mde.mde_backend.model.json.Layer;
-import de.terrestris.mde.mde_backend.model.json.Lineage;
 import de.terrestris.mde.mde_backend.service.*;
 import de.terrestris.mde.mde_backend.thread.TrackedTask;
 import de.terrestris.mde.mde_backend.thread.TrackingExecutorService;
