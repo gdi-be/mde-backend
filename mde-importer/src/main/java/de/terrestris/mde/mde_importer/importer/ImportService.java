@@ -1,5 +1,6 @@
 package de.terrestris.mde.mde_importer.importer;
 
+import static de.terrestris.mde.mde_backend.model.json.ColumnInfo.ColumnType.*;
 import static de.terrestris.mde.mde_backend.model.json.codelists.MD_MaintenanceFrequencyCode.notPlanned;
 import static de.terrestris.mde.mde_backend.service.IsoGenerator.TERMS_OF_USE_MAP;
 import static de.terrestris.mde.mde_backend.service.IsoGenerator.replaceValues;
@@ -12,8 +13,6 @@ import de.terrestris.mde.mde_backend.jpa.MetadataCollectionRepository;
 import de.terrestris.mde.mde_backend.model.MetadataCollection;
 import de.terrestris.mde.mde_backend.model.Status;
 import de.terrestris.mde.mde_backend.model.json.*;
-import de.terrestris.mde.mde_backend.model.json.ColumnInfo.ColumnType;
-import de.terrestris.mde.mde_backend.model.json.ColumnInfo.FilterType;
 import de.terrestris.mde.mde_backend.model.json.Service.ServiceType;
 import de.terrestris.mde.mde_backend.model.json.codelists.CI_DateTypeCode;
 import de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode;
@@ -73,8 +72,30 @@ public class ImportService {
           "infoFeatureAccessService",
           "infoMapAccessService");
 
+  private static final Map<String, ColumnInfo.ColumnType> TYPE_MAP;
+
   static {
     FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+    TYPE_MAP = new HashMap<>();
+    TYPE_MAP.put("xsd:int", Integer);
+    TYPE_MAP.put("xsd:decimal", BigDecimal);
+    TYPE_MAP.put("xsd:date", Date);
+    TYPE_MAP.put("xsd:double", Double);
+    TYPE_MAP.put("xsd:float", Float);
+    TYPE_MAP.put("gml:MultiSurfacePropertyType", Geometry);
+    TYPE_MAP.put("gml:MultiPointPropertyType", Geometry);
+    TYPE_MAP.put("gml:MultiCurvePropertyType", Geometry);
+    TYPE_MAP.put("gml:GeometryPropertyType", Geometry);
+    TYPE_MAP.put("gml:SurfacePropertyType", Geometry);
+    TYPE_MAP.put("gml:CurvePropertyType", Geometry);
+    TYPE_MAP.put("gml:PointPropertyType", Geometry);
+    TYPE_MAP.put("xsd:integer", Integer);
+    TYPE_MAP.put("xsd:anyURI", Link);
+    TYPE_MAP.put("xsd:long", Long);
+    TYPE_MAP.put("xsd:string", Text);
+    TYPE_MAP.put("xsd:short", Short);
+    TYPE_MAP.put("xsd:dateTime", Timestamp);
+    TYPE_MAP.put("xsd:time", Timestamp);
   }
 
   @Autowired private MetadataCollectionRepository metadataCollectionRepository;
@@ -379,19 +400,19 @@ public class ImportService {
         switch (reader.getLocalName()) {
           case "westBoundLongitude":
             skipToElement(reader, "Decimal");
-            extent.setMinx(Double.parseDouble(reader.getElementText()));
+            extent.setMinx(java.lang.Double.parseDouble(reader.getElementText()));
             break;
           case "eastBoundLongitude":
             skipToElement(reader, "Decimal");
-            extent.setMaxx(Double.parseDouble(reader.getElementText()));
+            extent.setMaxx(java.lang.Double.parseDouble(reader.getElementText()));
             break;
           case "southBoundLatitude":
             skipToElement(reader, "Decimal");
-            extent.setMiny(Double.parseDouble(reader.getElementText()));
+            extent.setMiny(java.lang.Double.parseDouble(reader.getElementText()));
             break;
           case "northBoundLatitude":
             skipToElement(reader, "Decimal");
-            extent.setMaxy(Double.parseDouble(reader.getElementText()));
+            extent.setMaxy(java.lang.Double.parseDouble(reader.getElementText()));
             break;
         }
       }
@@ -495,11 +516,11 @@ public class ImportService {
           if (json.getResolutions() == null) {
             json.setResolutions(new ArrayList<>());
           }
-          json.getResolutions().add(Double.parseDouble(reader.getElementText()));
+          json.getResolutions().add(java.lang.Double.parseDouble(reader.getElementText()));
         }
         if (reader.getLocalName().equals("denominator")) {
           skipToElement(reader, "Integer");
-          json.setScale(Integer.parseInt(reader.getElementText()));
+          json.setScale(java.lang.Integer.parseInt(reader.getElementText()));
         }
       }
     }
@@ -714,9 +735,6 @@ public class ImportService {
       }
       if (service.getFeatureTypes() == null) {
         service.setFeatureTypes(new ArrayList<>());
-        var featureType = new FeatureType();
-        featureType.setColumns(new ArrayList<>());
-        service.getFeatureTypes().add(featureType);
       }
 
       List<Layer> layers = null;
@@ -734,6 +752,7 @@ public class ImportService {
           service = objectMapper.readValue(clone, Service.class);
           extractIsoFields(reader, service);
           parseCapabilities(service, clientMetadata);
+          parseCapabilitiesWfs(service, clientMetadata);
           isoMetadata.getServices().add(service);
 
           if (replaceValues(service.getUrl()).contains("fbadmin.senstadtdmz.verwalt-berlin.de")) {
@@ -872,6 +891,102 @@ public class ImportService {
     }
   }
 
+  private static void parseCapabilitiesWfs(Service service, JsonClientMetadata client)
+      throws URISyntaxException, IOException, XMLStreamException {
+    var url = replaceValues(service.getUrl());
+    if (!url.contains("gdi.berlin.de")) {
+      log.info("Not reading WFS capabilities from {}", url);
+      return;
+    }
+    log.info("Reading WFS capabilities from {}", url);
+    if (!service.getServiceType().equals(ServiceType.WFS)) {
+      return;
+    }
+    var uri =
+        new URIBuilder(url)
+            .clearParameters()
+            .setParameter("request", "GetCapabilities")
+            .setParameter("service", "WFS")
+            .build();
+    var reader = FACTORY.createXMLStreamReader(uri.toURL().openStream());
+    parseFeatureTypes(reader, service);
+  }
+
+  private static void parseFeatureTypes(XMLStreamReader reader, Service service)
+      throws XMLStreamException, URISyntaxException, IOException {
+    while (reader.hasNext()) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+      if (reader.getLocalName().equals("FeatureType")) {
+        var featureType = new FeatureType();
+        while (!(reader.isEndElement() && reader.getLocalName().equals("FeatureType"))) {
+          reader.next();
+          if (!reader.isStartElement()) {
+            continue;
+          }
+          switch (reader.getLocalName()) {
+            case "Name":
+              featureType.setName(reader.getElementText());
+              break;
+            case "Title":
+              featureType.setTitle(reader.getElementText());
+              break;
+          }
+        }
+        service.getFeatureTypes().add(featureType);
+      }
+    }
+    for (var featureType : service.getFeatureTypes()) {
+      describeFeatureType(service, featureType);
+    }
+  }
+
+  private static void describeFeatureType(Service service, FeatureType featureType)
+      throws URISyntaxException, IOException, XMLStreamException {
+    var list = new ArrayList<ColumnInfo>();
+    featureType.setColumns(list);
+    var url = replaceValues(service.getUrl());
+    var uri =
+        new URIBuilder(url)
+            .clearParameters()
+            .setParameter("request", "DescribeFeatureType")
+            .setParameter("service", "WFS")
+            .setParameter("version", "2.0.0")
+            .setParameter("typeName", featureType.getName())
+            .build();
+    var reader = FACTORY.createXMLStreamReader(uri.toURL().openStream());
+    try {
+      skipToElement(reader, "complexType");
+    } catch (NoSuchElementException e) {
+      log.error("Unable to find complexType, not extracting columns for {}", featureType.getName());
+      return;
+    }
+    while (!(reader.isEndElement() && reader.getLocalName().equals("complexType"))) {
+      reader.next();
+      if (!reader.isStartElement()) {
+        continue;
+      }
+      if (reader.getLocalName().equals("element")) {
+        var info = new ColumnInfo();
+        info.setName(reader.getAttributeValue(null, "name"));
+        var type = reader.getAttributeValue(null, "type");
+        info.setType(TYPE_MAP.get(type));
+        list.add(info);
+        while (!(reader.isEndElement() && reader.getLocalName().equals("element"))) {
+          reader.next();
+          if (!reader.isStartElement()) {
+            continue;
+          }
+          if (reader.getLocalName().equals("documentation")) {
+            info.setAlias(reader.getElementText());
+          }
+        }
+      }
+    }
+  }
+
   private static void parseCapabilities(Service service, JsonClientMetadata client)
       throws URISyntaxException, IOException, XMLStreamException {
     var url = replaceValues(service.getUrl());
@@ -941,8 +1056,8 @@ public class ImportService {
               new LegendImage(
                   reader.getAttributeValue(null, "format"),
                   reader.getAttributeValue(null, "url"),
-                  Integer.parseInt(reader.getAttributeValue(null, "width")),
-                  Integer.parseInt(reader.getAttributeValue(null, "height")));
+                  java.lang.Integer.parseInt(reader.getAttributeValue(null, "width")),
+                  java.lang.Integer.parseInt(reader.getAttributeValue(null, "height")));
           service.setLegendImage(img);
           break;
         case "Datengrundlage":
@@ -981,7 +1096,7 @@ public class ImportService {
           // ignored
           break;
         case "Sachdaten":
-          service.getFeatureTypes().getFirst().setName(reader.getAttributeValue(null, "mt_klasse"));
+          // ignored
           break;
         case "Kategorie":
           while (reader.hasNext()
@@ -1002,53 +1117,7 @@ public class ImportService {
           }
           break;
         case "SelectColumn":
-          var columnInfo = new ColumnInfo();
-          var featureTypes = service.getFeatureTypes();
-          var featureType = featureTypes.getFirst();
-          featureType.getColumns().add(columnInfo);
-
-          while (reader.hasNext()
-              && !(reader.isEndElement() && reader.getLocalName().equals("SelectColumn"))) {
-            reader.next();
-            if (!reader.isStartElement()) {
-              continue;
-            }
-            switch (reader.getLocalName()) {
-              case "ColumnName":
-                columnInfo.setName(reader.getElementText());
-                break;
-              case "ColumnAlias":
-                columnInfo.setAlias(reader.getElementText());
-                break;
-              case "ColumnType":
-                String tp = reader.getElementText();
-                if (tp.equals("T")) {
-                  tp = "Text";
-                }
-                if (tp.equals("N")) {
-                  tp = "Long";
-                }
-                columnInfo.setType(ColumnType.valueOf(tp));
-                break;
-              case "ColumnFilter":
-                while (reader.hasNext()
-                    && !(reader.isEndElement() && reader.getLocalName().equals("ColumnFilter"))) {
-                  reader.next();
-                  if (!reader.isStartElement()) {
-                    continue;
-                  }
-                  if (reader.getLocalName().equals("FilterType")) {
-                    String value = reader.getElementText().trim();
-                    if (value.equals("Catalogbox")) {
-                      columnInfo.setFilterType(FilterType.CatalogBox);
-                    } else if (!value.isBlank()) {
-                      columnInfo.setFilterType(FilterType.valueOf(value));
-                    }
-                  }
-                }
-                break;
-            }
-          }
+          // ignored
           break;
         case "Kartenebene":
           var layer = new Layer();
