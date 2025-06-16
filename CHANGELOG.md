@@ -1,3 +1,11 @@
+## [3.4.1](https://github.com/gdi-be/mde-backend/compare/v3.4.0...v3.4.1) (2025-06-16)
+
+
+### Bug Fixes
+
+* allow qualityassurance to unassign from MD ([80d8cf1](https://github.com/gdi-be/mde-backend/commit/80d8cf1c2c689fc66709a46008621a1139a8a883))
+* update role assignment on create ([5eaa87a](https://github.com/gdi-be/mde-backend/commit/5eaa87a978c7fc817e0d2d82901bbd8effa4a41e))
+
 # [3.4.0](https://github.com/gdi-be/mde-backend/compare/v3.3.0...v3.4.0) (2025-06-16)
 
 
