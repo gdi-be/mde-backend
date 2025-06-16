@@ -353,7 +353,8 @@ public class MetadataCollectionService
     repository.save(metadataCollection);
   }
 
-  @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR') or hasRole('ROLE_MDEQUALITYASSURANCE')")
+  @PreAuthorize(
+      "hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR') or hasRole('ROLE_MDEQUALITYASSURANCE')")
   @Transactional(isolation = Isolation.SERIALIZABLE)
   public void unassignUser(String metadataId) {
     MetadataCollection metadataCollection =
