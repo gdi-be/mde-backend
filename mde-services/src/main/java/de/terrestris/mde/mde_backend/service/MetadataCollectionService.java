@@ -106,9 +106,9 @@ public class MetadataCollectionService
     // User and role assignment. Set responsibleRole, ownerId, assignedUserId, teamMemberIds.
     Role roleToSet = null;
     List<String> roleNames = authorities.stream().map(GrantedAuthority::getAuthority).toList();
-    if (roleNames.contains("MdeEditor")) {
+    if (roleNames.contains("ROLE_MDEEDITOR")) {
       roleToSet = Role.MdeEditor;
-    } else if (roleNames.contains("MdeDataOwner")) {
+    } else if (roleNames.contains("ROLE_MDEDATAOWNER")) {
       roleToSet = Role.MdeDataOwner;
     }
     if (roleToSet != null) {
