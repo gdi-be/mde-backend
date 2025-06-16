@@ -6,11 +6,11 @@
   <parent>
     <groupId>de.terrestris.mde</groupId>
     <artifactId>mde-backend</artifactId>
-    <version>3.3.1-SNAPSHOT</version>
+    <version>3.4.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>mde-services</artifactId>
-  <version>3.3.1-SNAPSHOT</version>
+  <version>3.4.1-SNAPSHOT</version>
   <name>mde-services</name>
   <description>Services for metadata editor</description>
 
