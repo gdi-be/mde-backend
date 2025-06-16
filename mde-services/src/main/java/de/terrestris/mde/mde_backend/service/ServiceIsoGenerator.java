@@ -129,7 +129,9 @@ public class ServiceIsoGenerator {
     writer.writeEndElement(); // CI_Citation
     writer.writeEndElement(); // citation
     writer.writeStartElement(GMD, "abstract");
-    writeSimpleElement(writer, GCO, "CharacterString", service.getShortDescription());
+    if (service.getShortDescription() != null) {
+      writeSimpleElement(writer, GCO, "CharacterString", service.getShortDescription());
+    }
     writer.writeEndElement(); // abstract
     if (metadata.getPointsOfContact() != null) {
       for (var contact : metadata.getPointsOfContact()) {
