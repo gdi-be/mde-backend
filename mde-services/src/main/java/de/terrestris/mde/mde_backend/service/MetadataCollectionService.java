@@ -106,9 +106,9 @@ public class MetadataCollectionService
     // User and role assignment. Set responsibleRole, ownerId, assignedUserId, teamMemberIds.
     Role roleToSet = null;
     List<String> roleNames = authorities.stream().map(GrantedAuthority::getAuthority).toList();
-    if (roleNames.contains("MdeEditor")) {
+    if (roleNames.contains("ROLE_MDEEDITOR")) {
       roleToSet = Role.MdeEditor;
-    } else if (roleNames.contains("MdeDataOwner")) {
+    } else if (roleNames.contains("ROLE_MDEDATAOWNER")) {
       roleToSet = Role.MdeDataOwner;
     }
     if (roleToSet != null) {
@@ -353,7 +353,8 @@ public class MetadataCollectionService
     repository.save(metadataCollection);
   }
 
-  @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR')")
+  @PreAuthorize(
+      "hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR') or hasRole('ROLE_MDEQUALITYASSURANCE')")
   @Transactional(isolation = Isolation.SERIALIZABLE)
   public void unassignUser(String metadataId) {
     MetadataCollection metadataCollection =
