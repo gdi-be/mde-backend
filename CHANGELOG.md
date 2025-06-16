@@ -1,3 +1,15 @@
+# [3.4.0](https://github.com/gdi-be/mde-backend/compare/v3.3.0...v3.4.0) (2025-06-16)
+
+
+### Bug Fixes
+
+* add missing nullcheck ([302c313](https://github.com/gdi-be/mde-backend/commit/302c313162972ca21ca5b8db8cf5858e7b2334de))
+
+
+### Features
+
+* import WFS capabilities ([e5844db](https://github.com/gdi-be/mde-backend/commit/e5844db98d4a4425d17d87384b66ec794f52add2))
+
 # [3.3.0](https://github.com/gdi-be/mde-backend/compare/v3.2.0...v3.3.0) (2025-06-13)
 
 
