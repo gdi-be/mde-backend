@@ -321,6 +321,9 @@ public class DatasetIsoGenerator {
     }
     if (isoMetadata.getServices() != null) {
       for (var service : isoMetadata.getServices()) {
+        if (service.getServiceType() == null) {
+          continue;
+        }
         switch (service.getServiceType()) {
           case WFS, ATOM -> {
             if (!list.contains("Sachdaten")) {
