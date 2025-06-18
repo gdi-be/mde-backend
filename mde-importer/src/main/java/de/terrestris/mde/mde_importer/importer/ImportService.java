@@ -353,9 +353,11 @@ public class ImportService {
       if (reader.isStartElement() && reader.getLocalName().equals("statement")) {
         skipToElement(reader, "CharacterString");
         List<Lineage> lineageList = new ArrayList<>();
-        Lineage lineage = new Lineage();
-        lineage.setTitle(reader.getElementText());
-        lineageList.add(lineage);
+        for (var l : reader.getElementText().split("\n")) {
+          Lineage lineage = new Lineage();
+          lineage.setTitle(l);
+          lineageList.add(lineage);
+        }
         isoMetadata.setLineage(lineageList);
       }
       extractDate(reader, isoMetadata);
