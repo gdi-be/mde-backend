@@ -738,7 +738,8 @@ public class ImportService {
       }
 
       List<Layer> layers = null;
-      var res = extractMetadataFields(reader, service, technicalMetadata, isoMetadata);
+      var res =
+          extractMetadataFields(reader, service, technicalMetadata, isoMetadata, clientMetadata);
       if (!res.isEmpty()) {
         layers = res;
       }
@@ -1014,7 +1015,8 @@ public class ImportService {
       XMLStreamReader reader,
       Service service,
       JsonTechnicalMetadata technical,
-      JsonIsoMetadata metadata)
+      JsonIsoMetadata metadata,
+      JsonClientMetadata client)
       throws XMLStreamException, ParseException, URISyntaxException {
     var layers = new ArrayList<Layer>();
     while (!(reader.isStartElement()
@@ -1123,6 +1125,12 @@ public class ImportService {
           var layer = new Layer();
           layers.add(layer);
           layer.setName(reader.getAttributeValue(null, "name"));
+          if (client.getRelatedTopics() == null) {
+            client.setRelatedTopics(reader.getAttributeValue(null, "mt_klasse"));
+          } else {
+            client.setRelatedTopics(
+                client.getRelatedTopics() + "," + reader.getAttributeValue(null, "mt_klasse"));
+          }
           while (reader.hasNext()
               && !(reader.isEndElement() && reader.getLocalName().equals("Kartenebene"))) {
             reader.next();
