@@ -1,3 +1,13 @@
+## [3.4.2](https://github.com/gdi-be/mde-backend/compare/v3.4.1...v3.4.2) (2025-06-18)
+
+
+### Bug Fixes
+
+* add nullcheck ([843b0f9](https://github.com/gdi-be/mde-backend/commit/843b0f90543f03ef1d149423475a4776b15f8a2b))
+* fix importing of content descriptions ([115e3bb](https://github.com/gdi-be/mde-backend/commit/115e3bb986f4f0828e6f2f80d40aa10ccae990ba))
+* import mt_klasse ([da73462](https://github.com/gdi-be/mde-backend/commit/da7346210c077bec2fc5c265f08ba8e1fe7f9bd3))
+* split lineages when importing ([2ed1832](https://github.com/gdi-be/mde-backend/commit/2ed1832ee2e39778a1227ce056befa7ad9b602b3))
+
 ## [3.4.1](https://github.com/gdi-be/mde-backend/compare/v3.4.0...v3.4.1) (2025-06-16)
 
 
