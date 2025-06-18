@@ -557,14 +557,18 @@ public class DatasetIsoGenerator {
         writeSimpleElement(writer, GMD, "URL", replaceValues(content.getUrl()));
         writer.writeEndElement(); // linkage
         writer.writeStartElement(GMD, "description");
-        writer.writeStartElement(GMX, "Anchor");
-        writer.writeAttribute(
-            XLINK,
-            "href",
-            "http://inspire.ec.europa.eu/metadata-codelist/OnLineDescriptionCode/accessPoint");
-        writer.writeCharacters(
-            "http://inspire.ec.europa.eu/metadata-codelist/OnLineDescriptionCode/accessPoint");
-        writer.writeEndElement(); // Anchor
+        if (content.getDescription() != null) {
+          writeSimpleElement(writer, GCO, "CharacterString", content.getDescription());
+        } else {
+          writer.writeStartElement(GMX, "Anchor");
+          writer.writeAttribute(
+              XLINK,
+              "href",
+              "http://inspire.ec.europa.eu/metadata-codelist/OnLineDescriptionCode/accessPoint");
+          writer.writeCharacters(
+              "http://inspire.ec.europa.eu/metadata-codelist/OnLineDescriptionCode/accessPoint");
+          writer.writeEndElement(); // Anchor
+        }
         writer.writeEndElement(); // description
         writer.writeStartElement(GMD, "function");
         writeCodelistValue(writer, content.getCode());
@@ -579,7 +583,7 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // distributionInfo
   }
 
-  private static void writeDescription(XMLStreamWriter writer, String url)
+  private static void writeDescription(XMLStreamWriter writer, String url, String description)
       throws XMLStreamException {
     writer.writeStartElement(GMD, "transferOptions");
     writer.writeStartElement(GMD, "MD_DigitalTransferOptions");
@@ -589,14 +593,7 @@ public class DatasetIsoGenerator {
     writeSimpleElement(writer, GMD, "URL", replaceValues(url));
     writer.writeEndElement(); // linkage
     writer.writeStartElement(GMD, "description");
-    writer.writeStartElement(GMX, "Anchor");
-    writer.writeAttribute(
-        XLINK,
-        "href",
-        "http://inspire.ec.europa.eu/metadata-codelist/OnLineDescriptionCode/accessPoint");
-    writer.writeCharacters(
-        "http://inspire.ec.europa.eu/metadata-codelist/OnLineDescriptionCode/accessPoint");
-    writer.writeEndElement(); // Anchor
+    writeSimpleElement(writer, GCO, "CharacterString", description);
     writer.writeEndElement(); // description
     writer.writeStartElement(GMD, "function");
     writeCodelistValue(writer, information);
@@ -610,10 +607,10 @@ public class DatasetIsoGenerator {
   private static void writeSpecialDescriptions(XMLStreamWriter writer, JsonIsoMetadata metadata)
       throws XMLStreamException {
     if (metadata.getContentDescription() != null) {
-      writeDescription(writer, metadata.getContentDescription());
+      writeDescription(writer, metadata.getContentDescription(), "Inhaltliche Beschreibung");
     }
     if (metadata.getTechnicalDescription() != null) {
-      writeDescription(writer, metadata.getTechnicalDescription());
+      writeDescription(writer, metadata.getTechnicalDescription(), "Technische Beschreibung");
     }
   }
 

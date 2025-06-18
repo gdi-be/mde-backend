@@ -206,6 +206,7 @@ public class ImportService {
     metadataCollection.setClientMetadata(clientMetadata);
     metadataCollection.setIsoMetadata(isoMetadata);
     isoMetadata.setContacts(new ArrayList<>());
+    isoMetadata.setContentDescriptions(new ArrayList<>());
     skipToElement(reader, "Metadaten");
     var type = reader.getAttributeValue(null, "metadatenTyp");
     if (type.equals("ISO")) {
@@ -529,9 +530,6 @@ public class ImportService {
   private static void extractTransferOptions(XMLStreamReader reader, JsonIsoMetadata json)
       throws XMLStreamException {
     if (reader.isStartElement() && reader.getLocalName().equals("transferOptions")) {
-      if (json.getContentDescriptions() == null) {
-        json.setContentDescriptions(new ArrayList<>());
-      }
       while (reader.hasNext()
           && !(reader.isEndElement() && reader.getLocalName().equals("transferOptions"))) {
         reader.next();
@@ -546,17 +544,18 @@ public class ImportService {
             if (!reader.isStartElement()) {
               continue;
             }
-            switch (reader.getLocalName()) {
-              case "URL":
-                description.setUrl(reader.getElementText());
-                break;
-              case "CharacterString":
-                description.setDescription(reader.getElementText());
-                break;
-              case "CI_OnLineFunctionCode":
-                String code = reader.getAttributeValue(null, "codeListValue");
-                description.setCode(CI_OnLineFunctionCode.valueOf(code));
-                break;
+            skipToElementOrEnd(reader, "URL", "CI_OnlineResource");
+            if (reader.isStartElement()) {
+              description.setUrl(reader.getElementText());
+            }
+            skipToElementOrEnd(reader, "CharacterString", "CI_OnlineResource");
+            if (reader.isStartElement()) {
+              description.setDescription(reader.getElementText());
+            }
+            skipToElementOrEnd(reader, "CI_OnLineFunctionCode", "CI_OnlineResource");
+            if (reader.isStartElement()) {
+              String code = reader.getAttributeValue(null, "codeListValue");
+              description.setCode(CI_OnLineFunctionCode.valueOf(code));
             }
           }
           if (description.getDescription() != null
