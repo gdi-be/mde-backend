@@ -1,3 +1,10 @@
+## [3.4.3](https://github.com/gdi-be/mde-backend/compare/v3.4.2...v3.4.3) (2025-06-23)
+
+
+### Bug Fixes
+
+* configure database host ([4905ef8](https://github.com/gdi-be/mde-backend/commit/4905ef8ee6d86611e528bab4349cf4c36d752543))
+
 ## [3.4.2](https://github.com/gdi-be/mde-backend/compare/v3.4.1...v3.4.2) (2025-06-18)
 
 
