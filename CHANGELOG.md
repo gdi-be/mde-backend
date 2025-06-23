@@ -1,3 +1,11 @@
+## [3.4.4](https://github.com/gdi-be/mde-backend/compare/v3.4.3...v3.4.4) (2025-06-23)
+
+
+### Bug Fixes
+
+* adapt PreAuthorize for assignUser ([8d12534](https://github.com/gdi-be/mde-backend/commit/8d12534ef09f8848280c8235fd1ff62be3467bf5))
+* configure postgres user ([c352c49](https://github.com/gdi-be/mde-backend/commit/c352c4961ce47515c9a7ef925d3005b0cd8e2e6b))
+
 ## [3.4.3](https://github.com/gdi-be/mde-backend/compare/v3.4.2...v3.4.3) (2025-06-23)
 
 
