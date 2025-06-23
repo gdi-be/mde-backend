@@ -318,8 +318,10 @@ public class MetadataCollectionService
     return repository.save(metadataCollection);
   }
 
-  @PreAuthorize(
-      "hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR') or hasRole('ROLE_MDEQUALITYASSURANCE')")
+  // TODO: we should add permission checks that reflect the frontend behavior
+  //  (compare showAssignAction in MetadataCard.svelte).
+  //  We may also want to ensure that MdeDataOwner can only assign themselves
+  @PreAuthorize("isAuthenticated()")
   @Transactional(isolation = Isolation.SERIALIZABLE)
   public void assignUser(String metadataId, String userId) {
     MetadataCollection metadataCollection =
