@@ -259,6 +259,7 @@ public class MetadataCollectionService
     if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
       metadataCollection.setStatus(Status.IN_EDIT);
     }
+    metadataCollection.setApproved(false);
 
     return repository.save(metadataCollection);
   }
@@ -286,6 +287,7 @@ public class MetadataCollectionService
     if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
       metadataCollection.setStatus(Status.IN_EDIT);
     }
+    metadataCollection.setApproved(false);
 
     return repository.save(metadataCollection);
   }
@@ -314,6 +316,7 @@ public class MetadataCollectionService
     if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
       metadataCollection.setStatus(Status.IN_EDIT);
     }
+    metadataCollection.setApproved(false);
 
     return repository.save(metadataCollection);
   }
