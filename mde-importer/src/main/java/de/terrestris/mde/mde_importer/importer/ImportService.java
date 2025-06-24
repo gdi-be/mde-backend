@@ -105,6 +105,9 @@ public class ImportService {
   @Value("${mde.assign-users-on-import:false}")
   private boolean assignUsersOnImport;
 
+  @Value("${csw.server}")
+  private String cswUrl;
+
   private final Map<String, List<Path>> servicesMap = new HashMap<>();
 
   private static final Set<String> TERMS_OF_USE_SET = new HashSet<>();
@@ -112,6 +115,30 @@ public class ImportService {
   @Bean
   public JwtDecoder jwtDecoder() {
     return NimbusJwtDecoder.withJwkSetUri("https://localhost/auth/realms/metadata-editor").build();
+  }
+
+  private boolean checkForRecord(String uuid)
+      throws URISyntaxException, IOException, XMLStreamException {
+    var uri =
+        new URIBuilder(cswUrl + "/srv/eng/csw")
+            .clearParameters()
+            .setParameter("request", "GetRecordById")
+            .setParameter("service", "CSW")
+            .setParameter("version", "2.0.2")
+            .setParameter("id", uuid)
+            .setParameter("outputSchema", "http://www.isotc211.org/2005/gmd")
+            .setParameter("elementSetName", "full")
+            .build();
+    try (var in = uri.toURL().openStream()) {
+      var reader = FACTORY.createXMLStreamReader(in);
+      while (reader.hasNext()) {
+        reader.next();
+        if (reader.isStartElement() && reader.getLocalName().equals("MD_Metadata")) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   public boolean importMetadata(String directory) {
@@ -273,7 +300,21 @@ public class ImportService {
       }
     }
 
-    metadataCollectionRepository.save(metadataCollection);
+    try {
+      if (checkForRecord(metadataCollection.getIsoMetadata().getFileIdentifier())) {
+        log.info(
+            "Found record {} in CSW, saving it.",
+            metadataCollection.getIsoMetadata().getFileIdentifier());
+        metadataCollectionRepository.save(metadataCollection);
+      } else {
+        log.warn(
+            "Record with id {} not found in CSW, not saving it.",
+            metadataCollection.getIsoMetadata().getFileIdentifier());
+      }
+    } catch (URISyntaxException | IOException e) {
+      log.error("Unable to check for record in CSW: {}", e.getMessage());
+      log.trace("Stack trace:", e);
+    }
   }
 
   private static void extractCoordinateSystem(XMLStreamReader reader, JsonIsoMetadata json)
