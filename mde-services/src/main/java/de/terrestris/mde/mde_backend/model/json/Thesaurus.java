@@ -10,6 +10,7 @@ import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.lang.Nullable;
 
 @Data
 @JsonDeserialize(as = Thesaurus.class)
@@ -18,12 +19,16 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Thesaurus {
 
+  @Nullable
   private String title;
 
+  @Nullable
   private String namespace;
 
   @JsonFormat(shape = STRING)
+  @Nullable
   private Instant date;
 
+  @Nullable
   private CI_DateTypeCode code;
 }

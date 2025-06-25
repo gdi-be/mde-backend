@@ -6,6 +6,7 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.lang.Nullable;
 
 @Data
 @JsonDeserialize(as = JsonTechnicalMetadata.class)
@@ -14,13 +15,18 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class JsonTechnicalMetadata {
 
+  @Nullable
   private List<LayerInfo> layerInfos;
 
+  @Nullable
   private DatabaseInfo databaseInfo;
 
+  @Nullable
   private List<Category> categories;
 
+  @Nullable
   private String deliveredCrs;
 
+  @Nullable
   private List<String> descriptions;
 }

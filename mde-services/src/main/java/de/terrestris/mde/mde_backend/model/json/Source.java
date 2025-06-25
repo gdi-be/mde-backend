@@ -2,9 +2,11 @@ package de.terrestris.mde.mde_backend.model.json;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import jakarta.validation.constraints.Null;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.lang.Nullable;
 
 @Data
 @JsonDeserialize(as = Source.class)
@@ -13,7 +15,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Source {
 
+  @Nullable
   private String type;
 
+  @Nullable
   private String content;
 }

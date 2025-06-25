@@ -6,6 +6,7 @@ import de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.lang.Nullable;
 
 @Data
 @JsonDeserialize(as = ContentDescription.class)
@@ -14,9 +15,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ContentDescription {
 
+  @Nullable
   private String url;
 
+  @Nullable
   private String description;
 
+  @Nullable
   private CI_OnLineFunctionCode code;
 }

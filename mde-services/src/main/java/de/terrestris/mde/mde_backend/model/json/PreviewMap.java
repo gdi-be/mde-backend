@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.lang.Nullable;
 
 @Data
 @JsonDeserialize(as = PreviewMap.class)
@@ -13,15 +14,21 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PreviewMap {
 
+  @Nullable
   private String crs;
 
-  private double minx;
+  @Nullable
+  private Double minx;
 
-  private double miny;
+  @Nullable
+  private Double miny;
 
-  private double maxx;
+  @Nullable
+  private Double maxx;
 
-  private double maxy;
+  @Nullable
+  private Double maxy;
 
+  @Nullable
   private String url;
 }

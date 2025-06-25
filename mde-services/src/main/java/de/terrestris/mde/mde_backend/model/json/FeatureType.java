@@ -6,6 +6,7 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.lang.Nullable;
 
 @Data
 @JsonDeserialize(as = FeatureType.class)
@@ -14,9 +15,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class FeatureType {
 
+  @Nullable
   private List<ColumnInfo> columns;
 
+  @Nullable
   private String name;
 
+  @Nullable
   private String title;
 }

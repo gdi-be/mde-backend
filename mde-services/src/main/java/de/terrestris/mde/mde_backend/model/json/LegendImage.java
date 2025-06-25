@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.lang.Nullable;
 
 @Data
 @JsonDeserialize(as = LegendImage.class)
@@ -13,11 +14,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LegendImage {
 
+  @Nullable
   private String format;
 
+  @Nullable
   private String url;
 
-  private int width;
+  @Nullable
+  private Integer width;
 
-  private int height;
+  @Nullable
+  private Integer height;
 }

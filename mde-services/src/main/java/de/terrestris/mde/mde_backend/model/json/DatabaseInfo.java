@@ -6,6 +6,7 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.lang.Nullable;
 
 @Data
 @JsonDeserialize(as = DatabaseInfo.class)
@@ -14,9 +15,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class DatabaseInfo {
 
+  @Nullable
   private String jdbcDriver;
 
+  @Nullable
   private String jdbcUrl;
 
+  @Nullable
   private List<String> tableNames;
 }
