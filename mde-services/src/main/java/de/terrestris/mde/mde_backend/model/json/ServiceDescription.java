@@ -3,6 +3,7 @@ package de.terrestris.mde.mde_backend.model.json;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.*;
+import org.springframework.lang.Nullable;
 
 @Data
 @JsonDeserialize(as = ServiceDescription.class)
@@ -11,7 +12,7 @@ import lombok.*;
 @AllArgsConstructor
 public class ServiceDescription {
 
-  private String type;
+  @Nullable private String type;
 
-  private String url;
+  @Nullable private String url;
 }

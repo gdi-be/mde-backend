@@ -6,6 +6,7 @@ import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.lang.Nullable;
 
 @Data
 @JsonDeserialize(as = DownloadInfo.class)
@@ -14,12 +15,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class DownloadInfo {
 
-  private String title;
+  @Nullable private String title;
 
   // TODO: This should be an enum
-  private String type;
+  @Nullable private String type;
 
-  private String href;
+  @Nullable private String href;
 
-  private BigInteger fileSize;
+  @Nullable private BigInteger fileSize;
 }

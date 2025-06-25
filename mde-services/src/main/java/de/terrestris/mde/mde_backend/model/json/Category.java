@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.lang.Nullable;
 
 @Data
 @JsonDeserialize(as = Category.class)
@@ -13,9 +14,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Category {
 
-  private String title;
+  @Nullable private String title;
 
-  private String type;
+  @Nullable private String type;
 
-  private String url;
+  @Nullable private String url;
 }

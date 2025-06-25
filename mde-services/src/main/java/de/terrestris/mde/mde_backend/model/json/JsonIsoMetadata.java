@@ -19,6 +19,7 @@ import org.hibernate.search.engine.backend.types.Sortable;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
+import org.springframework.lang.Nullable;
 
 @Data
 @JsonDeserialize(as = JsonIsoMetadata.class)
@@ -64,88 +65,96 @@ public class JsonIsoMetadata implements FileIdentifier {
     US
   }
 
-  private MetadataProfile metadataProfile;
+  @Nullable private MetadataProfile metadataProfile;
 
-  private List<InspireTheme> inspireTheme;
+  @Nullable private List<InspireTheme> inspireTheme;
 
-  private String inspireAnnexVersion;
+  @Nullable private String inspireAnnexVersion;
 
-  private List<DistributionVersion> distributionVersions;
+  @Nullable private List<DistributionVersion> distributionVersions;
 
-  private String fileIdentifier;
+  @Nullable private String fileIdentifier;
 
-  private String identifier;
+  @Nullable private String identifier;
 
+  @Nullable
   @FullTextField()
   @GenericField(name = "title_sort", sortable = Sortable.YES)
   private String title;
 
-  private String description;
+  @Nullable private String description;
 
-  private List<Service> services;
+  @Nullable private List<Service> services;
 
-  private Map<String, List<Keyword>> keywords = new HashMap<>();
+  @Nullable private Map<String, List<Keyword>> keywords = new HashMap<>();
 
-  private Map<String, Thesaurus> thesauri = new HashMap<>();
+  @Nullable private Map<String, Thesaurus> thesauri = new HashMap<>();
 
   private boolean highValueDataset = false;
 
-  private List<String> highValueDataCategory;
+  @Nullable private List<String> highValueDataCategory;
 
+  @Nullable
   @JsonFormat(shape = STRING)
   private Instant dateTime;
 
+  @Nullable
   @JsonFormat(shape = STRING)
   private Instant created;
 
+  @Nullable
   @JsonFormat(shape = STRING)
   private Instant published;
 
+  @Nullable
   @GenericField(name = "modified_sort", sortable = Sortable.YES)
   @JsonFormat(shape = STRING)
   private Instant modified;
 
+  @Nullable
   @JsonFormat(shape = STRING)
   private Instant validFrom;
 
+  @Nullable
   @JsonFormat(shape = STRING)
   private Instant validTo;
 
-  private String url; // rufUrl in import data
+  @Nullable private String url;
 
-  private String capabilities;
+  @Nullable private String capabilities;
 
-  private List<Contact> contacts;
+  @Nullable private List<Contact> contacts;
 
-  private List<Contact> pointsOfContact;
+  @Nullable private List<Contact> pointsOfContact;
 
-  private Integer scale;
+  @Nullable private Integer scale;
 
-  private List<Double> resolutions;
+  @Nullable private List<Double> resolutions;
 
-  private String preview;
+  @Nullable private String preview;
 
-  private String crs;
+  @Nullable private String crs;
 
-  private Extent extent;
+  @Nullable private Extent extent;
 
+  @Nullable
   private MD_MaintenanceFrequencyCode maintenanceFrequency = MD_MaintenanceFrequencyCode.asNeeded;
 
-  private List<ContentDescription> contentDescriptions;
+  @Nullable private List<ContentDescription> contentDescriptions;
 
-  private String technicalDescription;
+  @Nullable private String technicalDescription;
 
-  private String contentDescription;
+  @Nullable private String contentDescription;
 
-  @IndexedEmbedded private List<Lineage> lineage;
+  @Nullable @IndexedEmbedded private List<Lineage> lineage;
 
-  @GenericField private boolean valid;
+  private boolean valid = false;
 
-  private List<String> topicCategory;
+  @Nullable private List<String> topicCategory;
 
-  private BigInteger termsOfUseId;
+  @Nullable private BigInteger termsOfUseId;
 
-  private String termsOfUseSource;
+  @Nullable private String termsOfUseSource;
 
-  private List<Source> dataBases;
+  @Nullable private List<Source> dataBases;
 }

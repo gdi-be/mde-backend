@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
+import org.springframework.lang.Nullable;
 
 @Data
 @JsonDeserialize(as = Lineage.class)
@@ -16,9 +17,9 @@ import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordFie
 @AllArgsConstructor
 public class Lineage {
 
-  @KeywordField private String identifier;
+  @KeywordField @Nullable private String identifier;
 
-  @FullTextField() private String title;
+  @FullTextField() @Nullable private String title;
 
-  private Instant date;
+  @Nullable private Instant date;
 }

@@ -7,6 +7,7 @@ import de.terrestris.mde.mde_backend.model.json.codelists.CI_RoleCode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.lang.Nullable;
 
 @Data
 @JsonDeserialize(as = Contact.class)
@@ -15,19 +16,19 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Contact {
 
-  private String name;
+  @Nullable private String name;
 
-  private String organisation;
+  @Nullable private String organisation;
 
-  private String contact;
+  @Nullable private String contact;
 
-  private String phone;
+  @Nullable private String phone;
 
-  private String email;
+  @Nullable private String email;
 
-  private CI_OnLineFunctionCode code;
+  @Nullable private CI_OnLineFunctionCode code;
 
-  private String url;
+  @Nullable private String url;
 
-  private CI_RoleCode roleCode;
+  @Nullable private CI_RoleCode roleCode;
 }

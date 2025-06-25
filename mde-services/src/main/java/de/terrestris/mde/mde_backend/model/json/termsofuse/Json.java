@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.lang.Nullable;
 
 @Data
 @JsonDeserialize(as = Json.class)
@@ -13,11 +14,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Json {
 
-  private String id;
+  @Nullable private String id;
 
-  private String name;
+  @Nullable private String name;
 
-  private String url;
+  @Nullable private String url;
 
-  private String quelle;
+  @Nullable private String quelle;
 }

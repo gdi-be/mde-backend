@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.lang.Nullable;
 
 @Data
 @JsonDeserialize(as = ColumnInfo.class)
@@ -35,11 +36,11 @@ public class ColumnInfo {
     Timestamp
   }
 
-  private String name;
+  @Nullable private String name;
 
-  private String alias;
+  @Nullable private String alias;
 
-  private ColumnType type;
+  @Nullable private ColumnType type;
 
-  private FilterType filterType;
+  @Nullable private FilterType filterType;
 }

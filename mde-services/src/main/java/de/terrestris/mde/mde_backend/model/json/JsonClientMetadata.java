@@ -7,6 +7,7 @@ import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.lang.Nullable;
 
 @Data
 @JsonDeserialize(as = JsonClientMetadata.class)
@@ -22,14 +23,14 @@ public class JsonClientMetadata {
     INTERNAL_USE_ONLY
   }
 
-  private List<Comment> comments;
+  @Nullable private List<Comment> comments;
 
-  private Privacy privacy = Privacy.NONE;
+  @Nullable private Privacy privacy = Privacy.NONE;
 
-  private Extent initialExtent;
+  @Nullable private Extent initialExtent;
 
-  private String relatedTopics;
+  @Nullable private String relatedTopics;
 
   // Map of service.serviceIdentification and List of layers
-  private Map<String, List<Layer>> layers;
+  @Nullable private Map<String, List<Layer>> layers;
 }

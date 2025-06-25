@@ -10,6 +10,7 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.lang.Nullable;
 
 @Data
 @JsonDeserialize(as = Service.class)
@@ -25,46 +26,49 @@ public class Service implements FileIdentifier {
     WMTS
   }
 
-  private String workspace;
+  @Nullable private String workspace;
 
-  private String title;
+  @Nullable private String title;
 
-  private String shortDescription;
+  @Nullable private String shortDescription;
 
-  private String contentDescription;
+  @Nullable private String contentDescription;
 
-  private String technicalDescription;
+  @Nullable private String technicalDescription;
 
-  private String fileIdentifier;
+  @Nullable private String fileIdentifier;
 
-  private String serviceIdentification;
+  @Nullable private String serviceIdentification;
 
-  private ServiceType serviceType;
+  @Nullable private ServiceType serviceType;
 
   // imported from service connectPoint
-  private String url;
+  @Nullable private String url;
 
   // imported from CapabilitiesUrl in service files (non ISO section)
-  private String capabilitiesUrl;
+  @Nullable private String capabilitiesUrl;
 
-  private List<ServiceDescription> serviceDescriptions;
+  @Nullable private List<ServiceDescription> serviceDescriptions;
 
-  private LegendImage legendImage;
+  @Nullable private LegendImage legendImage;
 
-  private List<Source> publications;
+  @Nullable private List<Source> publications;
 
   @JsonFormat(shape = STRING)
+  @Nullable
   private Instant created;
 
   @JsonFormat(shape = STRING)
+  @Nullable
   private Instant updated;
 
   @JsonFormat(shape = STRING)
+  @Nullable
   private Instant published;
 
-  private String preview;
+  @Nullable private String preview;
 
-  private List<FeatureType> featureTypes;
+  @Nullable private List<FeatureType> featureTypes;
 
-  private List<DownloadInfo> downloads;
+  @Nullable private List<DownloadInfo> downloads;
 }

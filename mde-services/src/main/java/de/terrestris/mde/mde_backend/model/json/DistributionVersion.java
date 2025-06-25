@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.lang.Nullable;
 
 @Data
 @JsonDeserialize(as = DistributionVersion.class)
@@ -13,9 +14,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class DistributionVersion {
 
-  private String name;
+  @Nullable private String name;
 
-  private String version;
+  @Nullable private String version;
 
-  private String specification;
+  @Nullable private String specification;
 }

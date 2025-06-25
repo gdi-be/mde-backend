@@ -174,18 +174,25 @@ public class DatasetIsoGenerator {
     writer.writeStartElement(GMD, "extentTypeCode");
     writeSimpleElement(writer, GCO, "Boolean", "true");
     writer.writeEndElement(); // extentTypeCode
-    writer.writeStartElement(GMD, "westBoundLongitude");
-    writeSimpleElement(writer, GCO, "Decimal", Double.toString(extent.getMinx()));
-    writer.writeEndElement(); // westBoundLongitude
-    writer.writeStartElement(GMD, "eastBoundLongitude");
-    writeSimpleElement(writer, GCO, "Decimal", Double.toString(extent.getMaxx()));
-    writer.writeEndElement(); // eastBoundLongitude
-    writer.writeStartElement(GMD, "southBoundLatitude");
-    writeSimpleElement(writer, GCO, "Decimal", Double.toString(extent.getMiny()));
-    writer.writeEndElement(); // southBoundLatitude
-    writer.writeStartElement(GMD, "northBoundLatitude");
-    writeSimpleElement(writer, GCO, "Decimal", Double.toString(extent.getMaxy()));
-    writer.writeEndElement(); // northBoundLatitude
+    if (extent.getMinx() == null
+        || extent.getMaxx() == null
+        || extent.getMiny() == null
+        || extent.getMaxy() == null) {
+      log.warn("Extent is incomplete, not writing bounding box: {}", extent);
+    } else {
+      writer.writeStartElement(GMD, "westBoundLongitude");
+      writeSimpleElement(writer, GCO, "Decimal", Double.toString(extent.getMinx()));
+      writer.writeEndElement(); // westBoundLongitude
+      writer.writeStartElement(GMD, "eastBoundLongitude");
+      writeSimpleElement(writer, GCO, "Decimal", Double.toString(extent.getMaxx()));
+      writer.writeEndElement(); // eastBoundLongitude
+      writer.writeStartElement(GMD, "southBoundLatitude");
+      writeSimpleElement(writer, GCO, "Decimal", Double.toString(extent.getMiny()));
+      writer.writeEndElement(); // southBoundLatitude
+      writer.writeStartElement(GMD, "northBoundLatitude");
+      writeSimpleElement(writer, GCO, "Decimal", Double.toString(extent.getMaxy()));
+      writer.writeEndElement(); // northBoundLatitude
+    }
     writer.writeEndElement(); // EX_GeographicBoundingBox
     writer.writeEndElement(); // geographicElement
     writer.writeStartElement(GMD, "geographicElement");

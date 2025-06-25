@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.lang.Nullable;
 
 @Data
 @JsonDeserialize(as = LayerInfo.class)
@@ -13,7 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LayerInfo {
 
-  private String accessInfo;
+  @Nullable private String accessInfo;
 
-  private String workspace;
+  @Nullable private String workspace;
 }

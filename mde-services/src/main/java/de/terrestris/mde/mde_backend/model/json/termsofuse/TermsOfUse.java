@@ -6,6 +6,7 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.lang.Nullable;
 
 @Data
 @JsonDeserialize(as = TermsOfUse.class)
@@ -14,19 +15,19 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TermsOfUse {
 
-  private int id;
+  @Nullable private Integer id;
 
-  private String shortname;
+  @Nullable private String shortname;
 
-  private boolean active;
+  private boolean active = false;
 
-  private String description;
+  @Nullable private String description;
 
-  private List<String> matchStrings;
+  @Nullable private List<String> matchStrings;
 
-  private boolean openData;
+  private boolean openData = false;
 
-  private Json json;
+  @Nullable private Json json;
 
-  private String note;
+  @Nullable private String note;
 }

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.lang.Nullable;
 
 @Data
 @JsonDeserialize(as = Layer.class)
@@ -13,19 +14,19 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Layer {
 
-  private String name;
+  @Nullable private String name;
 
-  private String title;
+  @Nullable private String title;
 
-  private String styleName;
+  @Nullable private String styleName;
 
-  private String styleTitle;
+  @Nullable private String styleTitle;
 
-  private String shortDescription;
+  @Nullable private String shortDescription;
 
-  private String legendImage;
+  @Nullable private String legendImage;
 
-  private String datasource;
+  @Nullable private String datasource;
 
-  private String secondaryDatasource;
+  @Nullable private String secondaryDatasource;
 }
