@@ -8,6 +8,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 import com.nimbusds.jose.util.Base64;
 import de.terrestris.mde.mde_backend.enumeration.Role;
 import de.terrestris.mde.mde_backend.jpa.MetadataCollectionRepository;
+import de.terrestris.mde.mde_backend.model.MetadataCollection;
 import de.terrestris.mde.mde_backend.model.Status;
 import de.terrestris.mde.mde_backend.model.dto.MetadataDeletionResponse;
 import de.terrestris.mde.mde_backend.model.json.FileIdentifier;
@@ -227,21 +228,37 @@ public class PublicationService {
     return successfullyPublishedUuids;
   }
 
+  @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR')")
+  public void publishAllMetadata() {
+    metadataCollectionRepository
+        .findAll()
+        .forEach(
+            metadata -> {
+              try {
+                publishMetadata(metadata, true);
+              } catch (XMLStreamException
+                  | IOException
+                  | URISyntaxException
+                  | InterruptedException
+                  | PublicationException e) {
+                log.error(
+                    "Unable to publish metadata with ID {}: {}",
+                    metadata.getMetadataId(),
+                    e.getMessage());
+                log.trace("Stack trace:", e);
+              }
+            });
+  }
+
   @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR')")
-  public ArrayList<String> publishMetadata(String metadataId)
+  public ArrayList<String> publishMetadata(MetadataCollection metadata, boolean force)
       throws XMLStreamException,
           IOException,
           URISyntaxException,
           InterruptedException,
           PublicationException {
-    var metadata =
-        metadataCollectionRepository
-            .findByMetadataId(metadataId)
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException("Metadata with ID " + metadataId + " not found."));
-
-    if (metadata.getApproved() == null || !metadata.getApproved()) {
+    var metadataId = metadata.getMetadataId();
+    if (!force && (metadata.getApproved() == null || !metadata.getApproved())) {
       throw new PublicationException("Metadata with ID " + metadataId + " is not approved.");
     }
 
@@ -251,8 +268,9 @@ public class PublicationService {
     //          "Metadata with ID " + metadataId + " is not assigned to a user.");
     //    }
 
-    if (metadata.getResponsibleRole() == null
-        || !metadata.getResponsibleRole().equals(Role.MdeEditor)) {
+    if (!force
+        && (metadata.getResponsibleRole() == null
+            || !metadata.getResponsibleRole().equals(Role.MdeEditor))) {
       throw new PublicationException(
           "Metadata with ID "
               + metadataId
@@ -264,7 +282,7 @@ public class PublicationService {
 
     var isoMetadata = metadata.getIsoMetadata();
     var uuids = new ArrayList<String>();
-    var insert = isoMetadata.getFileIdentifier() == null;
+    var insert = isoMetadata.getFileIdentifier() == null || force;
 
     sendTransaction(
         writer -> {
@@ -320,6 +338,22 @@ public class PublicationService {
     metadataCollectionRepository.save(metadata);
 
     return publishRecords(uuids);
+  }
+
+  @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR')")
+  public ArrayList<String> publishMetadata(String metadataId)
+      throws XMLStreamException,
+          IOException,
+          URISyntaxException,
+          InterruptedException,
+          PublicationException {
+    var metadata =
+        metadataCollectionRepository
+            .findByMetadataId(metadataId)
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException("Metadata with ID " + metadataId + " not found."));
+    return publishMetadata(metadata, false);
   }
 
   @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR')")

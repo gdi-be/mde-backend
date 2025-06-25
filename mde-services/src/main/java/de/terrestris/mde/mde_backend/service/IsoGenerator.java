@@ -60,6 +60,9 @@ public class IsoGenerator {
   }
 
   public static String replaceValues(String text) {
+    if (text == null) {
+      return "";
+    }
     for (var entry : VALUES_MAP.entrySet()) {
       text = text.replace(entry.getKey(), entry.getValue());
     }

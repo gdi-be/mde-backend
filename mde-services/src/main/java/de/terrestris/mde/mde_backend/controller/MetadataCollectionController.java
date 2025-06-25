@@ -754,4 +754,38 @@ public class MetadataCollectionController
           e);
     }
   }
+
+  @Operation(
+      summary = "Publishes all metadata collections in the catalog (Geonetwork)",
+      description = "Publishes all metadata collections in the catalog (Geonetwork).",
+      security = {@SecurityRequirement(name = "Bearer Authentication")})
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Ok: The metadata was successfully published"),
+        @ApiResponse(
+            responseCode = "500",
+            description =
+                "Internal Server Error: Something internal went wrong while publishing the metadata",
+            content = @Content)
+      })
+  @ResponseStatus(HttpStatus.OK)
+  @PostMapping(value = "/publishall", produces = "application/json")
+  public ResponseEntity<String> publishAllMetadata() {
+    try {
+      publicationService.publishAllMetadata();
+
+      return new ResponseEntity<>(OK);
+    } catch (Exception e) {
+      log.error("Error while publishing all metadata: {}", e.getMessage());
+      log.trace("Full stack trace: ", e);
+
+      throw new ResponseStatusException(
+          HttpStatus.INTERNAL_SERVER_ERROR,
+          messageSource.getMessage(
+              "BASE_CONTROLLER.INTERNAL_SERVER_ERROR", null, LocaleContextHolder.getLocale()),
+          e);
+    }
+  }
 }
