@@ -12,9 +12,7 @@ import org.springframework.lang.Nullable;
 @AllArgsConstructor
 public class ServiceDescription {
 
-  @Nullable
-  private String type;
+  @Nullable private String type;
 
-  @Nullable
-  private String url;
+  @Nullable private String url;
 }

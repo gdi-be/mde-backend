@@ -14,18 +14,13 @@ import org.springframework.lang.Nullable;
 @AllArgsConstructor
 public class Extent {
 
-  @Nullable
-  private String crs;
+  @Nullable private String crs;
 
-  @Nullable
-  private Double minx;
+  @Nullable private Double minx;
 
-  @Nullable
-  private Double miny;
+  @Nullable private Double miny;
 
-  @Nullable
-  private Double maxx;
+  @Nullable private Double maxx;
 
-  @Nullable
-  private Double maxy;
+  @Nullable private Double maxy;
 }

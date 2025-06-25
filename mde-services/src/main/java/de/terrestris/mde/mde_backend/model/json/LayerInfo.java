@@ -14,9 +14,7 @@ import org.springframework.lang.Nullable;
 @AllArgsConstructor
 public class LayerInfo {
 
-  @Nullable
-  private String accessInfo;
+  @Nullable private String accessInfo;
 
-  @Nullable
-  private String workspace;
+  @Nullable private String workspace;
 }

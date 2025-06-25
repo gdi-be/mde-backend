@@ -15,12 +15,9 @@ import org.springframework.lang.Nullable;
 @AllArgsConstructor
 public class ContentDescription {
 
-  @Nullable
-  private String url;
+  @Nullable private String url;
 
-  @Nullable
-  private String description;
+  @Nullable private String description;
 
-  @Nullable
-  private CI_OnLineFunctionCode code;
+  @Nullable private CI_OnLineFunctionCode code;
 }

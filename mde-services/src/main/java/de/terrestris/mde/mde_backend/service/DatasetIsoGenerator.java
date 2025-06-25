@@ -174,7 +174,10 @@ public class DatasetIsoGenerator {
     writer.writeStartElement(GMD, "extentTypeCode");
     writeSimpleElement(writer, GCO, "Boolean", "true");
     writer.writeEndElement(); // extentTypeCode
-    if (extent.getMinx() == null || extent.getMaxx() == null || extent.getMiny() == null || extent.getMaxy() == null) {
+    if (extent.getMinx() == null
+        || extent.getMaxx() == null
+        || extent.getMiny() == null
+        || extent.getMaxy() == null) {
       log.warn("Extent is incomplete, not writing bounding box: {}", extent);
     } else {
       writer.writeStartElement(GMD, "westBoundLongitude");

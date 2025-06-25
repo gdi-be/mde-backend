@@ -15,12 +15,9 @@ import org.springframework.lang.Nullable;
 @AllArgsConstructor
 public class FeatureType {
 
-  @Nullable
-  private List<ColumnInfo> columns;
+  @Nullable private List<ColumnInfo> columns;
 
-  @Nullable
-  private String name;
+  @Nullable private String name;
 
-  @Nullable
-  private String title;
+  @Nullable private String title;
 }

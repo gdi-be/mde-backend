@@ -14,27 +14,19 @@ import org.springframework.lang.Nullable;
 @AllArgsConstructor
 public class Layer {
 
-  @Nullable
-  private String name;
+  @Nullable private String name;
 
-  @Nullable
-  private String title;
+  @Nullable private String title;
 
-  @Nullable
-  private String styleName;
+  @Nullable private String styleName;
 
-  @Nullable
-  private String styleTitle;
+  @Nullable private String styleTitle;
 
-  @Nullable
-  private String shortDescription;
+  @Nullable private String shortDescription;
 
-  @Nullable
-  private String legendImage;
+  @Nullable private String legendImage;
 
-  @Nullable
-  private String datasource;
+  @Nullable private String datasource;
 
-  @Nullable
-  private String secondaryDatasource;
+  @Nullable private String secondaryDatasource;
 }

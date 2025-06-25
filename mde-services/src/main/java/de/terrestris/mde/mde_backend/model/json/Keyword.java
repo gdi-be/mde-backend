@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.checkerframework.checker.units.qual.N;
 import org.springframework.lang.Nullable;
 
 @Data
@@ -15,9 +14,7 @@ import org.springframework.lang.Nullable;
 @AllArgsConstructor
 public class Keyword {
 
-  @Nullable
-  private String namespace;
+  @Nullable private String namespace;
 
-  @Nullable
-  private String keyword;
+  @Nullable private String keyword;
 }

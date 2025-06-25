@@ -15,25 +15,19 @@ import org.springframework.lang.Nullable;
 @AllArgsConstructor
 public class TermsOfUse {
 
-  @Nullable
-  private Integer id;
+  @Nullable private Integer id;
 
-  @Nullable
-  private String shortname;
+  @Nullable private String shortname;
 
   private boolean active = false;
 
-  @Nullable
-  private String description;
+  @Nullable private String description;
 
-  @Nullable
-  private List<String> matchStrings;
+  @Nullable private List<String> matchStrings;
 
   private boolean openData = false;
 
-  @Nullable
-  private Json json;
+  @Nullable private Json json;
 
-  @Nullable
-  private String note;
+  @Nullable private String note;
 }

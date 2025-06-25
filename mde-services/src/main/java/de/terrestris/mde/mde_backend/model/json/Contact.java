@@ -16,27 +16,19 @@ import org.springframework.lang.Nullable;
 @AllArgsConstructor
 public class Contact {
 
-  @Nullable
-  private String name;
+  @Nullable private String name;
 
-  @Nullable
-  private String organisation;
+  @Nullable private String organisation;
 
-  @Nullable
-  private String contact;
+  @Nullable private String contact;
 
-  @Nullable
-  private String phone;
+  @Nullable private String phone;
 
-  @Nullable
-  private String email;
+  @Nullable private String email;
 
-  @Nullable
-  private CI_OnLineFunctionCode code;
+  @Nullable private CI_OnLineFunctionCode code;
 
-  @Nullable
-  private String url;
+  @Nullable private String url;
 
-  @Nullable
-  private CI_RoleCode roleCode;
+  @Nullable private CI_RoleCode roleCode;
 }

@@ -36,15 +36,11 @@ public class ColumnInfo {
     Timestamp
   }
 
-  @Nullable
-  private String name;
+  @Nullable private String name;
 
-  @Nullable
-  private String alias;
+  @Nullable private String alias;
 
-  @Nullable
-  private ColumnType type;
+  @Nullable private ColumnType type;
 
-  @Nullable
-  private FilterType filterType;
+  @Nullable private FilterType filterType;
 }

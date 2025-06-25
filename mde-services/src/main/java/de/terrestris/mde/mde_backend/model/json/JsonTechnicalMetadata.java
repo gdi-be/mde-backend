@@ -15,18 +15,13 @@ import org.springframework.lang.Nullable;
 @AllArgsConstructor
 public class JsonTechnicalMetadata {
 
-  @Nullable
-  private List<LayerInfo> layerInfos;
+  @Nullable private List<LayerInfo> layerInfos;
 
-  @Nullable
-  private DatabaseInfo databaseInfo;
+  @Nullable private DatabaseInfo databaseInfo;
 
-  @Nullable
-  private List<Category> categories;
+  @Nullable private List<Category> categories;
 
-  @Nullable
-  private String deliveredCrs;
+  @Nullable private String deliveredCrs;
 
-  @Nullable
-  private List<String> descriptions;
+  @Nullable private List<String> descriptions;
 }

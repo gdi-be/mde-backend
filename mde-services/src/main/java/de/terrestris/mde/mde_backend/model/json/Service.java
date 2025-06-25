@@ -26,46 +26,33 @@ public class Service implements FileIdentifier {
     WMTS
   }
 
-  @Nullable
-  private String workspace;
+  @Nullable private String workspace;
 
-  @Nullable
-  private String title;
+  @Nullable private String title;
 
-  @Nullable
-  private String shortDescription;
+  @Nullable private String shortDescription;
 
-  @Nullable
-  private String contentDescription;
+  @Nullable private String contentDescription;
 
-  @Nullable
-  private String technicalDescription;
+  @Nullable private String technicalDescription;
 
-  @Nullable
-  private String fileIdentifier;
+  @Nullable private String fileIdentifier;
 
-  @Nullable
-  private String serviceIdentification;
+  @Nullable private String serviceIdentification;
 
-  @Nullable
-  private ServiceType serviceType;
+  @Nullable private ServiceType serviceType;
 
   // imported from service connectPoint
-  @Nullable
-  private String url;
+  @Nullable private String url;
 
   // imported from CapabilitiesUrl in service files (non ISO section)
-  @Nullable
-  private String capabilitiesUrl;
+  @Nullable private String capabilitiesUrl;
 
-  @Nullable
-  private List<ServiceDescription> serviceDescriptions;
+  @Nullable private List<ServiceDescription> serviceDescriptions;
 
-  @Nullable
-  private LegendImage legendImage;
+  @Nullable private LegendImage legendImage;
 
-  @Nullable
-  private List<Source> publications;
+  @Nullable private List<Source> publications;
 
   @JsonFormat(shape = STRING)
   @Nullable
@@ -79,12 +66,9 @@ public class Service implements FileIdentifier {
   @Nullable
   private Instant published;
 
-  @Nullable
-  private String preview;
+  @Nullable private String preview;
 
-  @Nullable
-  private List<FeatureType> featureTypes;
+  @Nullable private List<FeatureType> featureTypes;
 
-  @Nullable
-  private List<DownloadInfo> downloads;
+  @Nullable private List<DownloadInfo> downloads;
 }

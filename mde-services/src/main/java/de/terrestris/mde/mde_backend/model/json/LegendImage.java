@@ -14,15 +14,11 @@ import org.springframework.lang.Nullable;
 @AllArgsConstructor
 public class LegendImage {
 
-  @Nullable
-  private String format;
+  @Nullable private String format;
 
-  @Nullable
-  private String url;
+  @Nullable private String url;
 
-  @Nullable
-  private Integer width;
+  @Nullable private Integer width;
 
-  @Nullable
-  private Integer height;
+  @Nullable private Integer height;
 }

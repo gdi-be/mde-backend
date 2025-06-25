@@ -14,15 +14,11 @@ import org.springframework.lang.Nullable;
 @AllArgsConstructor
 public class Json {
 
-  @Nullable
-  private String id;
+  @Nullable private String id;
 
-  @Nullable
-  private String name;
+  @Nullable private String name;
 
-  @Nullable
-  private String url;
+  @Nullable private String url;
 
-  @Nullable
-  private String quelle;
+  @Nullable private String quelle;
 }

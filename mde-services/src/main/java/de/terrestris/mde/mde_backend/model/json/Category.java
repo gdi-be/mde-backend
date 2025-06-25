@@ -14,12 +14,9 @@ import org.springframework.lang.Nullable;
 @AllArgsConstructor
 public class Category {
 
-  @Nullable
-  private String title;
+  @Nullable private String title;
 
-  @Nullable
-  private String type;
+  @Nullable private String type;
 
-  @Nullable
-  private String url;
+  @Nullable private String url;
 }

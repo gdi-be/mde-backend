@@ -15,16 +15,12 @@ import org.springframework.lang.Nullable;
 @AllArgsConstructor
 public class DownloadInfo {
 
-  @Nullable
-  private String title;
+  @Nullable private String title;
 
   // TODO: This should be an enum
-  @Nullable
-  private String type;
+  @Nullable private String type;
 
-  @Nullable
-  private String href;
+  @Nullable private String href;
 
-  @Nullable
-  private BigInteger fileSize;
+  @Nullable private BigInteger fileSize;
 }

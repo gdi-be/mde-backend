@@ -15,12 +15,9 @@ import org.springframework.lang.Nullable;
 @AllArgsConstructor
 public class DatabaseInfo {
 
-  @Nullable
-  private String jdbcDriver;
+  @Nullable private String jdbcDriver;
 
-  @Nullable
-  private String jdbcUrl;
+  @Nullable private String jdbcUrl;
 
-  @Nullable
-  private List<String> tableNames;
+  @Nullable private List<String> tableNames;
 }

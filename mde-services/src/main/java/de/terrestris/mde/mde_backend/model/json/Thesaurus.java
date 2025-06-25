@@ -19,16 +19,13 @@ import org.springframework.lang.Nullable;
 @AllArgsConstructor
 public class Thesaurus {
 
-  @Nullable
-  private String title;
+  @Nullable private String title;
 
-  @Nullable
-  private String namespace;
+  @Nullable private String namespace;
 
   @JsonFormat(shape = STRING)
   @Nullable
   private Instant date;
 
-  @Nullable
-  private CI_DateTypeCode code;
+  @Nullable private CI_DateTypeCode code;
 }

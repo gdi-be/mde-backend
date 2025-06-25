@@ -17,14 +17,9 @@ import org.springframework.lang.Nullable;
 @AllArgsConstructor
 public class Lineage {
 
-  @KeywordField
-  @Nullable
-  private String identifier;
+  @KeywordField @Nullable private String identifier;
 
-  @FullTextField()
-  @Nullable
-  private String title;
+  @FullTextField() @Nullable private String title;
 
-  @Nullable
-  private Instant date;
+  @Nullable private Instant date;
 }

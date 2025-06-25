@@ -14,12 +14,9 @@ import org.springframework.lang.Nullable;
 @AllArgsConstructor
 public class DistributionVersion {
 
-  @Nullable
-  private String name;
+  @Nullable private String name;
 
-  @Nullable
-  private String version;
+  @Nullable private String version;
 
-  @Nullable
-  private String specification;
+  @Nullable private String specification;
 }
