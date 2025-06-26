@@ -298,6 +298,9 @@ public class GeneratorUtils {
 
   protected static void writeCrs(XMLStreamWriter writer, JsonIsoMetadata metadata)
       throws XMLStreamException {
+    if (metadata.getCrs() == null) {
+      return;
+    }
     writer.writeStartElement(GMD, "referenceSystemInfo");
     writer.writeStartElement(GMD, "MD_ReferenceSystem");
     writer.writeStartElement(GMD, "referenceSystemIdentifier");
@@ -334,6 +337,9 @@ public class GeneratorUtils {
 
   protected static <T> void writeCodelistValue(XMLStreamWriter writer, T codeListValue)
       throws XMLStreamException {
+    if (codeListValue == null) {
+      return;
+    }
     writer.writeStartElement(GMD, codeListValue.getClass().getSimpleName());
     writer.writeAttribute(
         "codeList",
