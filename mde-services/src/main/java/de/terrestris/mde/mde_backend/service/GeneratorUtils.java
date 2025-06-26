@@ -13,6 +13,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import de.terrestris.mde.mde_backend.model.json.Contact;
 import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
 import de.terrestris.mde.mde_backend.model.json.codelists.CI_DateTypeCode;
+import de.terrestris.mde.mde_backend.model.json.codelists.MD_MaintenanceFrequencyCode;
 import de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode;
 import java.io.File;
 import java.io.IOException;
@@ -357,6 +358,52 @@ public class GeneratorUtils {
     writer.writeEndElement(); // serviceTypeVersion
   }
 
+  protected static void writeKeywordTypeCode(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(GMD, "type");
+    writer.writeStartElement(GMD, "MD_KeywordTypeCode");
+    writer.writeAttribute("codeListValue", "theme");
+    writer.writeAttribute(
+        "codeList", "http://standards.iso.org/iso/19115/resources/codeList.xml#MD_KeywordTypeCode");
+    writer.writeEndElement(); // MD_KeywordTypeCode
+    writer.writeEndElement(); // type
+  }
+
+  protected static void writeRegionalKeyword(XMLStreamWriter writer) throws XMLStreamException {
+    writer.writeStartElement(GMD, "descriptiveKeywords");
+    writer.writeStartElement(GMD, "MD_Keywords");
+    writer.writeStartElement(GMD, "keyword");
+    writer.writeStartElement(GMX, "Anchor");
+    writer.writeAttribute(
+        XLINK, "href", "http://inspire.ec.europa.eu/metadata-codelist/SpatialScope/regional");
+    writer.writeCharacters("Regional");
+    writer.writeEndElement(); // Anchor
+    writer.writeEndElement(); // keyword
+    writeKeywordTypeCode(writer);
+    writer.writeStartElement(GMD, "thesaurusName");
+    writer.writeStartElement(GMD, "CI_Citation");
+    writer.writeStartElement(GMD, "title");
+    writer.writeStartElement(GMX, "Anchor");
+    writer.writeAttribute(
+        XLINK, "href", "http://inspire.ec.europa.eu/metadata-codelist/SpatialScope");
+    writer.writeCharacters("Spatial scope");
+    writer.writeEndElement(); // Anchor
+    writer.writeEndElement(); // title
+    writer.writeStartElement(GMD, "date");
+    writer.writeStartElement(GMD, "CI_Date");
+    writer.writeStartElement(GMD, "date");
+    writeSimpleElement(writer, GCO, "Date", "2019-05-22");
+    writer.writeEndElement(); // date
+    writer.writeStartElement(GMD, "dateType");
+    writeCodelistValue(writer, CI_DateTypeCode.publication);
+    writer.writeEndElement(); // dateType
+    writer.writeEndElement(); // CI_Date
+    writer.writeEndElement(); // date
+    writer.writeEndElement(); // CI_Citation
+    writer.writeEndElement(); // thesaurusName
+    writer.writeEndElement(); // MD_Keywords
+    writer.writeEndElement(); // descriptiveKeywords
+  }
+
   protected static void writeHvdKeyword(XMLStreamWriter writer, JsonIsoMetadata metadata)
       throws XMLStreamException {
     if (metadata.isHighValueDataset()) {
@@ -393,5 +440,16 @@ public class GeneratorUtils {
         writer.writeEndElement(); // descriptiveKeywords
       }
     }
+  }
+
+  protected static void writeMaintenanceInfo(
+      XMLStreamWriter writer, MD_MaintenanceFrequencyCode code) throws XMLStreamException {
+    writer.writeStartElement(GMD, "resourceMaintenance");
+    writer.writeStartElement(GMD, "MD_MaintenanceInformation");
+    writer.writeStartElement(GMD, "maintenanceAndUpdateFrequency");
+    writeCodelistValue(writer, code);
+    writer.writeEndElement(); // maintenanceAndUpdateFrequency
+    writer.writeEndElement(); // MD_MaintenanceInformation
+    writer.writeEndElement(); // resourceMaintenance
   }
 }

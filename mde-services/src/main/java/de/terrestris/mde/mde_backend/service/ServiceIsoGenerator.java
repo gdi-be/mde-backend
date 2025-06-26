@@ -138,6 +138,7 @@ public class ServiceIsoGenerator {
         writeContact(writer, contact, "pointOfContact");
       }
     }
+    writeMaintenanceInfo(writer, metadata.getMaintenanceFrequency());
     if (service.getPreview() != null) {
       writePreview(writer, service.getPreview());
     } else if (metadata.getPreview() != null) {
@@ -146,6 +147,7 @@ public class ServiceIsoGenerator {
     writeKeywords(writer, metadata);
     writeInspireThemeKeywords(writer, metadata);
     writeHvdKeyword(writer, metadata);
+    writeRegionalKeyword(writer);
     switch (service.getServiceType()) {
       case WFS, ATOM -> writeServiceKeyword(writer, "infoFeatureAccessService");
       case WMS, WMTS -> writeServiceKeyword(writer, "infoMapAccessService");
@@ -240,7 +242,7 @@ public class ServiceIsoGenerator {
     writeMetadataInfo(writer, !metadata.getMetadataProfile().equals(MetadataProfile.ISO));
     writeCrs(writer, metadata);
     writeServiceIdentification(writer, service, metadata);
-    writeDistributionInfo(writer, metadata);
+    writeDistributionInfo(writer, metadata, service);
     writeDataQualityInfo(writer, metadata, service);
   }
 

@@ -396,6 +396,10 @@ public class ImportService {
         List<Lineage> lineageList = new ArrayList<>();
         for (var l : reader.getElementText().split("\n")) {
           Lineage lineage = new Lineage();
+          l = l.trim();
+          if (l.endsWith(",")) {
+            l = l.substring(0, l.length() - 1);
+          }
           lineage.setTitle(l);
           lineageList.add(lineage);
         }
@@ -608,7 +612,9 @@ public class ImportService {
               && description.getDescription().trim().equals("Technische Beschreibung")) {
             json.setTechnicalDescription(description.getUrl());
           } else {
-            json.getContentDescriptions().add(description);
+            if (!description.getUrl().contains("GetCapabilities")) {
+              json.getContentDescriptions().add(description);
+            }
           }
         }
       }
