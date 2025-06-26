@@ -2,6 +2,7 @@ package de.terrestris.mde.mde_backend.service;
 
 import static de.terrestris.mde.mde_backend.enumeration.MetadataProfile.INSPIRE_HARMONISED;
 import static de.terrestris.mde.mde_backend.enumeration.MetadataProfile.ISO;
+import static de.terrestris.mde.mde_backend.model.json.Service.ServiceType.ATOM;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_DateTypeCode.*;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode.download;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode.information;
@@ -51,7 +52,7 @@ public class DatasetIsoGenerator {
         writer,
         GCO,
         "CharacterString",
-        String.format("https://registry.gdi-de.org/id/de.be.csw/%s", identifier));
+        String.format("%s%s", METADATA_VARIABLES.getRegistry(), identifier));
     writer.writeEndElement(); // code
     writer.writeEndElement(); // MD_Identifier
     writer.writeEndElement(); // identifier
@@ -192,7 +193,7 @@ public class DatasetIsoGenerator {
     writer.writeStartElement(GMD, "geographicIdentifier");
     writer.writeStartElement(GMD, "MD_Identifier");
     writer.writeStartElement(GMD, "code");
-    writeSimpleElement(writer, GCO, "CharacterString", "110000000000");
+    writeSimpleElement(writer, GCO, "CharacterString", METADATA_VARIABLES.getRegionalKey());
     writer.writeEndElement(); // code
     writer.writeEndElement(); // MD_Identifier
     writer.writeEndElement(); // geographicIdentifier
@@ -459,10 +460,10 @@ public class DatasetIsoGenerator {
       writer.writeStartElement(GMD, "distributionFormat");
       writer.writeStartElement(GMD, "MD_Format");
       writer.writeStartElement(GMD, "name");
-      writeSimpleElement(writer, GCO, "CharacterString", "Text/HTML");
+      writeSimpleElement(writer, GCO, "CharacterString", METADATA_VARIABLES.getStandardFormat());
       writer.writeEndElement(); // name
       writer.writeStartElement(GMD, "version");
-      writeSimpleElement(writer, GCO, "CharacterString", "4.01");
+      writeSimpleElement(writer, GCO, "CharacterString", METADATA_VARIABLES.getStandardVersion());
       writer.writeEndElement(); // version
       writer.writeEndElement(); // MD_Format
       writer.writeEndElement(); // distributionFormat
@@ -472,15 +473,22 @@ public class DatasetIsoGenerator {
         if (service != null && s != service) {
           continue;
         }
+        if (s.getServiceType().equals(ATOM)) {
+          // TODO: figure out how to auto-create ATOM urls
+          continue;
+        }
         writer.writeStartElement(GMD, "transferOptions");
         writer.writeStartElement(GMD, "MD_DigitalTransferOptions");
         writer.writeStartElement(GMD, "onLine");
         writer.writeStartElement(GMD, "CI_OnlineResource");
         writer.writeStartElement(GMD, "linkage");
-        var capas = s.getCapabilitiesUrl();
-        if (!s.getServiceType().equals(Service.ServiceType.ATOM)) {
-          capas += "?request=GetCapabilities&service=" + s.getServiceType();
-        }
+        var capas =
+            String.format(
+                "%s%s/%s?request=GetCapabilities&service=%s",
+                METADATA_VARIABLES.getServiceUrl(),
+                s.getServiceType().toString().toLowerCase(),
+                s.getWorkspace(),
+                s.getServiceType());
         writeSimpleElement(writer, GMD, "URL", replaceValues(capas));
         writer.writeEndElement(); // linkage
         writer.writeStartElement(GMD, "protocol");
@@ -640,7 +648,7 @@ public class DatasetIsoGenerator {
       writer.writeStartElement(GMD, "lineage");
       writer.writeStartElement(GMD, "LI_Lineage");
       writer.writeStartElement(GMD, "statement");
-      writeSimpleElement(writer, GCO, "CharacterString", "Daten aus der Berliner Verwaltung");
+      writeSimpleElement(writer, GCO, "CharacterString", METADATA_VARIABLES.getLineage());
       writer.writeEndElement(); // statement
       for (var lineage : metadata.getLineage()) {
         writer.writeStartElement(GMD, "source");
