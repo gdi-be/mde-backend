@@ -1,3 +1,16 @@
+# [3.5.0](https://github.com/gdi-be/mde-backend/compare/v3.4.4...v3.5.0) (2025-06-26)
+
+
+### Bug Fixes
+
+* set approved to false on edit ([5213e1c](https://github.com/gdi-be/mde-backend/commit/5213e1cefc6c39b280f608f49e5dba671b93f1ee))
+
+
+### Features
+
+* add endpoint to start mass publication ([417a82e](https://github.com/gdi-be/mde-backend/commit/417a82efbc272d4090ac6bd6641962cb0cc7a29d))
+* check for records in CSW before importing ([b20fdbb](https://github.com/gdi-be/mde-backend/commit/b20fdbb3dda0f542e83a144f617ea48d75655393))
+
 ## [3.4.4](https://github.com/gdi-be/mde-backend/compare/v3.4.3...v3.4.4) (2025-06-23)
 
 
