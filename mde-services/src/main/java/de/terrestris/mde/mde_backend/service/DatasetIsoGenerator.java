@@ -2,7 +2,9 @@ package de.terrestris.mde.mde_backend.service;
 
 import static de.terrestris.mde.mde_backend.enumeration.MetadataProfile.INSPIRE_HARMONISED;
 import static de.terrestris.mde.mde_backend.enumeration.MetadataProfile.ISO;
+import static de.terrestris.mde.mde_backend.model.json.Service.ServiceType.ATOM;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_DateTypeCode.*;
+import static de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode.download;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode.information;
 import static de.terrestris.mde.mde_backend.model.json.codelists.MD_RestrictionCode.otherRestrictions;
 import static de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode.dataset;
@@ -18,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.terrestris.mde.mde_backend.model.json.Extent;
 import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
 import de.terrestris.mde.mde_backend.model.json.Service;
-import de.terrestris.mde.mde_backend.model.json.codelists.MD_MaintenanceFrequencyCode;
 import de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode;
 import de.terrestris.mde.mde_backend.model.json.termsofuse.TermsOfUse;
 import java.io.IOException;
@@ -51,21 +52,10 @@ public class DatasetIsoGenerator {
         writer,
         GCO,
         "CharacterString",
-        String.format("https://registry.gdi-de.org/id/de.be.csw/%s", identifier));
+        String.format("%s%s", METADATA_VARIABLES.getRegistry(), identifier));
     writer.writeEndElement(); // code
     writer.writeEndElement(); // MD_Identifier
     writer.writeEndElement(); // identifier
-  }
-
-  private static void writeMaintenanceInfo(XMLStreamWriter writer, MD_MaintenanceFrequencyCode code)
-      throws XMLStreamException {
-    writer.writeStartElement(GMD, "resourceMaintenance");
-    writer.writeStartElement(GMD, "MD_MaintenanceInformation");
-    writer.writeStartElement(GMD, "maintenanceAndUpdateFrequency");
-    writeCodelistValue(writer, code);
-    writer.writeEndElement(); // maintenanceAndUpdateFrequency
-    writer.writeEndElement(); // MD_MaintenanceInformation
-    writer.writeEndElement(); // resourceMaintenance
   }
 
   protected static void writePreview(XMLStreamWriter writer, String preview)
@@ -203,7 +193,7 @@ public class DatasetIsoGenerator {
     writer.writeStartElement(GMD, "geographicIdentifier");
     writer.writeStartElement(GMD, "MD_Identifier");
     writer.writeStartElement(GMD, "code");
-    writeSimpleElement(writer, GCO, "CharacterString", "110000000000");
+    writeSimpleElement(writer, GCO, "CharacterString", METADATA_VARIABLES.getRegionalKey());
     writer.writeEndElement(); // code
     writer.writeEndElement(); // MD_Identifier
     writer.writeEndElement(); // geographicIdentifier
@@ -280,6 +270,7 @@ public class DatasetIsoGenerator {
     }
     writeKeywords(writer, metadata);
     writeInspireThemeKeywords(writer, metadata);
+    writeRegionalKeyword(writer);
     if (metadata.getTermsOfUseId() != null) {
       writeResourceConstraints(
           writer,
@@ -374,6 +365,7 @@ public class DatasetIsoGenerator {
         }
         writer.writeEndElement(); // keyword
       }
+      writeKeywordTypeCode(writer);
       if (thesaurus != null && thesaurus.getTitle() != null) {
         writer.writeStartElement(GMD, "thesaurusName");
         writer.writeStartElement(GMD, "CI_Citation");
@@ -404,15 +396,6 @@ public class DatasetIsoGenerator {
         writer.writeEndElement(); // date
         writer.writeEndElement(); // CI_Citation
         writer.writeEndElement(); // thesaurusName
-      } else {
-        writer.writeStartElement(GMD, "type");
-        writer.writeStartElement(GMD, "MD_KeywordTypeCode");
-        writer.writeAttribute("codeListValue", "theme");
-        writer.writeAttribute(
-            "codeList",
-            "http://standards.iso.org/iso/19115/resources/codeList.xml#MD_KeywordTypeCode");
-        writer.writeEndElement(); // MD_KeywordTypeCode
-        writer.writeEndElement(); // type
       }
       writer.writeEndElement(); // MD_Keywords
       writer.writeEndElement(); // descriptiveKeywords
@@ -428,6 +411,7 @@ public class DatasetIsoGenerator {
         writer.writeStartElement(GMD, "keyword");
         writeSimpleElement(writer, GCO, "CharacterString", INSPIRE_THEME_KEYWORD_MAP.get(theme));
         writer.writeEndElement(); // keyword
+        writeKeywordTypeCode(writer);
         writer.writeStartElement(GMD, "thesaurusName");
         writer.writeStartElement(GMD, "CI_Citation");
         writer.writeStartElement(GMD, "title");
@@ -451,8 +435,8 @@ public class DatasetIsoGenerator {
     }
   }
 
-  protected static void writeDistributionInfo(XMLStreamWriter writer, JsonIsoMetadata metadata)
-      throws XMLStreamException {
+  protected static void writeDistributionInfo(
+      XMLStreamWriter writer, JsonIsoMetadata metadata, Service service) throws XMLStreamException {
     writer.writeStartElement(GMD, "distributionInfo");
     writer.writeStartElement(GMD, "MD_Distribution");
     if (metadata.getMetadataProfile().equals(INSPIRE_HARMONISED)) {
@@ -476,42 +460,52 @@ public class DatasetIsoGenerator {
       writer.writeStartElement(GMD, "distributionFormat");
       writer.writeStartElement(GMD, "MD_Format");
       writer.writeStartElement(GMD, "name");
-      writeSimpleElement(writer, GCO, "CharacterString", "Text/HTML");
+      writeSimpleElement(writer, GCO, "CharacterString", METADATA_VARIABLES.getStandardFormat());
       writer.writeEndElement(); // name
       writer.writeStartElement(GMD, "version");
-      writeSimpleElement(writer, GCO, "CharacterString", "4.01");
+      writeSimpleElement(writer, GCO, "CharacterString", METADATA_VARIABLES.getStandardVersion());
       writer.writeEndElement(); // version
       writer.writeEndElement(); // MD_Format
       writer.writeEndElement(); // distributionFormat
     }
     if (metadata.getServices() != null) {
-      for (var service : metadata.getServices()) {
+      for (var s : metadata.getServices()) {
+        if (service != null && s != service) {
+          continue;
+        }
+        if (s.getServiceType().equals(ATOM)) {
+          // TODO: figure out how to auto-create ATOM urls
+          continue;
+        }
         writer.writeStartElement(GMD, "transferOptions");
         writer.writeStartElement(GMD, "MD_DigitalTransferOptions");
         writer.writeStartElement(GMD, "onLine");
         writer.writeStartElement(GMD, "CI_OnlineResource");
         writer.writeStartElement(GMD, "linkage");
-        var capas = service.getCapabilitiesUrl();
-        if (!service.getServiceType().equals(Service.ServiceType.ATOM)) {
-          capas += "?request=GetCapabilities&service=" + service.getServiceType();
-        }
+        var capas =
+            String.format(
+                "%s%s/%s?request=GetCapabilities&service=%s",
+                METADATA_VARIABLES.getServiceUrl(),
+                s.getServiceType().toString().toLowerCase(),
+                s.getWorkspace(),
+                s.getServiceType());
         writeSimpleElement(writer, GMD, "URL", replaceValues(capas));
         writer.writeEndElement(); // linkage
         writer.writeStartElement(GMD, "protocol");
         writer.writeStartElement(GMX, "Anchor");
         var type =
-            switch (service.getServiceType()) {
+            switch (s.getServiceType()) {
               case WFS -> "http://www.opengis.net/def/serviceType/ogc/wfs";
               case WMS -> "http://www.opengis.net/def/serviceType/ogc/wms";
               case ATOM -> "https://tools.ietf.org/html/rfc4287";
               case WMTS -> "http://www.opengis.net/def/serviceType/ogc/wmts";
             };
         var text =
-            switch (service.getServiceType()) {
-              case WFS -> "OGC Web Feature Service";
-              case WMS -> "OGC Web Map Service";
-              case ATOM -> "ATOM Syndication Format";
-              case WMTS -> "OGC Web Map Tile Service";
+            switch (s.getServiceType()) {
+              case WFS -> "Downloaddienst - " + s.getTitle() + " (WFS)";
+              case WMS -> "Darstellungsdienst - " + s.getTitle() + " (WMS)";
+              case ATOM -> "Downloaddienst - " + s.getTitle() + " (ATOM)";
+              case WMTS -> "Darstellungsdienst - " + s.getTitle() + " (WMTS)";
             };
         writer.writeAttribute(XLINK, "href", type);
         writer.writeCharacters(text);
@@ -520,14 +514,14 @@ public class DatasetIsoGenerator {
         writer.writeStartElement(GMD, "applicationProfile");
         writer.writeStartElement(GMX, "Anchor");
         var inspireType =
-            switch (service.getServiceType()) {
+            switch (s.getServiceType()) {
               case WFS, ATOM ->
                   "http://inspire.ec.europa.eu/metadata-codelist/SpatialDataServiceType/download";
               case WMS, WMTS ->
                   "http://inspire.ec.europa.eu/metadata-codelist/SpatialDataServiceType/view";
             };
         var inspireText =
-            switch (service.getServiceType()) {
+            switch (s.getServiceType()) {
               case WFS, ATOM -> "Download Service";
               case WMS, WMTS -> "View Service";
             };
@@ -540,12 +534,15 @@ public class DatasetIsoGenerator {
             writer,
             GCO,
             "CharacterString",
-            "GetCapabilities Aufruf des "
-                + service.getServiceType()
-                + " mit maschinenlesbarer Antwort");
+            "GetCapabilities Aufruf des " + s.getServiceType() + " mit maschinenlesbarer Antwort");
         writer.writeEndElement(); // description
         writer.writeStartElement(GMD, "function");
-        writeCodelistValue(writer, information);
+        writeCodelistValue(
+            writer,
+            switch (s.getServiceType()) {
+              case WFS, ATOM -> download;
+              case WMS, WMTS -> information;
+            });
         writer.writeEndElement(); // function
         writer.writeEndElement(); // CI_OnlineResource
         writer.writeEndElement(); // onLine
@@ -553,7 +550,9 @@ public class DatasetIsoGenerator {
         writer.writeEndElement(); // transferOptions
       }
     }
-    writeSpecialDescriptions(writer, metadata);
+    if (service == null) {
+      writeSpecialDescriptions(writer, metadata);
+    }
     writer.writeStartElement(GMD, "transferOptions");
     writer.writeStartElement(GMD, "MD_DigitalTransferOptions");
     if (metadata.getContentDescriptions() != null) {
@@ -649,19 +648,37 @@ public class DatasetIsoGenerator {
       writer.writeStartElement(GMD, "lineage");
       writer.writeStartElement(GMD, "LI_Lineage");
       writer.writeStartElement(GMD, "statement");
-      writeSimpleElement(
-          writer, GCO, "CharacterString", metadata.getLineage().getFirst().getTitle());
+      writeSimpleElement(writer, GCO, "CharacterString", METADATA_VARIABLES.getLineage());
       writer.writeEndElement(); // statement
-      if (metadata.getDataBases() != null) {
-        for (var ds : metadata.getDataBases()) {
-          writer.writeStartElement(GMD, "source");
-          writer.writeStartElement(GMD, "LI_Source");
-          writer.writeStartElement(GMD, "description");
-          writeSimpleElement(writer, GCO, "CharacterString", ds.getContent());
-          writer.writeEndElement(); // description
-          writer.writeEndElement(); // LI_Source
-          writer.writeEndElement(); // source
+      for (var lineage : metadata.getLineage()) {
+        writer.writeStartElement(GMD, "source");
+        writer.writeStartElement(GMD, "LI_Source");
+        writer.writeStartElement(GMD, "description");
+        writeSimpleElement(writer, GCO, "CharacterString", lineage.getTitle());
+        writer.writeEndElement(); // description
+        if (lineage.getDate() != null) {
+          writer.writeStartElement(GMD, "CI_Citation");
+          writer.writeStartElement(GMD, "CI_Date");
+          writeSimpleElement(
+              writer,
+              GCO,
+              "Date",
+              DateTimeFormatter.ISO_DATE.format(
+                  lineage.getDate().atOffset(ZoneOffset.UTC).toLocalDate()));
+          writer.writeEndElement(); // CI_Date
+          writer.writeEndElement(); // CI_Citation
         }
+        if (lineage.getIdentifier() != null && !lineage.getIdentifier().isEmpty()) {
+          writer.writeStartElement(GMD, "identifier");
+          writer.writeStartElement(GMD, "MD_Identifier");
+          writer.writeStartElement(GMD, "code");
+          writeSimpleElement(writer, GCO, "CharacterString", lineage.getIdentifier());
+          writer.writeEndElement(); // code
+          writer.writeEndElement(); // MD_Identifier
+          writer.writeEndElement(); // identifier
+        }
+        writer.writeEndElement(); // LI_Source
+        writer.writeEndElement(); // source
       }
       writer.writeEndElement(); // LI_Lineage
       writer.writeEndElement(); // lineage
@@ -761,7 +778,7 @@ public class DatasetIsoGenerator {
     writeMetadataInfo(writer, !metadata.getMetadataProfile().equals(ISO));
     writeCrs(writer, metadata);
     writeIdentificationInfo(writer, metadata, id);
-    writeDistributionInfo(writer, metadata);
+    writeDistributionInfo(writer, metadata, null);
     writeDataQualityInfo(writer, metadata, null);
   }
 

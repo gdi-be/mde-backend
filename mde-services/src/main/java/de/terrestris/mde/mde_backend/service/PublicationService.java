@@ -281,6 +281,9 @@ public class PublicationService {
     }
 
     var isoMetadata = metadata.getIsoMetadata();
+    if (!force) {
+      isoMetadata.setDateTime(Instant.now());
+    }
     var uuids = new ArrayList<String>();
     var insert = isoMetadata.getFileIdentifier() == null || force;
 
