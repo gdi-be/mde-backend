@@ -473,10 +473,6 @@ public class DatasetIsoGenerator {
         if (service != null && s != service) {
           continue;
         }
-        if (s.getServiceType().equals(ATOM)) {
-          // TODO: figure out how to auto-create ATOM urls
-          continue;
-        }
         writer.writeStartElement(GMD, "transferOptions");
         writer.writeStartElement(GMD, "MD_DigitalTransferOptions");
         writer.writeStartElement(GMD, "onLine");
@@ -484,11 +480,16 @@ public class DatasetIsoGenerator {
         writer.writeStartElement(GMD, "linkage");
         var capas =
             String.format(
-                "%s%s/%s?request=GetCapabilities&service=%s",
+                "%s/services/%s/%s?request=GetCapabilities&service=%s",
                 METADATA_VARIABLES.getServiceUrl(),
                 s.getServiceType().toString().toLowerCase(),
                 s.getWorkspace(),
                 s.getServiceType());
+        if (service.getServiceType().equals(ATOM)) {
+          capas =
+              String.format(
+                  "%s/data/%s/atom/", METADATA_VARIABLES.getServiceUrl(), s.getWorkspace());
+        }
         writeSimpleElement(writer, GMD, "URL", replaceValues(capas));
         writer.writeEndElement(); // linkage
         writer.writeStartElement(GMD, "protocol");
