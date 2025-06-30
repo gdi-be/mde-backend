@@ -1,3 +1,15 @@
+# [3.6.0](https://github.com/gdi-be/mde-backend/compare/v3.5.0...v3.6.0) (2025-06-30)
+
+
+### Bug Fixes
+
+* fix iso generation bugs ([25dd5b6](https://github.com/gdi-be/mde-backend/commit/25dd5b6156e4c88705d138afa8e31bf8b9267c81))
+
+
+### Features
+
+* make several values configurable ([9f8b418](https://github.com/gdi-be/mde-backend/commit/9f8b41862d043c6ce4ad43f4cdada78c9c8115a1))
+
 # [3.5.0](https://github.com/gdi-be/mde-backend/compare/v3.4.4...v3.5.0) (2025-06-26)
 
 
