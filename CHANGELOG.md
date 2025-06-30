@@ -1,3 +1,10 @@
+## [3.6.1](https://github.com/gdi-be/mde-backend/compare/v3.6.0...v3.6.1) (2025-06-30)
+
+
+### Bug Fixes
+
+* fix service urls ([dd7e906](https://github.com/gdi-be/mde-backend/commit/dd7e90607689228dc3fb4e41e51505191c1f5a72))
+
 # [3.6.0](https://github.com/gdi-be/mde-backend/compare/v3.5.0...v3.6.0) (2025-06-30)
 
 
