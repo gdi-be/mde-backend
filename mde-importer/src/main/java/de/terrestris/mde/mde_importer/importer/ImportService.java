@@ -705,7 +705,10 @@ public class ImportService {
           json.setInspireTheme(new ArrayList<>());
         }
         json.getInspireTheme()
-            .add(GeneratorUtils.INSPIRE_THEME_MAP.get(keywords.getFirst().getKeyword()));
+            .addAll(
+                keywords.stream()
+                    .map(keyword -> GeneratorUtils.INSPIRE_THEME_MAP.get(keyword.getKeyword()))
+                    .toList());
       } else {
         json.getKeywords()
             .put(thesaurus.getTitle() == null ? "default" : thesaurus.getTitle(), keywords);
