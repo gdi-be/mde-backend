@@ -431,13 +431,7 @@ public class MetadataCollectionService
     String assignedUserId = metadataCollection.getAssignedUserId();
 
     if (assignedUserId != null) {
-      List<RoleRepresentation> keycloakUserRoles = keycloakService.getRealmRoles(assignedUserId);
-      List<String> keycloakUserRoleNames =
-          keycloakUserRoles.stream().map(RoleRepresentation::getName).toList();
-
-      if (!keycloakUserRoleNames.contains(role)) {
-        this.unassignUser(metadataId);
-      }
+      this.unassignUser(metadataId);
     }
     if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
       metadataCollection.setStatus(Status.IN_EDIT);
