@@ -1,3 +1,17 @@
+# [3.7.0](https://github.com/gdi-be/mde-backend/compare/v3.6.1...v3.7.0) (2025-07-02)
+
+
+### Bug Fixes
+
+* always unassign user when assigning a role ([2812137](https://github.com/gdi-be/mde-backend/commit/28121372aca7da8d27301498263ab3afdbefe6df))
+* fix importing of capabilities ([efb6226](https://github.com/gdi-be/mde-backend/commit/efb62260105a9395d06d5db40f2cece404ab0c57))
+* fix importing of INSPIRE themes ([582699e](https://github.com/gdi-be/mde-backend/commit/582699e890ba25c7b113d83cd19c00a32ff08d2b))
+
+
+### Features
+
+* add inspire theme to appschema codelist mapper ([7c81ee2](https://github.com/gdi-be/mde-backend/commit/7c81ee2a3a02761ab995400f34914593e2efefa9))
+
 ## [3.6.1](https://github.com/gdi-be/mde-backend/compare/v3.6.0...v3.6.1) (2025-06-30)
 
 
