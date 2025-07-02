@@ -22,6 +22,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -35,6 +36,9 @@ public class GeneratorUtils {
   public static final Map<JsonIsoMetadata.InspireTheme, String> INSPIRE_THEME_SPECIFICATION_MAP;
 
   public static final Map<JsonIsoMetadata.InspireTheme, String> INSPIRE_THEME_KEYWORD_MAP;
+
+  public static final Map<JsonIsoMetadata.InspireTheme, List<String>> INSPIRE_THEME_APPSCHEMA_MAP =
+      new HashMap<>();
 
   public static final Contact DEFAULT_CONTACT;
 
@@ -168,6 +172,82 @@ public class GeneratorUtils {
         JsonIsoMetadata.InspireTheme.ER, "D2.8.III.20 Data Specification on Energy Resources");
     INSPIRE_THEME_SPECIFICATION_MAP.put(
         JsonIsoMetadata.InspireTheme.MR, "D2.8.III.21 Data Specification on Mineral Resources");
+
+    INSPIRE_THEME_APPSCHEMA_MAP.put(
+        JsonIsoMetadata.InspireTheme.AC, List.of("AtmosphericConditions"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(JsonIsoMetadata.InspireTheme.AD, List.of("Addresses"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(
+        JsonIsoMetadata.InspireTheme.AF, List.of("AgriculturalAndAquacultureFacilities"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(
+        JsonIsoMetadata.InspireTheme.AM, List.of("AreaManagementRestrictionAndRegulationZones"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(
+        JsonIsoMetadata.InspireTheme.AU, List.of("AdministrativeUnits", "MaritimeUnits"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(
+        JsonIsoMetadata.InspireTheme.BR, List.of("BioGeographicalRegions"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(JsonIsoMetadata.InspireTheme.BU, List.of("Buildings"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(JsonIsoMetadata.InspireTheme.CP, List.of("CadastralParcels"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(
+        JsonIsoMetadata.InspireTheme.EF, List.of("EnvironmentalMonitoringFacilities"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(JsonIsoMetadata.InspireTheme.EL, List.of("Elevation"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(
+        JsonIsoMetadata.InspireTheme.ER,
+        List.of("EnergyResourcesVector", "EnergyResourcesCoverage", "EnergyResourcesBase"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(
+        JsonIsoMetadata.InspireTheme.GE,
+        List.of("GeologicUnit", "GeomorphologicFeature", "GeologicStructure", "Borehole"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(
+        JsonIsoMetadata.InspireTheme.GG, List.of("GeographicalGridSystems"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(JsonIsoMetadata.InspireTheme.GN, List.of("GeographicalNames"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(
+        JsonIsoMetadata.InspireTheme.HB, List.of("HabitatsAndBiotopes"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(JsonIsoMetadata.InspireTheme.HH, List.of("HumanHealth"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(
+        JsonIsoMetadata.InspireTheme.HY,
+        List.of("HydroBase", "HydroNetwork", "HydroPhysicalWaters"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(
+        JsonIsoMetadata.InspireTheme.LC, List.of("LandCoverDataset", "LandCoverClassification"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(
+        JsonIsoMetadata.InspireTheme.LU,
+        List.of(
+            "LandUse", "ExistingLandUse", "GriddedLandUse", "SampledLandUse", "PlannedLandUse"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(
+        JsonIsoMetadata.InspireTheme.MF, List.of("MeteorologicalFeatures"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(JsonIsoMetadata.InspireTheme.MR, List.of("MineralResources"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(JsonIsoMetadata.InspireTheme.NZ, List.of("NaturalRiskZones"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(
+        JsonIsoMetadata.InspireTheme.OF, List.of("OceanGeographicalFeatures"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(JsonIsoMetadata.InspireTheme.OI, List.of("Orthoimagery"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(
+        JsonIsoMetadata.InspireTheme.PD, List.of("PopulationDistribution"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(
+        JsonIsoMetadata.InspireTheme.PF, List.of("ProductionAndIndustrialFacilities"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(JsonIsoMetadata.InspireTheme.PS, List.of("ProtectedSites"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(JsonIsoMetadata.InspireTheme.RS, List.of("ReferenceSystems"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(
+        JsonIsoMetadata.InspireTheme.SD, List.of("SpeciesDistribution"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(JsonIsoMetadata.InspireTheme.SO, List.of("Soil"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(JsonIsoMetadata.InspireTheme.SR, List.of("SeaRegions"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(JsonIsoMetadata.InspireTheme.SU, List.of("StatisticalUnits"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(
+        JsonIsoMetadata.InspireTheme.TN,
+        List.of(
+            "RoadTransport",
+            "RailTransport",
+            "AirTransport",
+            "WaterTransport",
+            "CommonTransportElements"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(
+        JsonIsoMetadata.InspireTheme.US,
+        List.of(
+            "CommonUtilityElements",
+            "ElectricityNetwork",
+            "OilGasChemicalNetwork",
+            "SewerNetwork",
+            "ThermalNetwork",
+            "WaterNetwork",
+            "AdministrativeSocialGovernmentServices",
+            "EnvironmentalManagementFacilities"));
+
     try {
       var mapper = new ObjectMapper(new YAMLFactory());
       DEFAULT_CONTACT =
