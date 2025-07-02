@@ -56,6 +56,8 @@ public class ImportService {
 
   private static final Pattern WORKSPACE_REGEXP = Pattern.compile("^.*/([^/]+)$");
 
+  private static final Pattern ATOM_WORKSPACE_REGEXP = Pattern.compile("^.*/([^/]+)/atom/");
+
   private static final XMLInputFactory FACTORY = XMLInputFactory.newFactory();
 
   private static final SimpleDateFormat FORMAT = new SimpleDateFormat("yyyy-MM-dd");
@@ -870,6 +872,10 @@ public class ImportService {
           skipToElement(reader, "URL");
           var url = reader.getElementText();
           var matcher = WORKSPACE_REGEXP.matcher(replaceValues(url));
+          if (matcher.find()) {
+            service.setWorkspace(matcher.group(1));
+          }
+          matcher = ATOM_WORKSPACE_REGEXP.matcher(replaceValues(url));
           if (matcher.find()) {
             service.setWorkspace(matcher.group(1));
           }
