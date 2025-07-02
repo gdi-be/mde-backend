@@ -1051,7 +1051,7 @@ public class ImportService {
       return;
     }
     var layers = new ArrayList<Layer>();
-    client.getLayers().put(service.getFileIdentifier(), layers);
+    client.getLayers().put(service.getServiceIdentification(), layers);
     var uri =
         new URIBuilder(url)
             .clearParameters()
