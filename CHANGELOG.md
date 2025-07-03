@@ -1,3 +1,12 @@
+## [3.7.1](https://github.com/gdi-be/mde-backend/compare/v3.7.0...v3.7.1) (2025-07-03)
+
+
+### Bug Fixes
+
+* export distribution info with appschema info ([d1ff974](https://github.com/gdi-be/mde-backend/commit/d1ff974a60c35d1b5d3ff7c5a1849a32357d7cae))
+* fix generation of distribution info ([f1acbf7](https://github.com/gdi-be/mde-backend/commit/f1acbf7ed6d9c5b67b5ff30d8d294d497966040f))
+* import atom workspace as well ([9643cfd](https://github.com/gdi-be/mde-backend/commit/9643cfd354928525da950dff4137035836e13219))
+
 # [3.7.0](https://github.com/gdi-be/mde-backend/compare/v3.6.1...v3.7.0) (2025-07-02)
 
 
