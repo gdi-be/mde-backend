@@ -472,7 +472,7 @@ public class DatasetIsoGenerator {
     }
     if (metadata.getServices() != null) {
       for (var s : metadata.getServices()) {
-        if (service != null && s != service) {
+        if (service == null || s != service) {
           continue;
         }
         writer.writeStartElement(GMD, "transferOptions");
