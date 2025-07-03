@@ -441,20 +441,22 @@ public class DatasetIsoGenerator {
     writer.writeStartElement(GMD, "MD_Distribution");
     if (metadata.getMetadataProfile().equals(INSPIRE_HARMONISED)) {
       for (var theme : metadata.getInspireTheme()) {
-        writer.writeStartElement(GMD, "distributionFormat");
-        writer.writeStartElement(GMD, "MD_Format");
-        writer.writeStartElement(GMD, "name");
-        writeSimpleElement(writer, GCO, "CharacterString", "INSPIRE GML");
-        writer.writeEndElement(); // name
-        writer.writeStartElement(GMD, "version");
-        writeSimpleElement(writer, GCO, "CharacterString", metadata.getInspireAnnexVersion());
-        writer.writeEndElement(); // version
-        writer.writeStartElement(GMD, "specification");
-        writeSimpleElement(
-            writer, GCO, "CharacterString", INSPIRE_THEME_SPECIFICATION_MAP.get(theme));
-        writer.writeEndElement(); // specification
-        writer.writeEndElement(); // MD_Format
-        writer.writeEndElement(); // distributionFormat
+        for (var schema : INSPIRE_THEME_APPSCHEMA_MAP.get(theme)) {
+          writer.writeStartElement(GMD, "distributionFormat");
+          writer.writeStartElement(GMD, "MD_Format");
+          writer.writeStartElement(GMD, "name");
+          writeSimpleElement(writer, GCO, "CharacterString", schema + " GML Application Schema");
+          writer.writeEndElement(); // name
+          writer.writeStartElement(GMD, "version");
+          writeSimpleElement(writer, GCO, "CharacterString", metadata.getInspireAnnexVersion());
+          writer.writeEndElement(); // version
+          writer.writeStartElement(GMD, "specification");
+          writeSimpleElement(
+              writer, GCO, "CharacterString", INSPIRE_THEME_SPECIFICATION_MAP.get(theme));
+          writer.writeEndElement(); // specification
+          writer.writeEndElement(); // MD_Format
+          writer.writeEndElement(); // distributionFormat
+        }
       }
     } else {
       writer.writeStartElement(GMD, "distributionFormat");
