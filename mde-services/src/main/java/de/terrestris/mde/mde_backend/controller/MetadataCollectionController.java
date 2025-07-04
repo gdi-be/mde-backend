@@ -1,5 +1,6 @@
 package de.terrestris.mde.mde_backend.controller;
 
+import static org.apache.commons.io.FileUtils.deleteDirectory;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -779,6 +780,53 @@ public class MetadataCollectionController
       return new ResponseEntity<>(OK);
     } catch (Exception e) {
       log.error("Error while publishing all metadata: {}", e.getMessage());
+      log.trace("Full stack trace: ", e);
+
+      throw new ResponseStatusException(
+          HttpStatus.INTERNAL_SERVER_ERROR,
+          messageSource.getMessage(
+              "BASE_CONTROLLER.INTERNAL_SERVER_ERROR", null, LocaleContextHolder.getLocale()),
+          e);
+    }
+  }
+
+  @Operation(
+      summary = "Generates all ISO documents for all metadata collections",
+      description =
+          "Generates all ISO documents for all metadata collections and returns them as a zip file.",
+      security = {@SecurityRequirement(name = "Bearer Authentication")})
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Ok: The metadata was successfully generated"),
+        @ApiResponse(
+            responseCode = "500",
+            description =
+                "Internal Server Error: Something internal went wrong while generating the metadata",
+            content = @Content)
+      })
+  @ResponseStatus(HttpStatus.OK)
+  @GetMapping("/downloadall")
+  public ResponseEntity<byte[]> downloadAll() {
+    try {
+      var files = isoGenerator.generateAllMetadata();
+      var tmp = Files.createTempFile(null, null);
+      var tmpDir = Files.createTempDirectory(null);
+      log.debug("Preparing zip in {}", tmpDir.toAbsolutePath());
+      for (var file : files) {
+        Files.move(file, tmpDir.resolve(file.getFileName()));
+        if (file.getParent().toFile().listFiles().length == 0) {
+          Files.delete(file.getParent());
+        }
+      }
+      ZipUtils.zip(tmp.toFile(), tmpDir.toFile(), true);
+      var bs = IOUtils.toByteArray(Files.newInputStream(tmp));
+      Files.delete(tmp);
+      deleteDirectory(tmpDir.toFile());
+      return new ResponseEntity<>(bs, OK);
+    } catch (XMLStreamException | IOException e) {
+      log.error("Error while downloading/generating metadata: \n {}", e.getMessage());
       log.trace("Full stack trace: ", e);
 
       throw new ResponseStatusException(
