@@ -17,6 +17,7 @@ import java.util.Map;
 import javax.xml.stream.XMLStreamException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -67,6 +68,15 @@ public class IsoGenerator {
       text = text.replace(entry.getKey(), entry.getValue());
     }
     return text;
+  }
+
+  @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR')")
+  public List<Path> generateAllMetadata() throws XMLStreamException, IOException {
+    var files = new ArrayList<Path>();
+    for (var metadata : metadataCollectionRepository.findAll()) {
+      files.addAll(generateMetadata(metadata.getMetadataId()));
+    }
+    return files;
   }
 
   public List<Path> generateMetadata(String metadataId) throws XMLStreamException, IOException {
