@@ -1,3 +1,15 @@
+# [3.8.0](https://github.com/gdi-be/mde-backend/compare/v3.7.1...v3.8.0) (2025-07-04)
+
+
+### Bug Fixes
+
+* fix importer issues ([9bbb526](https://github.com/gdi-be/mde-backend/commit/9bbb526dfdd43768dd3f048694e4518666d78af1))
+
+
+### Features
+
+* add mass download ([b396a2a](https://github.com/gdi-be/mde-backend/commit/b396a2abda8071bd5f6cd504988c999348534094))
+
 ## [3.7.1](https://github.com/gdi-be/mde-backend/compare/v3.7.0...v3.7.1) (2025-07-03)
 
 
