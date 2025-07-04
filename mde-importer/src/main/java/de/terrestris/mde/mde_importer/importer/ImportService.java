@@ -790,12 +790,7 @@ public class ImportService {
         service.setFeatureTypes(new ArrayList<>());
       }
 
-      List<Layer> layers = null;
-      var res =
-          extractMetadataFields(reader, service, technicalMetadata, isoMetadata, clientMetadata);
-      if (!res.isEmpty()) {
-        layers = res;
-      }
+      extractMetadataFields(reader, service, technicalMetadata, isoMetadata, clientMetadata);
 
       while (reader.hasNext()) {
         if (reader.isStartElement()
@@ -812,8 +807,6 @@ public class ImportService {
           if (replaceValues(service.getUrl()).contains("fbadmin.senstadtdmz.verwalt-berlin.de")) {
             isoMetadata.getServices().removeLast();
             log.info("Removing service as it's not migrated yet.");
-          } else {
-            clientMetadata.getLayers().put(service.getServiceIdentification(), layers);
           }
         }
         reader.next();
@@ -913,6 +906,10 @@ public class ImportService {
     }
     // prevent previous possibly recursive calls from ending prematurely
     reader.next();
+    if (layer.getName() == null || layer.getName().isEmpty()) {
+      log.warn("Layer without name found, skipping it.");
+      return;
+    }
     layers.add(layer);
   }
 
@@ -956,10 +953,10 @@ public class ImportService {
       log.info("Not reading WFS capabilities from {}", url);
       return;
     }
-    log.info("Reading WFS capabilities from {}", url);
     if (!service.getServiceType().equals(ServiceType.WFS)) {
       return;
     }
+    log.info("Reading WFS capabilities from {}", url);
     var uri =
         new URIBuilder(url)
             .clearParameters()
@@ -986,7 +983,11 @@ public class ImportService {
           }
           switch (reader.getLocalName()) {
             case "Name":
-              featureType.setName(reader.getElementText());
+              var name = reader.getElementText();
+              if (name.contains(":")) {
+                name = name.substring(name.indexOf(":") + 1);
+              }
+              featureType.setName(name);
               break;
             case "Title":
               featureType.setTitle(reader.getElementText());
@@ -1052,10 +1053,10 @@ public class ImportService {
       log.info("Not reading capabilities from {}", url);
       return;
     }
-    log.info("Reading capabilities from {}", url);
     if (!service.getServiceType().equals(ServiceType.WMS)) {
       return;
     }
+    log.info("Reading capabilities from {}", url);
     var layers = new ArrayList<Layer>();
     client.getLayers().put(service.getServiceIdentification(), layers);
     var uri =
@@ -1068,14 +1069,13 @@ public class ImportService {
     parseLayers(reader, layers);
   }
 
-  private static List<Layer> extractMetadataFields(
+  private static void extractMetadataFields(
       XMLStreamReader reader,
       Service service,
       JsonTechnicalMetadata technical,
       JsonIsoMetadata metadata,
       JsonClientMetadata client)
       throws XMLStreamException, ParseException, URISyntaxException {
-    var layers = new ArrayList<Layer>();
     while (!(reader.isStartElement()
         && (reader.getLocalName().equals("IsoMetadata")
             || reader.getLocalName().equals("IsoMetadataWMTS")))) {
@@ -1179,40 +1179,9 @@ public class ImportService {
           // ignored
           break;
         case "Kartenebene":
-          var layer = new Layer();
-          layers.add(layer);
-          layer.setName(reader.getAttributeValue(null, "name"));
-          if (client.getRelatedTopics() == null) {
-            client.setRelatedTopics(reader.getAttributeValue(null, "mt_klasse"));
-          } else {
-            client.setRelatedTopics(
-                client.getRelatedTopics() + "," + reader.getAttributeValue(null, "mt_klasse"));
-          }
-          while (reader.hasNext()
-              && !(reader.isEndElement() && reader.getLocalName().equals("Kartenebene"))) {
-            reader.next();
-            if (!reader.isStartElement()) {
-              continue;
-            }
-            switch (reader.getLocalName()) {
-              case "Titel":
-                layer.setTitle(reader.getElementText());
-                break;
-              case "Kurzbeschreibung":
-                layer.setShortDescription(reader.getElementText());
-                break;
-              case "Style":
-                layer.setStyleName(reader.getAttributeValue(null, "name"));
-                layer.setStyleTitle(reader.getAttributeValue(null, "title"));
-                break;
-              case "LegendImage":
-                layer.setLegendImage(reader.getAttributeValue(null, "url"));
-                break;
-            }
-          }
+          // ignored
           break;
       }
     }
-    return layers;
   }
 }
