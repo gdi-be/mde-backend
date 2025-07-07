@@ -3,6 +3,7 @@ package de.terrestris.mde.mde_backend.service;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_DateTypeCode.*;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode.information;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_PresentationFormCode.mapDigital;
+import static de.terrestris.mde.mde_backend.model.json.codelists.CI_PresentationFormCode.tableDigital;
 import static de.terrestris.mde.mde_backend.service.DatasetIsoGenerator.*;
 import static de.terrestris.mde.mde_backend.service.GeneratorUtils.*;
 import static de.terrestris.mde.mde_backend.service.IsoGenerator.TERMS_OF_USE_BY_ID;
@@ -13,6 +14,7 @@ import static de.terrestris.utils.xml.XmlUtils.writeSimpleElement;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import de.terrestris.mde.mde_backend.enumeration.MetadataProfile;
 import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
+import de.terrestris.mde.mde_backend.model.json.LegendImage;
 import de.terrestris.mde.mde_backend.model.json.Service;
 import de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode;
 import java.io.IOException;
@@ -60,9 +62,7 @@ public class ServiceIsoGenerator {
     writer.writeStartElement(SRV, "connectPoint");
     writer.writeStartElement(GMD, "CI_OnlineResource");
     writer.writeStartElement(GMD, "linkage");
-    if (service.getCapabilitiesUrl() != null) {
-      writeSimpleElement(writer, GMD, "URL", replaceValues(service.getCapabilitiesUrl()));
-    }
+    writeSimpleElement(writer, GMD, "URL", getServiceUrl(service));
     writer.writeEndElement(); // linkage
     writer.writeStartElement(GMD, "protocol");
     writeSimpleElement(writer, GCO, "CharacterString", "WWW:LINK-1.0-http--link");
@@ -82,6 +82,20 @@ public class ServiceIsoGenerator {
     writer.writeEndElement(); // function
     writer.writeEndElement(); // CI_OnlineResource
     writer.writeEndElement(); // connectPoint
+  }
+
+  private static void writeLegend(XMLStreamWriter writer, LegendImage legendImage)
+      throws XMLStreamException {
+    writer.writeStartElement(GMD, "graphicOverview");
+    writer.writeStartElement(GMD, "MD_BrowseGraphic");
+    writer.writeStartElement(GMD, "fileName");
+    writeSimpleElement(writer, GCO, "CharacterString", replaceValues(legendImage.getUrl()));
+    writer.writeEndElement(); // fileName
+    writer.writeStartElement(GMD, "fileDescription");
+    writeSimpleElement(writer, GCO, "CharacterString", "Legende");
+    writer.writeEndElement(); // fileDescription
+    writer.writeEndElement(); // MD_BrowseGraphic
+    writer.writeEndElement(); // graphicOverview
   }
 
   private static void writeServiceIdentification(
@@ -124,7 +138,11 @@ public class ServiceIsoGenerator {
     writer.writeEndElement(); // MD_Identifier
     writer.writeEndElement(); // identifier
     writer.writeStartElement(GMD, "presentationForm");
-    writeCodelistValue(writer, mapDigital);
+    if (service.getServiceType().equals(Service.ServiceType.WFS)) {
+      writeCodelistValue(writer, tableDigital);
+    } else {
+      writeCodelistValue(writer, mapDigital);
+    }
     writer.writeEndElement(); // presentationForm
     writer.writeEndElement(); // CI_Citation
     writer.writeEndElement(); // citation
@@ -139,6 +157,9 @@ public class ServiceIsoGenerator {
       }
     }
     writeMaintenanceInfo(writer, metadata.getMaintenanceFrequency());
+    if (service.getLegendImage() != null) {
+      writeLegend(writer, service.getLegendImage());
+    }
     if (service.getPreview() != null) {
       writePreview(writer, service.getPreview());
     } else if (metadata.getPreview() != null) {
@@ -146,7 +167,6 @@ public class ServiceIsoGenerator {
     }
     writeKeywords(writer, metadata);
     writeInspireThemeKeywords(writer, metadata);
-    writeHvdKeyword(writer, metadata);
     writeRegionalKeyword(writer);
     switch (service.getServiceType()) {
       case WFS, ATOM -> writeServiceKeyword(writer, "infoFeatureAccessService");

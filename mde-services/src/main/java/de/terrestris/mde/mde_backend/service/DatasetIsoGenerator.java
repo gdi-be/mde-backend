@@ -435,6 +435,21 @@ public class DatasetIsoGenerator {
     }
   }
 
+  protected static String getServiceUrl(Service s) {
+    var capas =
+        String.format(
+            "%s/services/%s/%s?request=GetCapabilities&service=%s",
+            METADATA_VARIABLES.getServiceUrl(),
+            s.getServiceType().toString().toLowerCase(),
+            s.getWorkspace(),
+            s.getServiceType());
+    if (s.getServiceType().equals(ATOM)) {
+      capas =
+          String.format("%s/data/%s/atom/", METADATA_VARIABLES.getServiceUrl(), s.getWorkspace());
+    }
+    return capas;
+  }
+
   protected static void writeDistributionInfo(
       XMLStreamWriter writer, JsonIsoMetadata metadata, Service service) throws XMLStreamException {
     writer.writeStartElement(GMD, "distributionInfo");
@@ -472,7 +487,10 @@ public class DatasetIsoGenerator {
     }
     if (metadata.getServices() != null) {
       for (var s : metadata.getServices()) {
-        if (service == null || s != service) {
+        if (service != null && s != service) {
+          continue;
+        }
+        if (s == null) {
           continue;
         }
         writer.writeStartElement(GMD, "transferOptions");
@@ -480,18 +498,7 @@ public class DatasetIsoGenerator {
         writer.writeStartElement(GMD, "onLine");
         writer.writeStartElement(GMD, "CI_OnlineResource");
         writer.writeStartElement(GMD, "linkage");
-        var capas =
-            String.format(
-                "%s/services/%s/%s?request=GetCapabilities&service=%s",
-                METADATA_VARIABLES.getServiceUrl(),
-                s.getServiceType().toString().toLowerCase(),
-                s.getWorkspace(),
-                s.getServiceType());
-        if (service.getServiceType().equals(ATOM)) {
-          capas =
-              String.format(
-                  "%s/data/%s/atom/", METADATA_VARIABLES.getServiceUrl(), s.getWorkspace());
-        }
+        var capas = getServiceUrl(s);
         writeSimpleElement(writer, GMD, "URL", replaceValues(capas));
         writer.writeEndElement(); // linkage
         writer.writeStartElement(GMD, "protocol");
@@ -556,9 +563,11 @@ public class DatasetIsoGenerator {
     if (service == null) {
       writeSpecialDescriptions(writer, metadata);
     }
-    writer.writeStartElement(GMD, "transferOptions");
-    writer.writeStartElement(GMD, "MD_DigitalTransferOptions");
-    if (metadata.getContentDescriptions() != null) {
+    if (service == null
+        && metadata.getContentDescriptions() != null
+        && !metadata.getContentDescriptions().isEmpty()) {
+      writer.writeStartElement(GMD, "transferOptions");
+      writer.writeStartElement(GMD, "MD_DigitalTransferOptions");
       for (var content : metadata.getContentDescriptions()) {
         writer.writeStartElement(GMD, "onLine");
         writer.writeStartElement(GMD, "CI_OnlineResource");
@@ -585,9 +594,9 @@ public class DatasetIsoGenerator {
         writer.writeEndElement(); // CI_OnlineResource
         writer.writeEndElement(); // onLine
       }
+      writer.writeEndElement(); // MD_DigitalTransferOptions
+      writer.writeEndElement(); // transferOptions
     }
-    writer.writeEndElement(); // MD_DigitalTransferOptions
-    writer.writeEndElement(); // transferOptions
     writer.writeEndElement(); // MD_Distribution
     writer.writeEndElement(); // distributionInfo
   }
