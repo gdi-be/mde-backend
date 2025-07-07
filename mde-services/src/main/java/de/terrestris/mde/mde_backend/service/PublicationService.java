@@ -184,7 +184,7 @@ public class PublicationService {
 
     try (var client = HttpClient.newHttpClient()) {
       var builder = HttpRequest.newBuilder(new URI(meUrl));
-      var req = builder.GET();
+      var req = builder.POST(HttpRequest.BodyPublishers.noBody());
       var response = client.send(req.build(), HttpResponse.BodyHandlers.discarding());
       var cookiesList = response.headers().allValues("set-cookie");
       var csrfCandidate =
