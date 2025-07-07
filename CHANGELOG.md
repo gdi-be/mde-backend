@@ -1,3 +1,11 @@
+## [3.8.1](https://github.com/gdi-be/mde-backend/compare/v3.8.0...v3.8.1) (2025-07-07)
+
+
+### Bug Fixes
+
+* fix ISO generation ([423258a](https://github.com/gdi-be/mde-backend/commit/423258a2be12178693003c300580c27886f3fa61))
+* fix publication ([c609afa](https://github.com/gdi-be/mde-backend/commit/c609afa2cc2943a2809c3c200f5130c559abe9a0))
+
 # [3.8.0](https://github.com/gdi-be/mde-backend/compare/v3.7.1...v3.8.0) (2025-07-04)
 
 
