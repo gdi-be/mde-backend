@@ -1,3 +1,10 @@
+## [3.8.2](https://github.com/gdi-be/mde-backend/compare/v3.8.1...v3.8.2) (2025-07-07)
+
+
+### Bug Fixes
+
+* fix insert/update ([61af6c3](https://github.com/gdi-be/mde-backend/commit/61af6c3aa643374c41cd5682cfd65b50c4fd8ccf))
+
 ## [3.8.1](https://github.com/gdi-be/mde-backend/compare/v3.8.0...v3.8.1) (2025-07-07)
 
 
