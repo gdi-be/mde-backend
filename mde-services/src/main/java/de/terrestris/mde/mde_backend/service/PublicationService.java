@@ -323,7 +323,7 @@ public class PublicationService {
                         }
                         return null;
                       },
-                      insert,
+                      service.getFileIdentifier() == null || force,
                       service);
                 } catch (URISyntaxException
                     | IOException
