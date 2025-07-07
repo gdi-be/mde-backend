@@ -6,11 +6,11 @@
   <parent>
     <groupId>de.terrestris.mde</groupId>
     <artifactId>mde-backend</artifactId>
-    <version>3.8.2-SNAPSHOT</version>
+    <version>3.8.3-SNAPSHOT</version>
   </parent>
 
   <artifactId>mde-importer</artifactId>
-  <version>3.8.2-SNAPSHOT</version>
+  <version>3.8.3-SNAPSHOT</version>
   <name>mde-importer</name>
   <description>Importer for metadata editor</description>
 
