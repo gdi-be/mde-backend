@@ -1179,7 +1179,9 @@ public class ImportService {
           // ignored
           break;
         case "Kartenebene":
-          // ignored
+          while (reader.hasNext() && !(reader.isEndElement() && reader.getLocalName().equals("Kartenebene"))) {
+            reader.next();
+          }
           break;
       }
     }
