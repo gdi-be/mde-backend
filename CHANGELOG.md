@@ -1,3 +1,11 @@
+## [3.8.3](https://github.com/gdi-be/mde-backend/compare/v3.8.2...v3.8.3) (2025-07-10)
+
+
+### Bug Fixes
+
+* fix formatting ([02d7036](https://github.com/gdi-be/mde-backend/commit/02d70361fd55a82acda7bee46f57ba2ca0bf4787))
+* skip obsolete layer metadata ([af239ad](https://github.com/gdi-be/mde-backend/commit/af239ad6738a0a5c6574626cfbfd6975d240abbf))
+
 ## [3.8.2](https://github.com/gdi-be/mde-backend/compare/v3.8.1...v3.8.2) (2025-07-07)
 
 
