@@ -1,3 +1,14 @@
+## [3.8.4](https://github.com/gdi-be/mde-backend/compare/v3.8.3...v3.8.4) (2025-07-15)
+
+
+### Bug Fixes
+
+* don't append query parameters ([7bf8b1a](https://github.com/gdi-be/mde-backend/commit/7bf8b1a2a2694d82f3bb0e80b081f47a0bd9d63a))
+* don't write out gmd:protocol and gmd:description ([58976df](https://github.com/gdi-be/mde-backend/commit/58976df9bcde35ca633bc4d34997b52088fdd40c))
+* remove all catalog entries ([d55e8c1](https://github.com/gdi-be/mde-backend/commit/d55e8c1a3ab6df235609111721e9409818c9cad6))
+* remove search interface ([d4a546e](https://github.com/gdi-be/mde-backend/commit/d4a546e288537d8379706d93c3f57be46c4aac9a))
+* set correct protocol name ([d7d0c4d](https://github.com/gdi-be/mde-backend/commit/d7d0c4dc91d9996776527dcb64514bedf33a6664))
+
 ## [3.8.3](https://github.com/gdi-be/mde-backend/compare/v3.8.2...v3.8.3) (2025-07-10)
 
 
