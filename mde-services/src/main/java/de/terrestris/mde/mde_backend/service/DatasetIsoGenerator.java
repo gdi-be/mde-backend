@@ -522,7 +522,7 @@ public class DatasetIsoGenerator {
             switch (s.getServiceType()) {
               case WFS -> "Downloaddienst - " + s.getTitle() + " (WFS)";
               case WMS -> "Darstellungsdienst - " + s.getTitle() + " (WMS)";
-              case ATOM -> "Downloaddienst - " + s.getTitle() + " (ATOM)";
+              case ATOM -> "Downloaddienst - " + s.getTitle() + " (INSPIRE ATOM)";
               case WMTS -> "Darstellungsdienst - " + s.getTitle() + " (WMTS)";
             };
         writer.writeAttribute(XLINK, "href", type);
