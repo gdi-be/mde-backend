@@ -64,19 +64,6 @@ public class ServiceIsoGenerator {
     writer.writeStartElement(GMD, "linkage");
     writeSimpleElement(writer, GMD, "URL", getServiceUrl(service));
     writer.writeEndElement(); // linkage
-    writer.writeStartElement(GMD, "protocol");
-    writeSimpleElement(writer, GCO, "CharacterString", "WWW:LINK-1.0-http--link");
-    writer.writeEndElement(); // protocol
-    writer.writeStartElement(GMD, "description");
-    writer.writeStartElement(GMX, "Anchor");
-    writer.writeAttribute(
-        XLINK,
-        "href",
-        "http://inspire.ec.europa.eu/metadata-codelist/OnLineDescriptionCode/accessPoint");
-    writer.writeCharacters(
-        "http://inspire.ec.europa.eu/metadata-codelist/OnLineDescriptionCode/accessPoint");
-    writer.writeEndElement(); // Anchor
-    writer.writeEndElement(); // description
     writer.writeStartElement(GMD, "function");
     writeCodelistValue(writer, information);
     writer.writeEndElement(); // function
