@@ -436,17 +436,25 @@ public class DatasetIsoGenerator {
   }
 
   protected static String getServiceUrl(Service s) {
+    Service.ServiceType serviceType = s.getServiceType();
+
+    if (serviceType == null) {
+      log.warn("No service type defined for service: {}", s.getServiceIdentification());
+      return null;
+    }
+
     var capas =
         String.format(
-            "%s/services/%s/%s?request=GetCapabilities&service=%s",
+            "%s/services/%s/%s",
             METADATA_VARIABLES.getServiceUrl(),
-            s.getServiceType().toString().toLowerCase(),
-            s.getWorkspace(),
-            s.getServiceType());
-    if (s.getServiceType().equals(ATOM)) {
+            serviceType.toString().toLowerCase(),
+            s.getWorkspace());
+
+    if (serviceType.equals(ATOM)) {
       capas =
           String.format("%s/data/%s/atom/", METADATA_VARIABLES.getServiceUrl(), s.getWorkspace());
     }
+
     return capas;
   }
 
