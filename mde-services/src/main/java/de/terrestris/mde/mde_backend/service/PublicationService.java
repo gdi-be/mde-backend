@@ -26,10 +26,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -390,26 +389,32 @@ public class PublicationService {
 
     var response = new MetadataDeletionResponse();
     var catalogRecords = new ArrayList<String>();
+    Set<String> identifiersToDelete = new HashSet<>();
 
     List<Service> services = metadataCollection.getIsoMetadata().getServices();
     if (services != null) {
-      services.forEach(
-          service -> {
-            var fileIdentifier = service.getFileIdentifier();
-            try {
-              removeMetadata(fileIdentifier);
-              catalogRecords.add(fileIdentifier);
-            } catch (Exception e) {
-              log.error(
-                  "Error while removing catalog entry with id {}: \n {}",
-                  fileIdentifier,
-                  e.getMessage());
-              log.trace("Full stack trace: ", e);
-            }
-          });
+      identifiersToDelete =
+          services.stream().map(Service::getFileIdentifier).collect(Collectors.toSet());
     } else {
       log.warn("No services found for metadata collection with ID {}", metadataId);
     }
+
+    String fileIdentifier = metadataCollection.getIsoMetadata().getFileIdentifier();
+    if (fileIdentifier != null) {
+      identifiersToDelete.add(fileIdentifier);
+    }
+
+    identifiersToDelete.forEach(
+        identifier -> {
+          try {
+            removeMetadata(identifier);
+            catalogRecords.add(identifier);
+          } catch (Exception e) {
+            log.error(
+                "Error while removing catalog entry with id {}: \n {}", identifier, e.getMessage());
+            log.trace("Full stack trace: ", e);
+          }
+        });
 
     metadataCollectionRepository.delete(metadataCollection);
 
