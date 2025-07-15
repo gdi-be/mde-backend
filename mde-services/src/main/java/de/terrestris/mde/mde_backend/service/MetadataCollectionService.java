@@ -24,9 +24,6 @@ import java.net.URISyntaxException;
 import java.util.*;
 import javax.imageio.ImageIO;
 import lombok.extern.log4j.Log4j2;
-import org.hibernate.search.engine.search.query.SearchResult;
-import org.hibernate.search.mapper.orm.Search;
-import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,17 +68,6 @@ public class MetadataCollectionService
   @Transactional(readOnly = true)
   public Optional<MetadataCollection> findOneByMetadataId(String metadataId) {
     return repository.findByMetadataId(metadataId);
-  }
-
-  @PreAuthorize("isAuthenticated()")
-  @Transactional(readOnly = true)
-  public SearchResult<MetadataCollection> search(String searchTerm, Integer offset, Integer limit) {
-    SearchSession searchSession = Search.session(entityManager);
-
-    return searchSession
-        .search(MetadataCollection.class)
-        .where(f -> f.simpleQueryString().fields("isoMetadata.title").matching(searchTerm + "*"))
-        .fetch(offset, limit);
   }
 
   @PreAuthorize("isAuthenticated()")
