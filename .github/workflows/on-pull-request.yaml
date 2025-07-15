@@ -21,6 +21,14 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v4
 
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            maven-${{ runner.os }}-
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
