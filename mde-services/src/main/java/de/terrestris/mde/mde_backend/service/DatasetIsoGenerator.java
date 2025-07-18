@@ -510,24 +510,28 @@ public class DatasetIsoGenerator {
         writeSimpleElement(writer, GMD, "URL", replaceValues(capas));
         writer.writeEndElement(); // linkage
         writer.writeStartElement(GMD, "protocol");
-        writer.writeStartElement(GMX, "Anchor");
         var type =
             switch (s.getServiceType()) {
               case WFS -> "http://www.opengis.net/def/serviceType/ogc/wfs";
               case WMS -> "http://www.opengis.net/def/serviceType/ogc/wms";
-              case ATOM -> "https://tools.ietf.org/html/rfc4287";
+              case ATOM -> "https://tools.ietf.org/html/rfc4287"; // not used
               case WMTS -> "http://www.opengis.net/def/serviceType/ogc/wmts";
             };
         var text =
             switch (s.getServiceType()) {
               case WFS -> "Downloaddienst - " + s.getTitle() + " (WFS)";
               case WMS -> "Darstellungsdienst - " + s.getTitle() + " (WMS)";
-              case ATOM -> "Downloaddienst - " + s.getTitle() + " (INSPIRE ATOM)";
+              case ATOM -> "INSPIRE Atom";
               case WMTS -> "Darstellungsdienst - " + s.getTitle() + " (WMTS)";
             };
-        writer.writeAttribute(XLINK, "href", type);
-        writer.writeCharacters(text);
-        writer.writeEndElement(); // Anchor
+        if (s.getServiceType() == ATOM) {
+          writeSimpleElement(writer, GCO, "CharacterString", text);
+        } else {
+          writer.writeStartElement(GMX, "Anchor");
+          writer.writeAttribute(XLINK, "href", type);
+          writer.writeCharacters(text);
+          writer.writeEndElement(); // Anchor
+        }
         writer.writeEndElement(); // protocol
         writer.writeStartElement(GMD, "applicationProfile");
         writer.writeStartElement(GMX, "Anchor");
@@ -548,11 +552,15 @@ public class DatasetIsoGenerator {
         writer.writeEndElement(); // Anchor
         writer.writeEndElement(); // applicationProfile
         writer.writeStartElement(GMD, "description");
-        writeSimpleElement(
-            writer,
-            GCO,
-            "CharacterString",
-            "GetCapabilities Aufruf des " + s.getServiceType() + " mit maschinenlesbarer Antwort");
+        var description =
+            switch (s.getServiceType()) {
+              case WFS, WMS, WMTS ->
+                  "GetCapabilities Aufruf des "
+                      + s.getServiceType()
+                      + " mit maschinenlesbarer Antwort";
+              case ATOM -> "Downloaddienst - " + s.getTitle() + " (ATOM)";
+            };
+        writeSimpleElement(writer, GCO, "CharacterString", description);
         writer.writeEndElement(); // description
         writer.writeStartElement(GMD, "function");
         writeCodelistValue(
