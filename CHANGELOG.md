@@ -1,3 +1,10 @@
+## [3.8.5](https://github.com/gdi-be/mde-backend/compare/v3.8.4...v3.8.5) (2025-07-18)
+
+
+### Bug Fixes
+
+* set correct protocol and description for atom ([c5b3477](https://github.com/gdi-be/mde-backend/commit/c5b34772651a16597572038311d3819ea268d957))
+
 ## [3.8.4](https://github.com/gdi-be/mde-backend/compare/v3.8.3...v3.8.4) (2025-07-15)
 
 
