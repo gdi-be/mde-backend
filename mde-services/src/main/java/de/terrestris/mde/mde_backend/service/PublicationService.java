@@ -140,6 +140,10 @@ public class PublicationService {
         log.debug("Response: {}", new String(bs, UTF_8));
       }
 
+      if (!HttpStatus.valueOf(response.statusCode()).is2xxSuccessful()) {
+        throw new IOException("Catalog server returned status code " + response.statusCode());
+      }
+
       var reader = INPUT_FACTORY.createXMLStreamReader(is);
 
       var insertedRecords = 0;
@@ -284,12 +288,12 @@ public class PublicationService {
       isoMetadata.setDateTime(Instant.now());
     }
     var uuids = new ArrayList<String>();
-    var insert = isoMetadata.getFileIdentifier() == null || force;
+    var insertIsoMetadata = isoMetadata.getFileIdentifier() == null || force;
 
     sendTransaction(
         writer -> {
           try {
-            if (insert) {
+            if (insertIsoMetadata) {
               isoMetadata.setFileIdentifier(UUID.randomUUID().toString());
             }
             datasetIsoGenerator.generateDatasetMetadata(isoMetadata, metadataId, writer);
@@ -300,18 +304,20 @@ public class PublicationService {
           }
           return null;
         },
-        insert,
+        insertIsoMetadata,
         isoMetadata);
     if (isoMetadata.getServices() != null) {
       isoMetadata
           .getServices()
           .forEach(
               service -> {
+                var insertService = service.getFileIdentifier() == null || force;
+
                 try {
                   sendTransaction(
                       writer -> {
                         try {
-                          if (insert) {
+                          if (insertService) {
                             service.setFileIdentifier(UUID.randomUUID().toString());
                           }
                           serviceIsoGenerator.generateServiceMetadata(isoMetadata, service, writer);
@@ -322,13 +328,13 @@ public class PublicationService {
                         }
                         return null;
                       },
-                      service.getFileIdentifier() == null || force,
+                      insertService,
                       service);
                 } catch (URISyntaxException
                     | IOException
                     | InterruptedException
                     | XMLStreamException e) {
-                  log.warn("Unable to generate service metadata: {}", e.getMessage());
+                  log.warn("Unable to publish the service metadata: {}", e.getMessage());
                   log.trace("Stack trace:", e);
                 }
               });
