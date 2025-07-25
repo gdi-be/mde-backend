@@ -215,7 +215,7 @@ public class PublicationService {
         log.debug("Publishing record");
         response = client.send(req.build(), HttpResponse.BodyHandlers.discarding());
 
-        if (response.statusCode() != 204) {
+        if (!HttpStatus.valueOf(response.statusCode()).is2xxSuccessful()) {
           log.error(
               "Could not publish record with ID {}. Status code: {}", uuid, response.statusCode());
           continue;
