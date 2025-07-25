@@ -1,3 +1,11 @@
+## [3.8.6](https://github.com/gdi-be/mde-backend/compare/v3.8.5...v3.8.6) (2025-07-25)
+
+
+### Bug Fixes
+
+* check for general successful response ([9e16f2f](https://github.com/gdi-be/mde-backend/commit/9e16f2f4a3ac4faf605b1028b5d35958c93e3412))
+* get insert flag from service metadata ([826b0c3](https://github.com/gdi-be/mde-backend/commit/826b0c356a468546b69ebfad805848545a26f472))
+
 ## [3.8.5](https://github.com/gdi-be/mde-backend/compare/v3.8.4...v3.8.5) (2025-07-18)
 
 
