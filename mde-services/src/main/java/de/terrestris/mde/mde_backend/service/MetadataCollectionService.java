@@ -88,6 +88,7 @@ public class MetadataCollectionService
     // default values
     metadataCollection.getIsoMetadata().setMetadataProfile(MetadataProfile.ISO);
     metadataCollection.getIsoMetadata().setCrs("http://www.opengis.net/def/crs/EPSG/0/25833");
+    metadataCollection.getTechnicalMetadata().setDeliveredCrs("25833");
 
     // User and role assignment. Set responsibleRole, ownerId, assignedUserId, teamMemberIds.
     Role roleToSet = null;
