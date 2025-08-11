@@ -552,15 +552,7 @@ public class DatasetIsoGenerator {
         writer.writeEndElement(); // Anchor
         writer.writeEndElement(); // applicationProfile
         writer.writeStartElement(GMD, "description");
-        var description =
-            switch (s.getServiceType()) {
-              case WFS, WMS, WMTS ->
-                  "GetCapabilities Aufruf des "
-                      + s.getServiceType()
-                      + " mit maschinenlesbarer Antwort";
-              case ATOM -> "Downloaddienst - " + s.getTitle() + " (ATOM)";
-            };
-        writeSimpleElement(writer, GCO, "CharacterString", description);
+        writeSimpleElement(writer, GCO, "CharacterString", text);
         writer.writeEndElement(); // description
         writer.writeStartElement(GMD, "function");
         writeCodelistValue(
