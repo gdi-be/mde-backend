@@ -3,6 +3,7 @@ package de.terrestris.mde.mde_backend.service;
 import static de.terrestris.mde.mde_backend.enumeration.MetadataProfile.INSPIRE_HARMONISED;
 import static de.terrestris.mde.mde_backend.enumeration.MetadataProfile.ISO;
 import static de.terrestris.mde.mde_backend.model.json.Service.ServiceType.ATOM;
+import static de.terrestris.mde.mde_backend.model.json.Service.ServiceType.WMS;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_DateTypeCode.*;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode.download;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode.information;
@@ -575,6 +576,12 @@ public class DatasetIsoGenerator {
         writer.writeEndElement(); // MD_DigitalTransferOptions
         writer.writeEndElement(); // transferOptions
       }
+    }
+    if (service != null && service.getServiceType().equals(WMS)) {
+      writeDescription(
+          writer,
+          METADATA_VARIABLES.getPortalUrl() + service.getWorkspace(),
+          "Darstellung der Karte im Geoportal Berlin");
     }
     if (service == null) {
       writeSpecialDescriptions(writer, metadata);
