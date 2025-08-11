@@ -203,16 +203,34 @@ public class MetadataCollectionService
     return metadataId;
   }
 
-  private void updateLegendSize(JsonIsoMetadata data) {
+  /**
+   * Automatically updates the legend image data (width, height, format) of all services.
+   *
+   * @param data the JsonIsoMetadata object containing the services
+   */
+  private void updateLegendData(JsonIsoMetadata data) {
     if (data.getServices() == null) {
       return;
     }
     for (var service : data.getServices()) {
       try {
         if (service.getLegendImage() != null && service.getLegendImage().getUrl() != null) {
-          var img = ImageIO.read(new URI(replaceValues(service.getLegendImage().getUrl())).toURL());
-          service.getLegendImage().setWidth(img.getWidth());
-          service.getLegendImage().setHeight(img.getHeight());
+          URI uri = new URI(replaceValues(service.getLegendImage().getUrl()));
+
+          try (var iis = ImageIO.createImageInputStream(uri.toURL().openStream())) {
+            var readers = ImageIO.getImageReaders(iis);
+            if (readers.hasNext()) {
+              var reader = readers.next();
+              String formatName = reader.getFormatName();
+
+              reader.setInput(iis);
+              var img = reader.read(0);
+
+              service.getLegendImage().setWidth(img.getWidth());
+              service.getLegendImage().setHeight(img.getHeight());
+              service.getLegendImage().setFormat(formatName.toLowerCase());
+            }
+          }
         }
       } catch (IOException | URISyntaxException | IllegalArgumentException e) {
         log.warn("Unable to determine size of legend: {}", e.getMessage());
@@ -240,7 +258,7 @@ public class MetadataCollectionService
     jsonNode.replace(key, value);
 
     JsonIsoMetadata updatedData = objectMapper.treeToValue(jsonNode, JsonIsoMetadata.class);
-    updateLegendSize(updatedData);
+    updateLegendData(updatedData);
     metadataCollection.setIsoMetadata(updatedData);
     if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
       metadataCollection.setStatus(Status.IN_EDIT);
