@@ -20,4 +20,6 @@ public class MetadataVariables {
   private String standardFormat;
 
   private String standardVersion;
+
+  private String portalUrl;
 }
