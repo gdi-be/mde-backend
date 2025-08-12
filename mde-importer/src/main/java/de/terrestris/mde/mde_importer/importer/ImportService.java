@@ -804,7 +804,7 @@ public class ImportService {
           parseCapabilitiesWfs(service, clientMetadata);
           isoMetadata.getServices().add(service);
 
-          if (replaceValues(service.getUrl()).contains("fbadmin.senstadtdmz.verwalt-berlin.de")) {
+          if (!replaceValues(service.getUrl()).contains("gdi.berlin.de")) {
             isoMetadata.getServices().removeLast();
             log.info("Removing service as it's not migrated yet.");
           }
