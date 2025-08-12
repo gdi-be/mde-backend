@@ -149,8 +149,6 @@ public class ServiceIsoGenerator {
     }
     if (service.getPreview() != null) {
       writePreview(writer, service.getPreview());
-    } else if (metadata.getPreview() != null) {
-      writePreview(writer, metadata.getPreview());
     }
     writeKeywords(writer, metadata);
     writeInspireThemeKeywords(writer, metadata);
