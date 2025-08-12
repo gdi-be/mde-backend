@@ -1,3 +1,21 @@
+# [3.9.0](https://github.com/gdi-be/mde-backend/compare/v3.8.6...v3.9.0) (2025-08-12)
+
+
+### Bug Fixes
+
+* fix contact generation ([a058181](https://github.com/gdi-be/mde-backend/commit/a0581812fbd6d5f2e1004726430ea884ac190fc9))
+* fix import check for services ([7ad5276](https://github.com/gdi-be/mde-backend/commit/7ad5276b1828f34f7a279a495eedb4aea207f21f))
+* fix transfer options description ([b3487b3](https://github.com/gdi-be/mde-backend/commit/b3487b348f3b6f356dc9c8be217836bbab0bafeb))
+* make sure deleted services are reflected in the CSW ([0e2897f](https://github.com/gdi-be/mde-backend/commit/0e2897fed1483c433ff6da07cf8ed625732fa5a7))
+* write service preview only ([eb1b9c5](https://github.com/gdi-be/mde-backend/commit/eb1b9c57f46c048d3a5a105166e3a8b041d4cfbd))
+
+
+### Features
+
+* add configured portal url for WMS metadata ([2414791](https://github.com/gdi-be/mde-backend/commit/241479170a14530dff1fa47103a795c9f26f292c))
+* add default value for deliveredCrs ([4ffc50d](https://github.com/gdi-be/mde-backend/commit/4ffc50d5f67ad789f16076d39b15d74eeb6c4816))
+* set legend format automatically ([2be6b2d](https://github.com/gdi-be/mde-backend/commit/2be6b2dfc4174e209a0510398d5faae13d9bc6d6))
+
 ## [3.8.6](https://github.com/gdi-be/mde-backend/compare/v3.8.5...v3.8.6) (2025-07-25)
 
 
