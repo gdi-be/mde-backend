@@ -10,7 +10,9 @@ import com.github.fge.jsonpatch.JsonPatchException;
 import de.terrestris.mde.mde_backend.enumeration.MetadataProfile;
 import de.terrestris.mde.mde_backend.enumeration.Role;
 import de.terrestris.mde.mde_backend.jpa.MetadataCollectionRepository;
+import de.terrestris.mde.mde_backend.jpa.ServiceDeletionRepository;
 import de.terrestris.mde.mde_backend.model.MetadataCollection;
+import de.terrestris.mde.mde_backend.model.ServiceDeletion;
 import de.terrestris.mde.mde_backend.model.Status;
 import de.terrestris.mde.mde_backend.model.dto.QueryConfig;
 import de.terrestris.mde.mde_backend.model.dto.UserData;
@@ -50,6 +52,8 @@ public class MetadataCollectionService
   @Autowired @Lazy ObjectMapper objectMapper;
 
   @Autowired KeycloakService keycloakService;
+
+  @Autowired private ServiceDeletionRepository serviceDeletionRepository;
 
   @PreAuthorize("isAuthenticated()")
   @Transactional(readOnly = true)
@@ -613,5 +617,12 @@ public class MetadataCollectionService
     repository.save(metadataCollection);
 
     return serviceIdentification;
+  }
+
+  @PreAuthorize("isAuthenticated()")
+  @Transactional(isolation = Isolation.SERIALIZABLE)
+  public void prepareServiceDeletion(String metadataId, String fileIdentifier) {
+    var serviceDeletion = new ServiceDeletion(null, metadataId, fileIdentifier);
+    serviceDeletionRepository.save(serviceDeletion);
   }
 }

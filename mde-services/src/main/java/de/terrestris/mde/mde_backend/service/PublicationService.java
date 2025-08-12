@@ -8,6 +8,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 import com.nimbusds.jose.util.Base64;
 import de.terrestris.mde.mde_backend.enumeration.Role;
 import de.terrestris.mde.mde_backend.jpa.MetadataCollectionRepository;
+import de.terrestris.mde.mde_backend.jpa.ServiceDeletionRepository;
 import de.terrestris.mde.mde_backend.model.MetadataCollection;
 import de.terrestris.mde.mde_backend.model.Status;
 import de.terrestris.mde.mde_backend.model.dto.MetadataDeletionResponse;
@@ -81,6 +82,8 @@ public class PublicationService {
   @Autowired private MetadataCollectionRepository metadataCollectionRepository;
 
   @Autowired protected MessageSource messageSource;
+
+  @Autowired private ServiceDeletionRepository serviceDeletionRepository;
 
   @PostConstruct
   public void completeCswUrl() {
@@ -345,7 +348,27 @@ public class PublicationService {
 
     metadataCollectionRepository.save(metadata);
 
+    deleteOldServiceMetadata(metadata);
+
     return publishRecords(uuids);
+  }
+
+  private void deleteOldServiceMetadata(MetadataCollection metadataCollection) {
+    var deletions = serviceDeletionRepository.findByMetadataId(metadataCollection.getMetadataId());
+    for (var deletion : deletions) {
+      try {
+        removeMetadata(deletion.getFileIdentifier());
+        log.debug(
+            "Successfully deleted old service metadata with file identifier {}",
+            deletion.getFileIdentifier());
+      } catch (URISyntaxException | IOException | InterruptedException | XMLStreamException e) {
+        log.error(
+            "Error while deleting old service metadata with file identifier {}: {}",
+            deletion.getFileIdentifier(),
+            e.getMessage());
+        log.trace("Stack trace:", e);
+      }
+    }
   }
 
   @PreAuthorize("hasRole('ROLE_MDEADMINISTRATOR') or hasRole('ROLE_MDEEDITOR')")

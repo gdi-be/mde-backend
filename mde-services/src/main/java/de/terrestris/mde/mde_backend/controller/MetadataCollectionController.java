@@ -615,6 +615,36 @@ public class MetadataCollectionController
     }
   }
 
+  @PostMapping("/{metadataId}/delete/{fileIdentifier}")
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Ok: The service has been marked for deletion"),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal Server Error: Something internal went wrong")
+      })
+  public ResponseEntity<?> deleteService(
+      @PathVariable("metadataId") String metadataId,
+      @PathVariable("fileIdentifier") String fileIdentifier) {
+    try {
+      service.prepareServiceDeletion(metadataId, fileIdentifier);
+
+      return new ResponseEntity<>(OK);
+    } catch (Exception e) {
+      log.error(
+          "Error while preparing the service {} for deletion: {}", fileIdentifier, e.getMessage());
+      log.trace("Full stack trace: ", e);
+
+      throw new ResponseStatusException(
+          HttpStatus.INTERNAL_SERVER_ERROR,
+          messageSource.getMessage(
+              "BASE_CONTROLLER.INTERNAL_SERVER_ERROR", null, LocaleContextHolder.getLocale()),
+          e);
+    }
+  }
+
   @PostMapping("/{metadataId}/approved")
   public ResponseEntity<Void> approveMetadata(@PathVariable("metadataId") String metadataId) {
     try {
