@@ -796,11 +796,6 @@ public class DatasetIsoGenerator {
     writeCharacterSet(writer);
     writeHierarchyLevel(writer, dataset);
     writeContact(writer, DEFAULT_CONTACT, "contact");
-    if (metadata.getContacts() != null) {
-      for (var contact : metadata.getContacts()) {
-        writeContact(writer, contact, "contact");
-      }
-    }
     writeDateStamp(writer, metadata);
     writeMetadataInfo(writer, !metadata.getMetadataProfile().equals(ISO));
     writeCrs(writer, metadata);
