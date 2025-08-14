@@ -1,3 +1,10 @@
+## [3.9.1](https://github.com/gdi-be/mde-backend/compare/v3.9.0...v3.9.1) (2025-08-14)
+
+
+### Bug Fixes
+
+* fix importing of lineage ([122bb92](https://github.com/gdi-be/mde-backend/commit/122bb926f17304237ee79c54b9d9edce97c6251e))
+
 # [3.9.0](https://github.com/gdi-be/mde-backend/compare/v3.8.6...v3.9.0) (2025-08-12)
 
 
