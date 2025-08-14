@@ -42,7 +42,7 @@ public class GeneratorUtils {
 
   public static final Contact DEFAULT_CONTACT;
 
-  protected static final MetadataVariables METADATA_VARIABLES;
+  public static final MetadataVariables METADATA_VARIABLES;
 
   static {
     INSPIRE_THEME_MAP = new HashMap<>();
