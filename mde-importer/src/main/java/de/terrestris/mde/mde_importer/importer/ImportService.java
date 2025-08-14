@@ -158,6 +158,9 @@ public class ImportService {
             dir, 1, (path, attributes) -> path.getFileName().toString().startsWith("ISO_"))) {
       files.forEach(
           file -> {
+            if (Files.isDirectory(file)) {
+              return;
+            }
             log.info("Importing from {}", file);
             try {
               var reader = factory.createXMLStreamReader(Files.newInputStream(file));
@@ -236,6 +239,7 @@ public class ImportService {
     metadataCollection.setIsoMetadata(isoMetadata);
     isoMetadata.setContacts(new ArrayList<>());
     isoMetadata.setContentDescriptions(new ArrayList<>());
+    isoMetadata.setLineage(new ArrayList<>());
     skipToElement(reader, "Metadaten");
     var type = reader.getAttributeValue(null, "metadatenTyp");
     if (type.equals("ISO")) {
@@ -281,6 +285,13 @@ public class ImportService {
           metadataCollection.getMetadataId());
       isoMetadata.setTermsOfUseId(BigInteger.ONE);
     }
+    var lineages = new ArrayList<Lineage>();
+    for (var lineage : isoMetadata.getLineage()) {
+      if (!lineages.contains(lineage)) {
+        lineages.add(lineage);
+      }
+    }
+    isoMetadata.setLineage(lineages);
 
     if (assignUsersOnImport) {
       var ids = new HashSet<String>();
@@ -1120,11 +1131,8 @@ public class ImportService {
           service.setLegendImage(img);
           break;
         case "Datengrundlage":
-          var source = new Source();
-          source.setType(reader.getAttributeValue(null, "Typ"));
           skipToElement(reader, "Inhalt");
-          source.setContent(reader.getElementText());
-          metadata.getDataBases().add(source);
+          metadata.getLineage().add(new Lineage(null, reader.getElementText(), null));
           break;
         case "Veroeffentlichung":
           var publication = new Source();
