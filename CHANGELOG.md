@@ -1,3 +1,11 @@
+## [3.9.2](https://github.com/gdi-be/mde-backend/compare/v3.9.1...v3.9.2) (2025-08-20)
+
+
+### Bug Fixes
+
+* do not write contacts in service metadata ([2731eb4](https://github.com/gdi-be/mde-backend/commit/2731eb4b9c6e74b4a6c8a9bb0f3fa102e6f1fe7a))
+* fix importing of preview ([a204a89](https://github.com/gdi-be/mde-backend/commit/a204a899d2a0dfc8830b278595a8c37bf4881995))
+
 ## [3.9.1](https://github.com/gdi-be/mde-backend/compare/v3.9.0...v3.9.1) (2025-08-14)
 
 
