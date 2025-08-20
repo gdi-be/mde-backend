@@ -238,11 +238,6 @@ public class ServiceIsoGenerator {
     writeHierarchyLevel(writer, MD_ScopeCode.service);
     writeHierarchyLevelName(writer, metadata.getTitle());
     writeContact(writer, DEFAULT_CONTACT, "contact");
-    if (metadata.getContacts() != null) {
-      for (var contact : metadata.getContacts()) {
-        writeContact(writer, contact, "contact");
-      }
-    }
     writeDateStamp(writer, metadata);
     writeMetadataInfo(writer, !metadata.getMetadataProfile().equals(MetadataProfile.ISO));
     writeCrs(writer, metadata);
