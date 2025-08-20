@@ -851,7 +851,13 @@ public class ImportService {
         case "graphicOverview":
           skipToElement(reader, "fileName");
           skipToElement(reader, "CharacterString");
-          service.setPreview(reader.getElementText());
+          var preview = reader.getElementText();
+          skipToElement(reader, "fileDescription");
+          skipToElement(reader, "CharacterString");
+          var desc = reader.getElementText();
+          if (desc.equals("Vorschaugrafik") || desc.equals("Vorschaubild")) {
+            service.setPreview(preview);
+          }
           break;
         case "serviceTypeVersion":
           skipToElement(reader, "CharacterString");
