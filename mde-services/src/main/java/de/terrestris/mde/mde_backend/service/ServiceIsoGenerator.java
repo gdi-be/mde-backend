@@ -144,11 +144,11 @@ public class ServiceIsoGenerator {
       }
     }
     writeMaintenanceInfo(writer, metadata.getMaintenanceFrequency());
-    if (service.getLegendImage() != null) {
-      writeLegend(writer, service.getLegendImage());
-    }
     if (service.getPreview() != null) {
       writePreview(writer, service.getPreview());
+    }
+    if (service.getLegendImage() != null) {
+      writeLegend(writer, service.getLegendImage());
     }
     writeKeywords(writer, metadata);
     writeInspireThemeKeywords(writer, metadata);
