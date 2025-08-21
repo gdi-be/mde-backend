@@ -355,6 +355,13 @@ public class DatasetIsoGenerator {
         }
       }
       for (var keyword : entry.getValue()) {
+        if (keyword.getNamespace() != null
+            && keyword
+                .getNamespace()
+                .equalsIgnoreCase(
+                    "http://inspire.ec.europa.eu/metadata-codelist/SpatialScope/regional")) {
+          continue;
+        }
         writer.writeStartElement(GMD, "keyword");
         if (keyword.getNamespace() != null) {
           writer.writeStartElement(GMX, "Anchor");
