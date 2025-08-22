@@ -1,3 +1,10 @@
+## [3.9.3](https://github.com/gdi-be/mde-backend/compare/v3.9.2...v3.9.3) (2025-08-22)
+
+
+### Bug Fixes
+
+* fix duplicate keyword ([1b09494](https://github.com/gdi-be/mde-backend/commit/1b094948b114ce619b1fc8c99b6fc62337cb4f0d))
+
 ## [3.9.2](https://github.com/gdi-be/mde-backend/compare/v3.9.1...v3.9.2) (2025-08-20)
 
 
