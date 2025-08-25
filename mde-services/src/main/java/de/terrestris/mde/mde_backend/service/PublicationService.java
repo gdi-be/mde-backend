@@ -268,12 +268,6 @@ public class PublicationService {
       throw new PublicationException("Metadata with ID " + metadataId + " is not approved.");
     }
 
-    // TODO Check if this is needed
-    //    if (metadata.getAssignedUserId() == null) {
-    //      throw new PublicationException(
-    //          "Metadata with ID " + metadataId + " is not assigned to a user.");
-    //    }
-
     if (!force
         && (metadata.getResponsibleRole() == null
             || !metadata.getResponsibleRole().equals(Role.MdeEditor))) {
@@ -345,6 +339,10 @@ public class PublicationService {
 
     metadata.setStatus(Status.PUBLISHED);
     metadata.getIsoMetadata().setPublished(Instant.now());
+
+    // remove assignment and responsible role after publication
+    metadata.setAssignedUserId(null);
+    metadata.setResponsibleRole(null);
 
     metadataCollectionRepository.save(metadata);
 
