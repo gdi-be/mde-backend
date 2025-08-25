@@ -1,3 +1,10 @@
+## [3.9.4](https://github.com/gdi-be/mde-backend/compare/v3.9.3...v3.9.4) (2025-08-25)
+
+
+### Bug Fixes
+
+* update publishMetadata method ([26d09b6](https://github.com/gdi-be/mde-backend/commit/26d09b60584556ae1c129db1f14a44272a7758f0))
+
 ## [3.9.3](https://github.com/gdi-be/mde-backend/compare/v3.9.2...v3.9.3) (2025-08-22)
 
 
