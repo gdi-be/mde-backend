@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonpatch.JsonPatchException;
 import de.terrestris.mde.mde_backend.enumeration.MetadataProfile;
 import de.terrestris.mde.mde_backend.enumeration.Role;
+import de.terrestris.mde.mde_backend.exception.DuplicateServiceIdentificationException;
+import de.terrestris.mde.mde_backend.exception.DuplicateTitleException;
 import de.terrestris.mde.mde_backend.jpa.MetadataCollectionRepository;
 import de.terrestris.mde.mde_backend.jpa.ServiceDeletionRepository;
 import de.terrestris.mde.mde_backend.model.MetadataCollection;
@@ -77,6 +79,11 @@ public class MetadataCollectionService
   @PreAuthorize("isAuthenticated()")
   @Transactional(isolation = Isolation.SERIALIZABLE)
   public String create(String title) {
+    // Check for unique title
+    if (repository.findByIsoMetadataTitle(title).isPresent()) {
+      throw new DuplicateTitleException(title);
+    }
+
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String myKeycloakId =
         ((JwtAuthenticationToken) authentication).getTokenAttributes().get("sub").toString();
@@ -94,7 +101,8 @@ public class MetadataCollectionService
     metadataCollection.getIsoMetadata().setCrs("http://www.opengis.net/def/crs/EPSG/0/25833");
     metadataCollection.getTechnicalMetadata().setDeliveredCrs("25833");
 
-    // User and role assignment. Set responsibleRole, ownerId, assignedUserId, teamMemberIds.
+    // User and role assignment. Set responsibleRole, ownerId, assignedUserId,
+    // teamMemberIds.
     Role roleToSet = null;
     List<String> roleNames = authorities.stream().map(GrantedAuthority::getAuthority).toList();
     if (roleNames.contains("ROLE_MDEEDITOR")) {
@@ -155,7 +163,8 @@ public class MetadataCollectionService
             new TypeReference<JsonTechnicalMetadata>() {});
     clonedIsoData.setIdentifier(metadataId);
 
-    // remove old values according to metadatenprofil-berlin.xlsx column "neuer Jahresstand".
+    // remove old values according to metadatenprofil-berlin.xlsx column "neuer
+    // Jahresstand".
     // all checked properties are set to null / removed
     clonedIsoData.setFileIdentifier(null);
     clonedIsoData.setDescription(null);
@@ -186,7 +195,8 @@ public class MetadataCollectionService
     metadataCollection.setClientMetadata(clonedClientData);
     metadataCollection.setTechnicalMetadata(clonedTechnicalData);
 
-    // User and role assignment. Set responsibleRole, ownerId, assignedUserId, teamMemberIds.
+    // User and role assignment. Set responsibleRole, ownerId, assignedUserId,
+    // teamMemberIds.
     Role roleToSet = null;
     List<String> roleNames = authorities.stream().map(GrantedAuthority::getAuthority).toList();
     if (roleNames.contains("MdeEditor")) {
@@ -263,6 +273,29 @@ public class MetadataCollectionService
     jsonNode.replace(key, value);
 
     JsonIsoMetadata updatedData = objectMapper.treeToValue(jsonNode, JsonIsoMetadata.class);
+
+    // check for duplicate title
+    if (key.equals("title")) {
+      Optional<MetadataCollection> byIsoMetadataTitle =
+          repository.findByIsoMetadataTitle(updatedData.getTitle());
+      if (byIsoMetadataTitle.isPresent()
+          && !byIsoMetadataTitle.get().getMetadataId().equals(metadataId)) {
+        throw new DuplicateTitleException(updatedData.getTitle());
+      }
+      // check for duplicate service identification
+    } else if (key.equals("services") && updatedData.getServices() != null) {
+      Set<String> serviceIdentifications = new HashSet<>();
+      for (de.terrestris.mde.mde_backend.model.json.Service service : updatedData.getServices()) {
+        if (service.getServiceIdentification() != null) {
+          if (serviceIdentifications.contains(service.getServiceIdentification())) {
+            throw new DuplicateServiceIdentificationException(service.getServiceIdentification());
+          } else {
+            serviceIdentifications.add(service.getServiceIdentification());
+          }
+        }
+      }
+    }
+
     updateLegendData(updatedData);
     metadataCollection.setIsoMetadata(updatedData);
     if (metadataCollection.getStatus().equals(Status.PUBLISHED)) {
@@ -331,8 +364,8 @@ public class MetadataCollectionService
   }
 
   // TODO: we should add permission checks that reflect the frontend behavior
-  //  (compare showAssignAction in MetadataCard.svelte).
-  //  We may also want to ensure that MdeDataOwner can only assign themselves
+  // (compare showAssignAction in MetadataCard.svelte).
+  // We may also want to ensure that MdeDataOwner can only assign themselves
   @PreAuthorize("isAuthenticated()")
   @Transactional(isolation = Isolation.SERIALIZABLE)
   public void assignUser(String metadataId, String userId) {
@@ -345,7 +378,8 @@ public class MetadataCollectionService
                         "MetadataCollection not found for metadataId: " + metadataId));
     metadataCollection.setAssignedUserId(userId);
 
-    // everyone who is assigned to the metadata collection should be added to the team
+    // everyone who is assigned to the metadata collection should be added to the
+    // team
     addToTeam(metadataId, userId);
 
     // set the responsible role of the assigned user
