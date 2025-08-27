@@ -1009,6 +1009,9 @@ public class ImportService {
             case "Title":
               featureType.setTitle(reader.getElementText());
               break;
+            case "Abstract":
+              featureType.setShortDescription(reader.getElementText());
+              break;
           }
         }
         service.getFeatureTypes().add(featureType);
