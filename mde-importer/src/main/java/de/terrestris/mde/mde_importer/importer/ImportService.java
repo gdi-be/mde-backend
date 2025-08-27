@@ -497,7 +497,8 @@ public class ImportService {
         switch (reader.getLocalName()) {
           case "name":
             skipToElement(reader, "CharacterString");
-            version.setName(reader.getElementText());
+            json.setInspireFormatName(reader.getElementText());
+            version.setName(json.getInspireFormatName());
             break;
           case "version":
             skipToElement(reader, "CharacterString");

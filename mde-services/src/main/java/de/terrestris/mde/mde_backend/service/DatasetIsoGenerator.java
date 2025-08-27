@@ -476,7 +476,7 @@ public class DatasetIsoGenerator {
           writer.writeStartElement(GMD, "distributionFormat");
           writer.writeStartElement(GMD, "MD_Format");
           writer.writeStartElement(GMD, "name");
-          writeSimpleElement(writer, GCO, "CharacterString", schema + " GML Application Schema");
+          writeSimpleElement(writer, GCO, "CharacterString", metadata.getInspireFormatName());
           writer.writeEndElement(); // name
           writer.writeStartElement(GMD, "version");
           writeSimpleElement(writer, GCO, "CharacterString", metadata.getInspireAnnexVersion());
