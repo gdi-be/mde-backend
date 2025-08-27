@@ -71,6 +71,8 @@ public class JsonIsoMetadata implements FileIdentifier {
 
   @Nullable private String inspireAnnexVersion;
 
+  @Nullable private String inspireFormatName;
+
   @Nullable private List<DistributionVersion> distributionVersions;
 
   @Nullable private String fileIdentifier;
