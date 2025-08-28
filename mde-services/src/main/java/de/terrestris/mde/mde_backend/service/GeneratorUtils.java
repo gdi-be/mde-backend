@@ -472,7 +472,7 @@ public class GeneratorUtils {
     writer.writeStartElement(GMX, "Anchor");
     writer.writeAttribute(
         XLINK, "href", "http://inspire.ec.europa.eu/metadata-codelist/SpatialScope");
-    writer.writeCharacters("Spatial scope");
+    writer.writeCharacters("Räumlicher Anwendungsbereich");
     writer.writeEndElement(); // Anchor
     writer.writeEndElement(); // title
     writer.writeStartElement(GMD, "date");
@@ -508,7 +508,7 @@ public class GeneratorUtils {
         writer.writeStartElement(GMD, "title");
         writer.writeStartElement(GMX, "Anchor");
         writer.writeAttribute(XLINK, "href", "http://data.europa.eu/bna/asd487ae75");
-        writer.writeCharacters("High-value dataset categories");
+        writer.writeCharacters("Kategorien der High Value Datasets");
         writer.writeEndElement(); // Anchor
         writer.writeEndElement(); // title
         writer.writeStartElement(GMD, "date");
