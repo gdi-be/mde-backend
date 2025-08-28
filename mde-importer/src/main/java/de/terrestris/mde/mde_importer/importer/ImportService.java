@@ -56,7 +56,7 @@ public class ImportService {
 
   private static final Pattern WORKSPACE_REGEXP = Pattern.compile("^.*/([^/]+)$");
 
-  private static final Pattern ATOM_WORKSPACE_REGEXP = Pattern.compile("^.*/([^/]+)/atom/");
+  private static final Pattern ATOM_WORKSPACE_REGEXP = Pattern.compile("^.*/([^/]+)/atom/?");
 
   private static final XMLInputFactory FACTORY = XMLInputFactory.newFactory();
 
