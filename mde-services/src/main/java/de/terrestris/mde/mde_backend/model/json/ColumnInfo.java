@@ -14,14 +14,6 @@ import org.springframework.lang.Nullable;
 @AllArgsConstructor
 public class ColumnInfo {
 
-  public enum FilterType {
-    SelectBox,
-    CatalogBox,
-    DoubleEditOrderField,
-    EditField,
-    EditOrderField
-  }
-
   public enum ColumnType {
     BigDecimal,
     Date,
@@ -41,6 +33,4 @@ public class ColumnInfo {
   @Nullable private String alias;
 
   @Nullable private ColumnType type;
-
-  @Nullable private FilterType filterType;
 }
