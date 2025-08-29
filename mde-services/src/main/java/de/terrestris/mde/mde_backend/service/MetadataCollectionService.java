@@ -276,21 +276,20 @@ public class MetadataCollectionService
 
     // check for duplicate title
     if (key.equals("title")) {
-      Optional<MetadataCollection> byIsoMetadataTitle =
+      Optional<MetadataCollection> existingMc =
           repository.findByIsoMetadataTitle(updatedData.getTitle());
-      if (byIsoMetadataTitle.isPresent()
-          && !byIsoMetadataTitle.get().getMetadataId().equals(metadataId)) {
+      if (existingMc.isPresent() && !existingMc.get().getMetadataId().equals(metadataId)) {
         throw new DuplicateTitleException(updatedData.getTitle());
       }
       // check for duplicate service identification
     } else if (key.equals("services") && updatedData.getServices() != null) {
-      Set<String> serviceIdentifications = new HashSet<>();
-      for (de.terrestris.mde.mde_backend.model.json.Service service : updatedData.getServices()) {
-        if (service.getServiceIdentification() != null) {
-          if (serviceIdentifications.contains(service.getServiceIdentification())) {
+      for (var service : updatedData.getServices()) {
+        if (service.getServiceType() != null && service.getWorkspace() != null) {
+          Optional<MetadataCollection> existingMc =
+              repository.findByServiceTypeAndWorkspace(
+                  service.getServiceType().name(), service.getWorkspace());
+          if (existingMc.isPresent() && !existingMc.get().getMetadataId().equals(metadataId)) {
             throw new DuplicateServiceIdentificationException(service.getServiceIdentification());
-          } else {
-            serviceIdentifications.add(service.getServiceIdentification());
           }
         }
       }

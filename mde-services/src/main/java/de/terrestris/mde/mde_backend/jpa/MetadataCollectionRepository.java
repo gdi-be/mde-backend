@@ -23,7 +23,23 @@ public interface MetadataCollectionRepository
 
   @Query(
       value =
-          "SELECT mc.*, (mc.iso_metadata->>'title') as title FROM metadata_collection mc WHERE mc.iso_metadata->>'title' = :title",
+          "SELECT mc.*, (mc.iso_metadata->>'title') as title FROM metadata_collection mc WHERE mc.iso_metadata->>'title' = :title LIMIT 1",
       nativeQuery = true)
   Optional<MetadataCollection> findByIsoMetadataTitle(@Param("title") String title);
+
+  @Query(
+      value =
+          """
+      SELECT mc.*, (mc.iso_metadata->>'title') as title
+      FROM metadata_collection mc
+      WHERE EXISTS (
+          SELECT 1
+          FROM jsonb_array_elements(mc.iso_metadata->'services') s
+          WHERE s->>'serviceType' = :type
+            AND s->>'workspace' = :workspace
+      ) LIMIT 1
+      """,
+      nativeQuery = true)
+  Optional<MetadataCollection> findByServiceTypeAndWorkspace(
+      @Param("type") String type, @Param("workspace") String workspace);
 }
