@@ -5,6 +5,8 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 
 import de.terrestris.mde.mde_backend.enumeration.MetadataType;
+import de.terrestris.mde.mde_backend.exception.DuplicateServiceIdentificationException;
+import de.terrestris.mde.mde_backend.exception.DuplicateTitleException;
 import de.terrestris.mde.mde_backend.model.BaseMetadata;
 import de.terrestris.mde.mde_backend.model.MetadataCollection;
 import de.terrestris.mde.mde_backend.model.dto.*;
@@ -155,7 +157,10 @@ public class MetadataCollectionController
       response.setTitle(creationData.getTitle());
 
       return response;
-      // TODO: Add more specific exception handling
+    } catch (DuplicateTitleException e) {
+      log.error("Error while creating metadata: {}", e.getMessage());
+      log.trace("Full stack trace: ", e);
+      throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage(), e);
     } catch (Exception e) {
       log.error("Error while creating metadata: {}", e.getMessage());
       log.trace("Full stack trace: ", e);
@@ -183,7 +188,11 @@ public class MetadataCollectionController
             service.updateIsoJsonValue(metadataId, patch.getKey(), patch.getValue());
         default -> throw new IllegalArgumentException("Invalid metadata type: " + metadataType);
       };
-      // TODO: Add more specific exception handling
+    } catch (DuplicateTitleException | DuplicateServiceIdentificationException e) {
+      log.error("Error while updating metadata with id {}: \n {}", metadataId, e.getMessage());
+      log.trace("Full stack trace: ", e);
+
+      throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage(), e);
     } catch (Exception e) {
       log.error("Error while updating metadata with id {}: \n {}", metadataId, e.getMessage());
       log.trace("Full stack trace: ", e);
