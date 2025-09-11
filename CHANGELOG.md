@@ -1,3 +1,28 @@
+# [4.0.0](https://github.com/gdi-be/mde-backend/compare/v3.9.4...v4.0.0) (2025-09-11)
+
+
+### Bug Fixes
+
+* add inspire format name ([6d1bd2c](https://github.com/gdi-be/mde-backend/commit/6d1bd2c8218f5e37c816d292e44ddd78d9a6d2c2))
+* fix atom workspace extraction regexp ([1467b0b](https://github.com/gdi-be/mde-backend/commit/1467b0bc9ed6ace31a9ff95d52f40cc3e7588aee))
+* localize keywords ([2b6fa4d](https://github.com/gdi-be/mde-backend/commit/2b6fa4d4144af36042c6fd2df15b0b0c8331fa18))
+* only export one distribution format ([71fe14f](https://github.com/gdi-be/mde-backend/commit/71fe14f0fe99d3a024293aa1e4dd783d5fc45841))
+* update check for existing services ([54a70e6](https://github.com/gdi-be/mde-backend/commit/54a70e6d4b530a68873a9e7c23758e95888e5a3f))
+
+
+### Features
+
+* add feature type abstract ([5f90ac3](https://github.com/gdi-be/mde-backend/commit/5f90ac3b9c9cf584c7da46ee762b678b93d54f9d))
+* add shortDescription to FeatureType ([9396ece](https://github.com/gdi-be/mde-backend/commit/9396ece306ccdeefc29d29c9bb05a261d9f0fddc))
+* **changerequests:** merge change requests ([c6c4d2d](https://github.com/gdi-be/mde-backend/commit/c6c4d2d13053a5ea84ad02360a68c40fb7223690))
+* prevent duplications ([700f8fb](https://github.com/gdi-be/mde-backend/commit/700f8fb639e25c89b477b1959708e6acaac0612f))
+* remove filterType from ColumnInfo ([485323d](https://github.com/gdi-be/mde-backend/commit/485323d8d1af53e04c6a098b07a707e6bd31b8dd))
+
+
+### BREAKING CHANGES
+
+* **changerequests:** force major release for change requests
+
 ## [3.9.4](https://github.com/gdi-be/mde-backend/compare/v3.9.3...v3.9.4) (2025-08-25)
 
 
