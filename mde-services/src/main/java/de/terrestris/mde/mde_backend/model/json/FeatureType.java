@@ -20,4 +20,6 @@ public class FeatureType {
   @Nullable private String name;
 
   @Nullable private String title;
+
+  @Nullable private String shortDescription;
 }

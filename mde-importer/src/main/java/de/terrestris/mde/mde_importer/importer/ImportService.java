@@ -56,7 +56,7 @@ public class ImportService {
 
   private static final Pattern WORKSPACE_REGEXP = Pattern.compile("^.*/([^/]+)$");
 
-  private static final Pattern ATOM_WORKSPACE_REGEXP = Pattern.compile("^.*/([^/]+)/atom/");
+  private static final Pattern ATOM_WORKSPACE_REGEXP = Pattern.compile("^.*/([^/]+)/atom/?");
 
   private static final XMLInputFactory FACTORY = XMLInputFactory.newFactory();
 
@@ -497,7 +497,8 @@ public class ImportService {
         switch (reader.getLocalName()) {
           case "name":
             skipToElement(reader, "CharacterString");
-            version.setName(reader.getElementText());
+            json.setInspireFormatName(reader.getElementText());
+            version.setName(json.getInspireFormatName());
             break;
           case "version":
             skipToElement(reader, "CharacterString");
@@ -1008,6 +1009,9 @@ public class ImportService {
               break;
             case "Title":
               featureType.setTitle(reader.getElementText());
+              break;
+            case "Abstract":
+              featureType.setShortDescription(reader.getElementText());
               break;
           }
         }
