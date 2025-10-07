@@ -619,6 +619,8 @@ public class ImportService {
               description.setCode(CI_OnLineFunctionCode.valueOf(code));
             }
           }
+          var matcher = ATOM_WORKSPACE_REGEXP.matcher(replaceValues(description.getUrl()));
+
           if (description.getDescription() != null
               && description.getDescription().trim().equals("Inhaltliche Beschreibung")) {
             json.setContentDescription(description.getUrl());
@@ -626,7 +628,7 @@ public class ImportService {
               && description.getDescription().trim().equals("Technische Beschreibung")) {
             json.setTechnicalDescription(description.getUrl());
           } else {
-            if (!description.getUrl().contains("GetCapabilities")) {
+            if (!description.getUrl().contains("GetCapabilities") && !matcher.find()) {
               json.getContentDescriptions().add(description);
             }
           }
