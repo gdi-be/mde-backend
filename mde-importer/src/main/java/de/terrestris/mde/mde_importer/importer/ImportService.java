@@ -947,7 +947,7 @@ public class ImportService {
         case "Name":
           layer.setStyleName(reader.getElementText());
           break;
-        case "LegendURL":
+        case "OnlineResource":
           layer.setLegendImage(reader.getAttributeValue(XLINK, "href"));
           break;
       }
