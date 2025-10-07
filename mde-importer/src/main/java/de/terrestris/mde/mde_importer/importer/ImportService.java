@@ -723,7 +723,7 @@ public class ImportService {
                 keywords.stream()
                     .map(keyword -> GeneratorUtils.INSPIRE_THEME_MAP.get(keyword.getKeyword()))
                     .toList());
-      } else {
+      } else if (thesaurus.getTitle() == null || !thesaurus.getTitle().equals("Spatial scope")) {
         json.getKeywords()
             .put(thesaurus.getTitle() == null ? "default" : thesaurus.getTitle(), keywords);
         json.getThesauri()
