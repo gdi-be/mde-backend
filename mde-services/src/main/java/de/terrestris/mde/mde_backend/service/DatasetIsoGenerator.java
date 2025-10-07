@@ -475,7 +475,11 @@ public class DatasetIsoGenerator {
         writer.writeStartElement(GMD, "distributionFormat");
         writer.writeStartElement(GMD, "MD_Format");
         writer.writeStartElement(GMD, "name");
-        writeSimpleElement(writer, GCO, "CharacterString", metadata.getInspireFormatName());
+        var fmt = metadata.getInspireFormatName();
+        if (fmt == null) {
+          fmt = "INSPIRE GML";
+        }
+        writeSimpleElement(writer, GCO, "CharacterString", fmt);
         writer.writeEndElement(); // name
         writer.writeStartElement(GMD, "version");
         writeSimpleElement(writer, GCO, "CharacterString", metadata.getInspireAnnexVersion());

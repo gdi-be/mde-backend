@@ -40,6 +40,8 @@ public class GeneratorUtils {
   public static final Map<JsonIsoMetadata.InspireTheme, List<String>> INSPIRE_THEME_APPSCHEMA_MAP =
       new HashMap<>();
 
+  public static final Map<String, String> IMPORT_SCHEMA_MAP = new HashMap<>();
+
   public static final Contact DEFAULT_CONTACT;
 
   public static final MetadataVariables METADATA_VARIABLES;
@@ -261,6 +263,46 @@ public class GeneratorUtils {
       log.trace("Stack trace:", e);
       throw new RuntimeException(e);
     }
+
+    IMPORT_SCHEMA_MAP.put(
+        "LandCoverVector GML Application Schema", "LandCoverDataset GML Application Schema");
+    IMPORT_SCHEMA_MAP.put(
+        "Protected Sites Simple GML Application Schema", "ProtectedSites GML Application Schema");
+    IMPORT_SCHEMA_MAP.put(
+        "Orthoimagery GML Application Schema", "Orthoimagery GML Application Schema");
+    IMPORT_SCHEMA_MAP.put(
+        "NaturalRiskZones GML Application Schema", "NaturalRiskZones GML Application Schema");
+    IMPORT_SCHEMA_MAP.put(
+        "ProductionAndIndustrialFacilities GML Application Schema",
+        "ProductionAndIndustrialFacilities GML Application Schema");
+    IMPORT_SCHEMA_MAP.put("Addresses GML Application Schema", "Addresses GML Application Schema");
+    IMPORT_SCHEMA_MAP.put(
+        "Environmental Monitoring Facilities GML Application Schema",
+        "EnvironmentalMonitoringFacilities GML Application Schema");
+    IMPORT_SCHEMA_MAP.put(
+        "Planned Land Use GML Application Schema", "PlannedLandUse GML Application Schema");
+    IMPORT_SCHEMA_MAP.put("Buildings2D GML Application Schema", "Buildings GML Application Schema");
+    IMPORT_SCHEMA_MAP.put(
+        "SpeciesDistribution GML Application Schema", "SpeciesDistribution GML Application Schema");
+    IMPORT_SCHEMA_MAP.put(
+        "AdministrativeUnits GML Application Schema", "AdministrativeUnits GML Application Schema");
+    IMPORT_SCHEMA_MAP.put(
+        "AdministrativeAndSocialGovernmentalServices GML Application Schema",
+        "AdministrativeSocialGovernmentServices GML Application Schema");
+    IMPORT_SCHEMA_MAP.put(
+        "HabitatsAndBiotopes GML Application Schema", "HabitatsAndBiotopes GML Application Schema");
+    IMPORT_SCHEMA_MAP.put(
+        "ElevationGridCoverage GML Application Schema", "Elevation GML Application Schema");
+    IMPORT_SCHEMA_MAP.put(
+        "StatisticalUnits GML Application Schema", "StatisticalUnits GML Application Schema");
+    IMPORT_SCHEMA_MAP.put(
+        "Existing Land Use GML Application Schema", "ExistingLandUse GML Application Schema");
+    IMPORT_SCHEMA_MAP.put(
+        "Cadastral Parcels GML Application Schema", "CadastralParcels GML Application Schema");
+    IMPORT_SCHEMA_MAP.put("Soil GML Application Schema", "Soil GML Application Schema");
+    IMPORT_SCHEMA_MAP.put(
+        "Geographical Names GML Application Schema", "GeographicalNames GML Application Schema");
+    IMPORT_SCHEMA_MAP.put("Geology GML Application Schema", "GeologicUnit GML Application Schema");
   }
 
   protected static void writeLanguage(XMLStreamWriter writer) throws XMLStreamException {

@@ -2,6 +2,7 @@ package de.terrestris.mde.mde_importer.importer;
 
 import static de.terrestris.mde.mde_backend.model.json.ColumnInfo.ColumnType.*;
 import static de.terrestris.mde.mde_backend.model.json.codelists.MD_MaintenanceFrequencyCode.notPlanned;
+import static de.terrestris.mde.mde_backend.service.GeneratorUtils.IMPORT_SCHEMA_MAP;
 import static de.terrestris.mde.mde_backend.service.IsoGenerator.TERMS_OF_USE_MAP;
 import static de.terrestris.mde.mde_backend.service.IsoGenerator.replaceValues;
 import static de.terrestris.utils.xml.MetadataNamespaceUtils.XLINK;
@@ -497,8 +498,12 @@ public class ImportService {
         switch (reader.getLocalName()) {
           case "name":
             skipToElement(reader, "CharacterString");
-            json.setInspireFormatName(reader.getElementText());
-            version.setName(json.getInspireFormatName());
+            var txt = reader.getElementText();
+            if (IMPORT_SCHEMA_MAP.get(txt) != null) {
+              txt = IMPORT_SCHEMA_MAP.get(txt);
+            }
+            json.setInspireFormatName(txt);
+            version.setName(txt);
             break;
           case "version":
             skipToElement(reader, "CharacterString");
