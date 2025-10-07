@@ -812,12 +812,15 @@ public class ImportService {
           service = objectMapper.readValue(clone, Service.class);
           extractIsoFields(reader, service);
           parseCapabilities(service, clientMetadata);
-          parseCapabilitiesWfs(service, clientMetadata);
+          parseCapabilitiesWfs(service);
           isoMetadata.getServices().add(service);
 
           if (!replaceValues(service.getUrl()).contains("gdi.berlin.de")) {
             isoMetadata.getServices().removeLast();
             log.info("Removing service as it's not migrated yet.");
+          } else if (!checkForRecord(service.getFileIdentifier())) {
+            isoMetadata.getServices().removeLast();
+            log.info("Removing service as it's not in CSW.");
           }
         }
         reader.next();
@@ -963,7 +966,7 @@ public class ImportService {
     }
   }
 
-  private static void parseCapabilitiesWfs(Service service, JsonClientMetadata client)
+  private static void parseCapabilitiesWfs(Service service)
       throws URISyntaxException, IOException, XMLStreamException {
     var url = replaceValues(service.getUrl());
     if (!url.contains("gdi.berlin.de")) {
