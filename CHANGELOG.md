@@ -1,3 +1,14 @@
+## [4.0.1](https://github.com/gdi-be/mde-backend/compare/v4.0.0...v4.0.1) (2025-10-08)
+
+
+### Bug Fixes
+
+* add schema map for import ([2bdc1b1](https://github.com/gdi-be/mde-backend/commit/2bdc1b1af360a780887b2cafe94fe907ff08e235))
+* check for services metadata in CSW ([90f4d42](https://github.com/gdi-be/mde-backend/commit/90f4d42c17be17ea73869b6b999e4d18b0d638ac))
+* fix import of layer legends ([8ffbd72](https://github.com/gdi-be/mde-backend/commit/8ffbd7245e8c5e484d774998334f5723f30cfd68))
+* prevent import of spatial scope keyword ([7aeef66](https://github.com/gdi-be/mde-backend/commit/7aeef667abb15ff19b12ecbe76b4b3e14874368c))
+* prevent importing of atom urls ([3caef0c](https://github.com/gdi-be/mde-backend/commit/3caef0c216fd55d14675f6572e518eda6d62889d))
+
 # [4.0.0](https://github.com/gdi-be/mde-backend/compare/v3.9.4...v4.0.0) (2025-09-11)
 
 
