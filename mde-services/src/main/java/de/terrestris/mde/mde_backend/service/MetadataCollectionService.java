@@ -293,6 +293,24 @@ public class MetadataCollectionService
           }
         }
       }
+      for (var service : updatedData.getServices()) {
+        if (service.getServiceType() != null && service.getWorkspace() != null) {
+          updatedData.getServices().stream()
+              .filter(
+                  s ->
+                      s != service
+                          && s.getServiceType() != null
+                          && s.getWorkspace() != null
+                          && s.getServiceType().equals(service.getServiceType())
+                          && s.getWorkspace().equals(service.getWorkspace()))
+              .findAny()
+              .ifPresent(
+                  s -> {
+                    throw new DuplicateServiceIdentificationException(
+                        service.getServiceIdentification());
+                  });
+        }
+      }
     }
 
     updateLegendData(updatedData);
