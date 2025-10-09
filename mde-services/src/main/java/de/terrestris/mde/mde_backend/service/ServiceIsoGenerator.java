@@ -62,7 +62,7 @@ public class ServiceIsoGenerator {
     writer.writeStartElement(SRV, "connectPoint");
     writer.writeStartElement(GMD, "CI_OnlineResource");
     writer.writeStartElement(GMD, "linkage");
-    writeSimpleElement(writer, GMD, "URL", getServiceUrl(service));
+    writeSimpleElement(writer, GMD, "URL", getServiceUrl(service, false));
     writer.writeEndElement(); // linkage
     writer.writeStartElement(GMD, "function");
     writeCodelistValue(writer, information);
