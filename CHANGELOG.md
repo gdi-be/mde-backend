@@ -1,3 +1,11 @@
+## [4.0.2](https://github.com/gdi-be/mde-backend/compare/v4.0.1...v4.0.2) (2025-10-09)
+
+
+### Bug Fixes
+
+* fix check for duplicate services ([09bd27f](https://github.com/gdi-be/mde-backend/commit/09bd27f5b3ee9b0db579c004efec981ea6124d7f))
+* fix export potential null pointers ([ab535f5](https://github.com/gdi-be/mde-backend/commit/ab535f50c2b3deb90112ef7c7220922a3a3b65b0))
+
 ## [4.0.1](https://github.com/gdi-be/mde-backend/compare/v4.0.0...v4.0.1) (2025-10-08)
 
 
