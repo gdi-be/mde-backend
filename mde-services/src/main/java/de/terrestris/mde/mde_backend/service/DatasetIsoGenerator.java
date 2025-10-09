@@ -470,7 +470,8 @@ public class DatasetIsoGenerator {
       XMLStreamWriter writer, JsonIsoMetadata metadata, Service service) throws XMLStreamException {
     writer.writeStartElement(GMD, "distributionInfo");
     writer.writeStartElement(GMD, "MD_Distribution");
-    if (metadata.getMetadataProfile().equals(INSPIRE_HARMONISED)) {
+    if (metadata.getMetadataProfile().equals(INSPIRE_HARMONISED)
+        && metadata.getInspireTheme() != null) {
       for (var theme : metadata.getInspireTheme()) {
         writer.writeStartElement(GMD, "distributionFormat");
         writer.writeStartElement(GMD, "MD_Format");
@@ -482,7 +483,11 @@ public class DatasetIsoGenerator {
         writeSimpleElement(writer, GCO, "CharacterString", fmt);
         writer.writeEndElement(); // name
         writer.writeStartElement(GMD, "version");
-        writeSimpleElement(writer, GCO, "CharacterString", metadata.getInspireAnnexVersion());
+        writeSimpleElement(
+            writer,
+            GCO,
+            "CharacterString",
+            metadata.getInspireAnnexVersion() != null ? metadata.getInspireAnnexVersion() : "");
         writer.writeEndElement(); // version
         writer.writeStartElement(GMD, "specification");
         writeSimpleElement(
