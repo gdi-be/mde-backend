@@ -443,7 +443,7 @@ public class DatasetIsoGenerator {
     }
   }
 
-  protected static String getServiceUrl(Service s) {
+  protected static String getServiceUrl(Service s, boolean withCapas) {
     Service.ServiceType serviceType = s.getServiceType();
 
     if (serviceType == null) {
@@ -452,11 +452,18 @@ public class DatasetIsoGenerator {
     }
 
     var capas =
-        String.format(
-            "%s/services/%s/%s",
-            METADATA_VARIABLES.getServiceUrl(),
-            serviceType.toString().toLowerCase(),
-            s.getWorkspace());
+        withCapas
+            ? String.format(
+                "%s/services/%s/%s?request=GetCapabilities&service=%s",
+                METADATA_VARIABLES.getServiceUrl(),
+                serviceType.toString().toLowerCase(),
+                s.getWorkspace(),
+                serviceType)
+            : String.format(
+                "%s/services/%s/%s",
+                METADATA_VARIABLES.getServiceUrl(),
+                serviceType.toString().toLowerCase(),
+                s.getWorkspace());
 
     if (serviceType.equals(ATOM)) {
       capas =
@@ -521,7 +528,7 @@ public class DatasetIsoGenerator {
         writer.writeStartElement(GMD, "onLine");
         writer.writeStartElement(GMD, "CI_OnlineResource");
         writer.writeStartElement(GMD, "linkage");
-        var capas = getServiceUrl(s);
+        var capas = getServiceUrl(s, true);
         writeSimpleElement(writer, GMD, "URL", replaceValues(capas));
         writer.writeEndElement(); // linkage
         writer.writeStartElement(GMD, "protocol");
