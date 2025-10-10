@@ -15,10 +15,7 @@ import de.terrestris.mde.mde_backend.model.MetadataCollection;
 import de.terrestris.mde.mde_backend.model.Status;
 import de.terrestris.mde.mde_backend.model.json.*;
 import de.terrestris.mde.mde_backend.model.json.Service.ServiceType;
-import de.terrestris.mde.mde_backend.model.json.codelists.CI_DateTypeCode;
-import de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode;
-import de.terrestris.mde.mde_backend.model.json.codelists.CI_RoleCode;
-import de.terrestris.mde.mde_backend.model.json.codelists.MD_MaintenanceFrequencyCode;
+import de.terrestris.mde.mde_backend.model.json.codelists.*;
 import de.terrestris.mde.mde_backend.service.GeneratorUtils;
 import de.terrestris.mde.mde_backend.service.KeycloakService;
 import java.io.IOException;
@@ -399,6 +396,12 @@ public class ImportService {
       extractGraphicOverview(reader, isoMetadata);
       extractTransferOptions(reader, isoMetadata);
       extractResourceConstraints(reader, isoMetadata);
+      if (reader.isStartElement()
+          && reader.getLocalName().equals("MD_SpatialRepresentationTypeCode")) {
+        isoMetadata.setSpatialRepresentationType(
+            MD_SpatialRepresentationTypeCode.valueOf(
+                reader.getAttributeValue(null, "codeListValue")));
+      }
       extractDistributionFormat(reader, isoMetadata);
       if (isoMetadata.getMetadataProfile().equals(MetadataProfile.INSPIRE_HARMONISED)) {
         isoMetadata.setInspireAnnexVersion(

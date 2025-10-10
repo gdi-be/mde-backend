@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import de.terrestris.mde.mde_backend.enumeration.MetadataProfile;
 import de.terrestris.mde.mde_backend.model.json.codelists.MD_MaintenanceFrequencyCode;
+import de.terrestris.mde.mde_backend.model.json.codelists.MD_SpatialRepresentationTypeCode;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.HashMap;
@@ -159,4 +160,6 @@ public class JsonIsoMetadata implements FileIdentifier {
   @Nullable private String termsOfUseSource;
 
   @Nullable private List<Source> dataBases;
+
+  @Nullable private MD_SpatialRepresentationTypeCode spatialRepresentationType;
 }
