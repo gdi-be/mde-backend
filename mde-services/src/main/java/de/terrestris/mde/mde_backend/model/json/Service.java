@@ -17,7 +17,7 @@ import org.springframework.lang.Nullable;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
-public class Service implements FileIdentifier {
+public class Service implements CommonFields {
 
   public enum ServiceType {
     WFS,

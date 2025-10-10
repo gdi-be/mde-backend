@@ -12,7 +12,7 @@ import de.terrestris.mde.mde_backend.jpa.ServiceDeletionRepository;
 import de.terrestris.mde.mde_backend.model.MetadataCollection;
 import de.terrestris.mde.mde_backend.model.Status;
 import de.terrestris.mde.mde_backend.model.dto.MetadataDeletionResponse;
-import de.terrestris.mde.mde_backend.model.json.FileIdentifier;
+import de.terrestris.mde.mde_backend.model.json.CommonFields;
 import de.terrestris.mde.mde_backend.model.json.Service;
 import de.terrestris.mde.mde_backend.utils.PublicationException;
 import jakarta.annotation.PostConstruct;
@@ -96,7 +96,7 @@ public class PublicationService {
   }
 
   private void sendTransaction(
-      Function<XMLStreamWriter, Void> generator, boolean insert, FileIdentifier object)
+      Function<XMLStreamWriter, Void> generator, boolean insert, CommonFields object)
       throws URISyntaxException, IOException, InterruptedException, XMLStreamException {
     var out = new ByteArrayOutputStream();
     var writer = FACTORY.createXMLStreamWriter(out);

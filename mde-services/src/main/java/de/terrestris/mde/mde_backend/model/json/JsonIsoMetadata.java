@@ -26,7 +26,7 @@ import org.springframework.lang.Nullable;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
-public class JsonIsoMetadata implements FileIdentifier {
+public class JsonIsoMetadata implements CommonFields {
 
   public enum InspireTheme {
     AC,
