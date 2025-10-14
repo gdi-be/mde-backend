@@ -1,3 +1,16 @@
+# [4.1.0](https://github.com/gdi-be/mde-backend/compare/v4.0.2...v4.1.0) (2025-10-14)
+
+
+### Bug Fixes
+
+* add getcapabilities parameters to service urls ([db148b3](https://github.com/gdi-be/mde-backend/commit/db148b3eeb3ec0e2dad1ebc2b4930b24b5236497))
+* fix extraction of data source and further information ([7cfec6d](https://github.com/gdi-be/mde-backend/commit/7cfec6daf9cab5f88f9a4d51873992b2ce9644d1))
+
+
+### Features
+
+* add spatial representation type field ([30d28c4](https://github.com/gdi-be/mde-backend/commit/30d28c4235ee34c8b952941fdc10887a21274dad))
+
 ## [4.0.2](https://github.com/gdi-be/mde-backend/compare/v4.0.1...v4.0.2) (2025-10-09)
 
 
