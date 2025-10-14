@@ -9,7 +9,6 @@ import static de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFuncti
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode.information;
 import static de.terrestris.mde.mde_backend.model.json.codelists.MD_RestrictionCode.otherRestrictions;
 import static de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode.dataset;
-import static de.terrestris.mde.mde_backend.model.json.codelists.MD_SpatialRepresentationTypeCode.vector;
 import static de.terrestris.mde.mde_backend.service.GeneratorUtils.*;
 import static de.terrestris.mde.mde_backend.service.IsoGenerator.TERMS_OF_USE_BY_ID;
 import static de.terrestris.mde.mde_backend.service.IsoGenerator.replaceValues;
@@ -278,7 +277,7 @@ public class DatasetIsoGenerator {
           TERMS_OF_USE_BY_ID.get(metadata.getTermsOfUseId().intValue()),
           metadata.getTermsOfUseSource());
     }
-    writeSpatialRepresentationType(writer);
+    writeSpatialRepresentationType(writer, metadata);
     writeSpatialResolution(writer, metadata);
     writeLanguage(writer);
     writeCharacterSet(writer);
@@ -290,11 +289,13 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // identificationInfo
   }
 
-  static void writeSpatialRepresentationType(XMLStreamWriter writer) throws XMLStreamException {
-    // TODO hardcoded for now, since info is not prompted for in the ui
-    writer.writeStartElement(GMD, "spatialRepresentationType");
-    writeCodelistValue(writer, vector);
-    writer.writeEndElement(); // spatialRepresentationType
+  static void writeSpatialRepresentationType(XMLStreamWriter writer, JsonIsoMetadata metadata)
+      throws XMLStreamException {
+    if (metadata.getSpatialRepresentationType() != null) {
+      writer.writeStartElement(GMD, "spatialRepresentationType");
+      writeCodelistValue(writer, metadata.getSpatialRepresentationType());
+      writer.writeEndElement(); // spatialRepresentationType
+    }
   }
 
   private static void writeKeyword(XMLStreamWriter writer, String keyword)
