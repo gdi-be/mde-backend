@@ -397,7 +397,7 @@ public class ImportService {
       extractTemporalExtent(reader, isoMetadata);
       extractSpatialResolution(reader, isoMetadata);
       extractGraphicOverview(reader, isoMetadata);
-      extractTransferOptions(reader, isoMetadata);
+      extractTransferOptions(reader, isoMetadata, isoMetadata);
       extractResourceConstraints(reader, isoMetadata);
       extractDistributionFormat(reader, isoMetadata);
       if (isoMetadata.getMetadataProfile().equals(MetadataProfile.INSPIRE_HARMONISED)) {
@@ -593,8 +593,10 @@ public class ImportService {
     }
   }
 
-  private static void extractTransferOptions(XMLStreamReader reader, JsonIsoMetadata json)
-      throws XMLStreamException {
+  private static void extractTransferOption(XMLStreamReader reader) {}
+
+  private static void extractTransferOptions(
+      XMLStreamReader reader, JsonIsoMetadata json, CommonFields common) throws XMLStreamException {
     if (reader.isStartElement() && reader.getLocalName().equals("transferOptions")) {
       while (reader.hasNext()
           && !(reader.isEndElement() && reader.getLocalName().equals("transferOptions"))) {
@@ -629,12 +631,16 @@ public class ImportService {
           if (description.getDescription() != null
               && description.getDescription().trim().equals("Inhaltliche Beschreibung")) {
             json.setContentDescription(description.getUrl());
+            common.setContentDescription(description.getUrl());
           } else if (description.getDescription() != null
               && description.getDescription().trim().equals("Technische Beschreibung")) {
             json.setTechnicalDescription(description.getUrl());
+            common.setTechnicalDescription(description.getUrl());
           } else {
             if (!description.getUrl().contains("GetCapabilities") && !matcher.find()) {
-              json.getContentDescriptions().add(description);
+              if (!json.getContentDescriptions().contains(description)) {
+                json.getContentDescriptions().add(description);
+              }
             }
           }
         }
@@ -818,7 +824,7 @@ public class ImportService {
           log.info("Found " + reader.getLocalName());
           var clone = objectMapper.writeValueAsString(service);
           service = objectMapper.readValue(clone, Service.class);
-          extractIsoFields(reader, service);
+          extractIsoFields(reader, service, isoMetadata);
           parseCapabilities(service, clientMetadata);
           parseCapabilitiesWfs(service);
           isoMetadata.getServices().add(service);
@@ -840,8 +846,8 @@ public class ImportService {
     }
   }
 
-  private static void extractIsoFields(XMLStreamReader reader, Service service)
-      throws XMLStreamException {
+  private static void extractIsoFields(
+      XMLStreamReader reader, Service service, JsonIsoMetadata metadata) throws XMLStreamException {
     skipToElement(reader, "fileIdentifier");
     skipToElement(reader, "CharacterString");
     var id = reader.getElementText();
@@ -901,6 +907,9 @@ public class ImportService {
             service.setWorkspace(matcher.group(1));
           }
           service.setUrl(url);
+          break;
+        case "transferOptions":
+          extractTransferOptions(reader, metadata, service);
           break;
       }
     }
@@ -1131,10 +1140,10 @@ public class ImportService {
           service.setShortDescription(reader.getElementText());
           break;
         case "InhaltlicheBeschreibung":
-          service.setContentDescription(reader.getElementText());
+          // ignored, extracted from transferOptions
           break;
         case "TechnischeBeschreibung":
-          service.setTechnicalDescription(reader.getElementText());
+          // ignored, extracted from transferOptions
           break;
         case "GIS-Typ":
           if (reader.getElementText().equals("ogcmap")) {
@@ -1155,11 +1164,14 @@ public class ImportService {
           metadata.getLineage().add(new Lineage(null, reader.getElementText(), null));
           break;
         case "Veroeffentlichung":
-          var publication = new Source();
-          publication.setType(reader.getAttributeValue(null, "Typ"));
+          var publication = new ContentDescription();
+          publication.setCode(CI_OnLineFunctionCode.information);
           skipToElement(reader, "Inhalt");
-          publication.setContent(reader.getElementText());
-          service.getPublications().add(publication);
+          publication.setUrl(reader.getElementText());
+          if (!metadata.getContentDescriptions().contains(publication)
+              && !publication.getUrl().contains("GetCapabilities")) {
+            metadata.getContentDescriptions().add(publication);
+          }
           break;
         case "Erstellungsdatum":
           {
