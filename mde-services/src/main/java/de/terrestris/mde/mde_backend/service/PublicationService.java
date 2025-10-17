@@ -120,11 +120,12 @@ public class PublicationService {
     writer.close();
     out.flush();
     out.close();
-    var in = new ByteArrayInputStream(out.toByteArray());
+    var bs = out.toByteArray();
+    var in = new ByteArrayInputStream(bs);
     if (log.isTraceEnabled()) {
       var tmp = Files.createTempFile(null, null);
       log.debug("Writing transaction to {}", tmp);
-      IOUtils.copy(new ByteArrayInputStream(out.toByteArray()), Files.newOutputStream(tmp));
+      IOUtils.copy(new ByteArrayInputStream(bs), Files.newOutputStream(tmp));
     }
     var publisher = HttpRequest.BodyPublishers.ofInputStream(() -> in);
     try (var client = HttpClient.newHttpClient()) {
