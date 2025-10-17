@@ -36,7 +36,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.IOUtils;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.codehaus.stax2.XMLInputFactory2;
 import org.codehaus.stax2.XMLOutputFactory2;
 import org.springframework.beans.factory.annotation.Autowired;
