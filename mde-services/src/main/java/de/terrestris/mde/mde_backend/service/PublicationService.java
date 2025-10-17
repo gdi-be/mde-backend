@@ -36,6 +36,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.codehaus.stax2.XMLInputFactory2;
 import org.codehaus.stax2.XMLOutputFactory2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -128,7 +129,7 @@ public class PublicationService {
       IOUtils.copy(new ByteArrayInputStream(bs), Files.newOutputStream(tmp));
     }
     var publisher = HttpRequest.BodyPublishers.ofInputStream(() -> in);
-    try (var client = HttpClient.newHttpClient()) {
+    try (var client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build()) {
       var builder = HttpRequest.newBuilder(new URI(cswServer));
       var req = builder.POST(publisher);
       var encoded = Base64.encode(String.format("%s:%s", cswUser, cswPassword)).toString();
