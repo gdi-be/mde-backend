@@ -1,3 +1,10 @@
+## [4.1.2](https://github.com/gdi-be/mde-backend/compare/v4.1.1...v4.1.2) (2025-10-17)
+
+
+### Bug Fixes
+
+* use http 1.1 ([d2c5ee2](https://github.com/gdi-be/mde-backend/commit/d2c5ee2d13b1121cee7e3b27dd4ede85c3955a15))
+
 ## [4.1.1](https://github.com/gdi-be/mde-backend/compare/v4.1.0...v4.1.1) (2025-10-17)
 
 
