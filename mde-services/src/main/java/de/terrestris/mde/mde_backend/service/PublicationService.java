@@ -138,17 +138,16 @@ public class PublicationService {
       log.debug("Sent request");
       var is = response.body();
 
+      var bytes = IOUtils.toByteArray(is);
       if (log.isTraceEnabled()) {
-        var bs = IOUtils.toByteArray(is);
-        is = new ByteArrayInputStream(bs);
-        log.debug("Response: {}", new String(bs, UTF_8));
+        log.debug("Response: {}", new String(bytes, UTF_8));
       }
 
       if (!HttpStatus.valueOf(response.statusCode()).is2xxSuccessful()) {
         throw new IOException("Catalog server returned status code " + response.statusCode());
       }
 
-      var reader = INPUT_FACTORY.createXMLStreamReader(is);
+      var reader = INPUT_FACTORY.createXMLStreamReader(new ByteArrayInputStream(bytes));
 
       var insertedRecords = 0;
       var updatedRecords = 0;
