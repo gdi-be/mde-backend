@@ -1,3 +1,11 @@
+## [4.1.1](https://github.com/gdi-be/mde-backend/compare/v4.1.0...v4.1.1) (2025-10-17)
+
+
+### Bug Fixes
+
+* fix publish ([d1c7e0b](https://github.com/gdi-be/mde-backend/commit/d1c7e0beff243c51796af8e571dd11778425b698))
+* fix publish ([7b044ca](https://github.com/gdi-be/mde-backend/commit/7b044ca30b0abbe75fe38134196a38ed64708575))
+
 # [4.1.0](https://github.com/gdi-be/mde-backend/compare/v4.0.2...v4.1.0) (2025-10-14)
 
 
