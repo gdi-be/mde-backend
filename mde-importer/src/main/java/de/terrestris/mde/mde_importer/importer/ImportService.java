@@ -18,9 +18,11 @@ import de.terrestris.mde.mde_backend.model.json.Service.ServiceType;
 import de.terrestris.mde.mde_backend.model.json.codelists.*;
 import de.terrestris.mde.mde_backend.service.GeneratorUtils;
 import de.terrestris.mde.mde_backend.service.KeycloakService;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
@@ -599,8 +601,6 @@ public class ImportService {
     }
   }
 
-  private static void extractTransferOption(XMLStreamReader reader) {}
-
   private static void extractTransferOptions(
       XMLStreamReader reader, JsonIsoMetadata json, CommonFields common) throws XMLStreamException {
     if (reader.isStartElement() && reader.getLocalName().equals("transferOptions")) {
@@ -644,7 +644,13 @@ public class ImportService {
             common.setTechnicalDescription(description.getUrl());
           } else {
             if (!description.getUrl().contains("GetCapabilities") && !matcher.find()) {
-              if (!json.getContentDescriptions().contains(description)) {
+              // HBD: this seems to be the intended way now:
+              // * ignore all capabilities/service URLs
+              // * ignore all other URLs except the technical and content description special cases
+              // above, but only for services, in case of dataset metadata all URLs are kept (except
+              // capabilities/service URLs)
+              if (!json.getContentDescriptions().contains(description)
+                  && !(common instanceof Service)) {
                 json.getContentDescriptions().add(description);
               }
             }
@@ -1176,7 +1182,28 @@ public class ImportService {
           publication.setUrl(reader.getElementText());
           if (!metadata.getContentDescriptions().contains(publication)
               && !publication.getUrl().contains("GetCapabilities")) {
-            metadata.getContentDescriptions().add(publication);
+            try {
+              var in =
+                  FACTORY.createXMLStreamReader(
+                      new ByteArrayInputStream(
+                          publication.getUrl().getBytes(StandardCharsets.UTF_8)));
+              while (in.hasNext()) {
+                if (in.isStartElement() && in.getLocalName().equals("a")) {
+                  var href = in.getAttributeValue(null, "href");
+                  publication = new ContentDescription();
+                  publication.setUrl(href);
+                  publication.setDescription(in.getElementText());
+                  publication.setCode(CI_OnLineFunctionCode.information);
+                  if (!metadata.getContentDescriptions().contains(publication)) {
+                    metadata.getContentDescriptions().add(publication);
+                  }
+                }
+                in.next();
+              }
+            } catch (Exception e) {
+              log.info("Ignoring publication URL as it contains no (valid) markup.");
+              log.trace("Stack trace:", e);
+            }
           }
           break;
         case "Erstellungsdatum":
