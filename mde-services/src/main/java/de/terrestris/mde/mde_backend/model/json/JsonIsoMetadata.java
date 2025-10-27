@@ -161,5 +161,5 @@ public class JsonIsoMetadata implements CommonFields {
 
   @Nullable private List<Source> dataBases;
 
-  @Nullable private MD_SpatialRepresentationTypeCode spatialRepresentationType;
+  @Nullable private List<MD_SpatialRepresentationTypeCode> spatialRepresentationTypes;
 }

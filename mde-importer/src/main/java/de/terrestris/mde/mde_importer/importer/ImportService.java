@@ -238,6 +238,7 @@ public class ImportService {
     isoMetadata.setContacts(new ArrayList<>());
     isoMetadata.setContentDescriptions(new ArrayList<>());
     isoMetadata.setLineage(new ArrayList<>());
+    isoMetadata.setSpatialRepresentationTypes(new ArrayList<>());
     skipToElement(reader, "Metadaten");
     var type = reader.getAttributeValue(null, "metadatenTyp");
     if (type.equals("ISO")) {
@@ -398,9 +399,11 @@ public class ImportService {
       extractResourceConstraints(reader, isoMetadata);
       if (reader.isStartElement()
           && reader.getLocalName().equals("MD_SpatialRepresentationTypeCode")) {
-        isoMetadata.setSpatialRepresentationType(
-            MD_SpatialRepresentationTypeCode.valueOf(
-                reader.getAttributeValue(null, "codeListValue")));
+        isoMetadata
+            .getSpatialRepresentationTypes()
+            .add(
+                MD_SpatialRepresentationTypeCode.valueOf(
+                    reader.getAttributeValue(null, "codeListValue")));
       }
       extractDistributionFormat(reader, isoMetadata);
       if (isoMetadata.getMetadataProfile().equals(MetadataProfile.INSPIRE_HARMONISED)) {
