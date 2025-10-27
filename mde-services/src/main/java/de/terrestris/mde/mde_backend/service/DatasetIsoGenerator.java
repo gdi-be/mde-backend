@@ -291,10 +291,12 @@ public class DatasetIsoGenerator {
 
   static void writeSpatialRepresentationType(XMLStreamWriter writer, JsonIsoMetadata metadata)
       throws XMLStreamException {
-    if (metadata.getSpatialRepresentationType() != null) {
-      writer.writeStartElement(GMD, "spatialRepresentationType");
-      writeCodelistValue(writer, metadata.getSpatialRepresentationType());
-      writer.writeEndElement(); // spatialRepresentationType
+    if (metadata.getSpatialRepresentationTypes() != null) {
+      for (var type : metadata.getSpatialRepresentationTypes()) {
+        writer.writeStartElement(GMD, "spatialRepresentationType");
+        writeCodelistValue(writer, type);
+        writer.writeEndElement(); // spatialRepresentationType
+      }
     }
   }
 
