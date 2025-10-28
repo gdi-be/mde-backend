@@ -190,6 +190,9 @@
         <configuration>
           <container>
             <mainClass>de.terrestris.mde.mde_backend.MdeBackendApplication</mainClass>
+            <jvmFlags>
+              <jvmFlag>--add-opens java.base/java.lang=ALL-UNNAMED</jvmFlag>
+            </jvmFlags>
           </container>
           <to>
             <image>${docker.registry}/${docker.imageName}:${docker.releaseTag}</image>
