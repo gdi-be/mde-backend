@@ -1,3 +1,11 @@
+# [4.2.0](https://github.com/gdi-be/mde-backend/compare/v4.1.2...v4.2.0) (2025-10-28)
+
+
+### Features
+
+* allow multiple spatial representation types ([36441e7](https://github.com/gdi-be/mde-backend/commit/36441e73e51cf48a9bda0bdf91ee26a99efade60))
+* fix importer ([49a3869](https://github.com/gdi-be/mde-backend/commit/49a38697d2d166cd5021c9e14c949aed5af82dae))
+
 ## [4.1.2](https://github.com/gdi-be/mde-backend/compare/v4.1.1...v4.1.2) (2025-10-17)
 
 
