@@ -191,9 +191,13 @@
           <container>
             <mainClass>de.terrestris.mde.mde_backend.MdeBackendApplication</mainClass>
             <jvmFlags>
-              <jvmFlag>--add-opens java.base/java.lang=ALL-UNNAMED</jvmFlag>
+              <jvmFlag>--add-opens</jvmFlag>
+              <jvmFlag>java.base/java.lang=ALL-UNNAMED</jvmFlag>
             </jvmFlags>
           </container>
+          <from>
+            <image>eclipse-temurin:21-jdk</image>
+          </from>
           <to>
             <image>${docker.registry}/${docker.imageName}:${docker.releaseTag}</image>
           </to>
