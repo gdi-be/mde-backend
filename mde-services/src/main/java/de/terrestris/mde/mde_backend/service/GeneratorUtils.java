@@ -492,7 +492,8 @@ public class GeneratorUtils {
     writer.writeStartElement(GMD, "MD_KeywordTypeCode");
     writer.writeAttribute("codeListValue", "theme");
     writer.writeAttribute(
-        "codeList", "http://standards.iso.org/iso/19115/resources/codeList.xml#MD_KeywordTypeCode");
+        "codeList",
+        "https://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_KeywordTypeCode");
     writer.writeEndElement(); // MD_KeywordTypeCode
     writer.writeEndElement(); // type
   }
