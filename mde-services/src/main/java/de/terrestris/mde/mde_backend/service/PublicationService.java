@@ -283,6 +283,7 @@ public class PublicationService {
     var isoMetadata = metadata.getIsoMetadata();
     if (!force) {
       isoMetadata.setDateTime(Instant.now());
+      isoMetadata.setPublished(Instant.now());
     }
     var uuids = new ArrayList<String>();
     var insertIsoMetadata = isoMetadata.getFileIdentifier() == null || force;
@@ -338,7 +339,6 @@ public class PublicationService {
     }
 
     metadata.setStatus(Status.PUBLISHED);
-    metadata.getIsoMetadata().setPublished(Instant.now());
 
     // remove assignment and responsible role after publication
     metadata.setAssignedUserId(null);
