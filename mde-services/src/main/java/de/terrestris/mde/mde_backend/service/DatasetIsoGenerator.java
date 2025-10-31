@@ -501,7 +501,10 @@ public class DatasetIsoGenerator {
         writer.writeEndElement(); // version
         writer.writeStartElement(GMD, "specification");
         writeSimpleElement(
-            writer, GCO, "CharacterString", INSPIRE_THEME_SPECIFICATION_MAP.get(theme));
+            writer,
+            GCO,
+            "CharacterString",
+            INSPIRE_THEME_SPECIFICATION_MAP.get(theme) + " ? Technical Guidelines");
         writer.writeEndElement(); // specification
         writer.writeEndElement(); // MD_Format
         writer.writeEndElement(); // distributionFormat
