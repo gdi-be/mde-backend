@@ -692,7 +692,7 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // DQ_Scope
     writer.writeEndElement(); // scope
     if (!metadata.getMetadataProfile().equals(ISO)) {
-      writeReport(writer, metadata);
+      writeReport(writer, metadata, service != null);
     }
 
     if (metadata.getLineage() != null && service == null) {
@@ -739,33 +739,29 @@ public class DatasetIsoGenerator {
     writer.writeEndElement(); // dataQualityInfo
   }
 
-  protected static void writeReport(XMLStreamWriter writer, JsonIsoMetadata metadata)
+  protected static void writeReport(
+      XMLStreamWriter writer, JsonIsoMetadata metadata, boolean isService)
       throws XMLStreamException {
     var text =
         "VERORDNUNG (EG) Nr. 1089/2010 DER KOMMISSION vom 23. November 2010 zur Durchführung der Richtlinie 2007/2/EG des Europäischen Parlaments und des Rates hinsichtlich der Interoperabilität von Geodatensätzen und -diensten";
     var date = "2010-12-08";
-    // HBD: the 1089/2010 has been replaced with (s.o.), else the invocable spatial data services
-    // test class fails
-    // also, we need at least 3 reports, else the tests will also fail
-    var text2 =
-        "VERORDNUNG (EU) Nr. 102/2011 DER KOMMISSION vom 4. Februar 2011 zur Änderung der Verordnung (EU) Nr. (s.o.) zur Durchführung der Richtlinie 2007/2/EG des Europäischen Parlaments und des Rates hinsichtlich der Interoperabilität von Geodatensätzen und -diensten";
-    var date2 = "2011-02-05";
-    var text3 =
+    var serviceText =
         "VERORDNUNG (EG) Nr. 976/2009 DER KOMMISSION vom 19. Oktober 2009 zur Durchführung der Richtlinie 2007/2/EG des Europäischen Parlaments und des Rates hinsichtlich der Netzdienste";
-    var date3 = "2009-10-20";
-    writeReport(writer, metadata, text, date, "http://data.europa.eu/eli/reg/2010/1089");
-    writeReport(writer, metadata, text2, date2, "http://data.europa.eu/eli/reg/2010/1089");
-    writeReport(writer, metadata, text3, date3, "http://data.europa.eu/eli/reg/2010/1089");
-    writeReport(
-        writer,
-        metadata,
-        "invocable",
-        date,
-        "http://inspire.ec.europa.eu/id/ats/metadata/2.0/sds-invocable");
+    var serviceDate = "2009-10-20";
+    if (isService) {
+      writeReport(writer, serviceText, serviceDate, "http://data.europa.eu/eli/reg/2009/976", true);
+    } else {
+      writeReport(
+          writer,
+          text,
+          date,
+          "http://data.europa.eu/eli/reg/2010/1089",
+          metadata.getMetadataProfile().equals(INSPIRE_HARMONISED));
+    }
   }
 
   private static void writeReport(
-      XMLStreamWriter writer, JsonIsoMetadata metadata, String text, String date, String url)
+      XMLStreamWriter writer, String text, String date, String url, boolean pass)
       throws XMLStreamException {
     writer.writeStartElement(GMD, "report");
     writer.writeStartElement(GMD, "DQ_DomainConsistency");
@@ -795,7 +791,7 @@ public class DatasetIsoGenerator {
     writeSimpleElement(writer, GCO, "CharacterString", "see referenced specification");
     writer.writeEndElement(); // explanation
     writer.writeStartElement(GMD, "pass");
-    writeSimpleElement(writer, GCO, "Boolean", Boolean.toString(metadata.isValid()));
+    writeSimpleElement(writer, GCO, "Boolean", Boolean.toString(pass));
     writer.writeEndElement(); // pass
     writer.writeEndElement(); // DQ_ConformanceResult
     writer.writeEndElement(); // result
