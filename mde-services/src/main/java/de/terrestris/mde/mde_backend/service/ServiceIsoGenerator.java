@@ -125,7 +125,8 @@ public class ServiceIsoGenerator {
     writer.writeEndElement(); // MD_Identifier
     writer.writeEndElement(); // identifier
     writer.writeStartElement(GMD, "presentationForm");
-    if (service.getServiceType().equals(Service.ServiceType.WFS)) {
+    if (service.getServiceType().equals(Service.ServiceType.WFS)
+        || service.getServiceType().equals(Service.ServiceType.ATOM)) {
       writeCodelistValue(writer, tableDigital);
     } else {
       writeCodelistValue(writer, mapDigital);
