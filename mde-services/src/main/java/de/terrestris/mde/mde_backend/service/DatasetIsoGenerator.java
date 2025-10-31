@@ -518,6 +518,9 @@ public class DatasetIsoGenerator {
       writer.writeStartElement(GMD, "version");
       writeSimpleElement(writer, GCO, "CharacterString", METADATA_VARIABLES.getStandardVersion());
       writer.writeEndElement(); // version
+      writer.writeStartElement(GMD, "specification");
+      writeSimpleElement(writer, GCO, "CharacterString", "Keine Angabe");
+      writer.writeEndElement(); // specification
       writer.writeEndElement(); // MD_Format
       writer.writeEndElement(); // distributionFormat
     }
