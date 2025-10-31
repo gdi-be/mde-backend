@@ -551,7 +551,7 @@ public class GeneratorUtils {
         writer.writeStartElement(GMD, "title");
         writer.writeStartElement(GMX, "Anchor");
         writer.writeAttribute(XLINK, "href", "http://data.europa.eu/bna/asd487ae75");
-        writer.writeCharacters("Kategorien der High Value Datasets");
+        writer.writeCharacters("High value dataset categories");
         writer.writeEndElement(); // Anchor
         writer.writeEndElement(); // title
         writer.writeStartElement(GMD, "date");
