@@ -482,7 +482,8 @@ public class DatasetIsoGenerator {
     writer.writeStartElement(GMD, "distributionInfo");
     writer.writeStartElement(GMD, "MD_Distribution");
     if (metadata.getMetadataProfile().equals(INSPIRE_HARMONISED)
-        && metadata.getInspireTheme() != null) {
+        && metadata.getInspireTheme() != null
+        && service == null) {
       for (var theme : metadata.getInspireTheme()) {
         writer.writeStartElement(GMD, "distributionFormat");
         writer.writeStartElement(GMD, "MD_Format");
