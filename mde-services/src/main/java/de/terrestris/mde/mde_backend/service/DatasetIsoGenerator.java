@@ -203,28 +203,28 @@ public class DatasetIsoGenerator {
       writer.writeStartElement(GMD, "temporalElement");
       writer.writeStartElement(GMD, "EX_TemporalExtent");
       writer.writeStartElement(GMD, "extent");
-      writer.writeStartElement(GMD, "TimePeriod");
+      writer.writeStartElement(GML, "TimePeriod");
       writer.writeAttribute(GML, "id", "ID_1");
       if (metadata.getValidFrom() != null) {
         writeSimpleElement(
             writer,
-            GMD,
+            GML,
             "beginPosition",
             DateTimeFormatter.ISO_DATE_TIME.format(
                 metadata.getValidFrom().atOffset(ZoneOffset.UTC)));
       } else {
-        writer.writeStartElement(GMD, "beginPosition");
+        writer.writeStartElement(GML, "beginPosition");
         writer.writeAttribute("indeterminatePosition", "unknown");
         writer.writeEndElement(); // beginPosition
       }
       if (metadata.getValidTo() != null) {
         writeSimpleElement(
             writer,
-            GMD,
+            GML,
             "endPosition",
             DateTimeFormatter.ISO_DATE_TIME.format(metadata.getValidTo().atOffset(ZoneOffset.UTC)));
       } else {
-        writer.writeStartElement(GMD, "endPosition");
+        writer.writeStartElement(GML, "endPosition");
         writer.writeAttribute("indeterminatePosition", "now");
         writer.writeEndElement(); // beginPosition
       }
