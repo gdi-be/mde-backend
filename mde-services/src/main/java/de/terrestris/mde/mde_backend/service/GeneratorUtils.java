@@ -3,7 +3,6 @@ package de.terrestris.mde.mde_backend.service;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode.information;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_RoleCode.pointOfContact;
 import static de.terrestris.mde.mde_backend.model.json.codelists.MD_CharacterSetCode.utf8;
-import static de.terrestris.mde.mde_backend.model.json.codelists.MD_GeometricObjectTypeCode.complex;
 import static de.terrestris.mde.mde_backend.service.IsoGenerator.replaceValues;
 import static de.terrestris.utils.xml.MetadataNamespaceUtils.*;
 import static de.terrestris.utils.xml.XmlUtils.writeSimpleElement;
@@ -409,21 +408,6 @@ public class GeneratorUtils {
     writer.writeStartElement(GMD, "metadataStandardVersion");
     writeSimpleElement(writer, GCO, "CharacterString", METADATA_VARIABLES.getProfileVersion());
     writer.writeEndElement(); // metadataStandardVersion
-    if (!inspire) {
-      return;
-    }
-    // TODO this is hardcoded for now, because details are not prompted in the ui
-    writer.writeStartElement(GMD, "spatialRepresentationInfo");
-    writer.writeStartElement(GMD, "MD_VectorSpatialRepresentation");
-    writer.writeStartElement(GMD, "geometricObjects");
-    writer.writeStartElement(GMD, "MD_GeometricObjects");
-    writer.writeStartElement(GMD, "geometricObjectType");
-    writeCodelistValue(writer, complex);
-    writer.writeEndElement(); // geometricObjectType
-    writer.writeEndElement(); // MD_GeometricObjects
-    writer.writeEndElement(); // geometricObjects
-    writer.writeEndElement(); // MD_VectorSpatialRepresentation
-    writer.writeEndElement(); // spatialRepresentationInfo
   }
 
   protected static void writeCrs(XMLStreamWriter writer, JsonIsoMetadata metadata)
