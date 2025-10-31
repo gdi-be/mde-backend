@@ -81,6 +81,11 @@ public class ServiceIsoGenerator {
     writer.writeStartElement(GMD, "fileDescription");
     writeSimpleElement(writer, GCO, "CharacterString", "Legende");
     writer.writeEndElement(); // fileDescription
+    if (legendImage.getFormat() != null) {
+      writer.writeStartElement(GMD, "fileType");
+      writeSimpleElement(writer, GCO, "CharacterString", legendImage.getFormat());
+      writer.writeEndElement(); // fileType
+    }
     writer.writeEndElement(); // MD_BrowseGraphic
     writer.writeEndElement(); // graphicOverview
   }
