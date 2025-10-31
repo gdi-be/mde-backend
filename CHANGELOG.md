@@ -1,3 +1,22 @@
+## [4.2.2](https://github.com/gdi-be/mde-backend/compare/v4.2.1...v4.2.2) (2025-10-31)
+
+
+### Bug Fixes
+
+* add specification for non-inspire documents ([1fcc66a](https://github.com/gdi-be/mde-backend/commit/1fcc66a083991e4545151daefe445ca8f0eb79b3))
+* add technical guidelines string ([2a72079](https://github.com/gdi-be/mde-backend/commit/2a720790cb0307134da0ace41eb3779c653727c6))
+* change data quality info export ([c084350](https://github.com/gdi-be/mde-backend/commit/c084350636e31b5cd83c1c1c51576044a6736210))
+* export file type ([f0c975b](https://github.com/gdi-be/mde-backend/commit/f0c975bdd66141ed9423181da147e11da8061580))
+* fix code list value for atom services ([bd36fb6](https://github.com/gdi-be/mde-backend/commit/bd36fb640c0b8eaa073bbf089a4c6755101dd903))
+* fix hvd keyword title ([f1dcd8b](https://github.com/gdi-be/mde-backend/commit/f1dcd8bfcf393fcdedf5980ae3396bbda6e9a5c4))
+* fix keyword codelist ([27f8771](https://github.com/gdi-be/mde-backend/commit/27f87718f7bffacc29f5eeb0bd81d0c13a8b03fa))
+* fix publication date ([5c59403](https://github.com/gdi-be/mde-backend/commit/5c59403010916a0546249e7cd35ad04c0e64bca6))
+* fix schema name ([304afa3](https://github.com/gdi-be/mde-backend/commit/304afa3cda8c6611b1640d070c5434d9ef7b21cd))
+* fix service distribution format ([a923abb](https://github.com/gdi-be/mde-backend/commit/a923abbe00702fbddb8043cd09600436592b0c8e))
+* fix statement & sources ([040a9f2](https://github.com/gdi-be/mde-backend/commit/040a9f28a3bd50034b1040931c325cec39d7a879))
+* fix temporal extent namespace ([a600777](https://github.com/gdi-be/mde-backend/commit/a6007776f1d10ecd0db0f5915f2a838520ee565e))
+* remove spatial representation info ([44b71ac](https://github.com/gdi-be/mde-backend/commit/44b71ac147ff05979f1393d84dc866a53043a532))
+
 ## [4.2.1](https://github.com/gdi-be/mde-backend/compare/v4.2.0...v4.2.1) (2025-10-28)
 
 
