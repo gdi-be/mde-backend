@@ -291,7 +291,8 @@ public class GeneratorUtils {
     IMPORT_SCHEMA_MAP.put(
         "HabitatsAndBiotopes GML Application Schema", "HabitatsAndBiotopes GML Application Schema");
     IMPORT_SCHEMA_MAP.put(
-        "ElevationGridCoverage GML Application Schema", "Elevation GML Application Schema");
+        "ElevationGridCoverage GML Application Schema",
+        "ElevationGridCoverage GML Application Schema");
     IMPORT_SCHEMA_MAP.put(
         "StatisticalUnits GML Application Schema", "StatisticalUnits GML Application Schema");
     IMPORT_SCHEMA_MAP.put(
