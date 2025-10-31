@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.terrestris.mde.mde_backend.model.json.Extent;
 import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
+import de.terrestris.mde.mde_backend.model.json.Lineage;
 import de.terrestris.mde.mde_backend.model.json.Service;
 import de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode;
 import de.terrestris.mde.mde_backend.model.json.termsofuse.TermsOfUse;
@@ -701,11 +702,17 @@ public class DatasetIsoGenerator {
       writeReport(writer, metadata, service != null);
     }
 
-    if (metadata.getLineage() != null && service == null) {
+    var lineages = metadata.getLineage();
+    if (lineages == null || lineages.isEmpty()) {
+      lineages = List.of(new Lineage(null, METADATA_VARIABLES.getLineage(), null));
+    }
+    var texts = String.join(", ", lineages.stream().map(Lineage::getTitle).toList());
+
+    if (metadata.getLineage() != null && service == null && !metadata.getLineage().isEmpty()) {
       writer.writeStartElement(GMD, "lineage");
       writer.writeStartElement(GMD, "LI_Lineage");
       writer.writeStartElement(GMD, "statement");
-      writeSimpleElement(writer, GCO, "CharacterString", METADATA_VARIABLES.getLineage());
+      writeSimpleElement(writer, GCO, "CharacterString", texts);
       writer.writeEndElement(); // statement
       for (var lineage : metadata.getLineage()) {
         writer.writeStartElement(GMD, "source");
