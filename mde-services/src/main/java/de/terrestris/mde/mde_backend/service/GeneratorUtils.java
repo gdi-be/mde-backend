@@ -189,7 +189,13 @@ public class GeneratorUtils {
     INSPIRE_THEME_APPSCHEMA_MAP.put(JsonIsoMetadata.InspireTheme.CP, List.of("CadastralParcels"));
     INSPIRE_THEME_APPSCHEMA_MAP.put(
         JsonIsoMetadata.InspireTheme.EF, List.of("EnvironmentalMonitoringFacilities"));
-    INSPIRE_THEME_APPSCHEMA_MAP.put(JsonIsoMetadata.InspireTheme.EL, List.of("Elevation"));
+    INSPIRE_THEME_APPSCHEMA_MAP.put(
+        JsonIsoMetadata.InspireTheme.EL,
+        List.of(
+            "ElevationBaseTypes",
+            "ElevationGridCoverage",
+            "ElevationVectorElements",
+            "ElevationTIN"));
     INSPIRE_THEME_APPSCHEMA_MAP.put(
         JsonIsoMetadata.InspireTheme.ER,
         List.of("EnergyResourcesVector", "EnergyResourcesCoverage", "EnergyResourcesBase"));
