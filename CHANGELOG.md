@@ -1,3 +1,10 @@
+## [4.2.3](https://github.com/gdi-be/mde-backend/compare/v4.2.2...v4.2.3) (2025-11-07)
+
+
+### Bug Fixes
+
+* fix EL schema names ([791b21c](https://github.com/gdi-be/mde-backend/commit/791b21cfdc2d53586e17c619ebe62da68370fae1))
+
 ## [4.2.2](https://github.com/gdi-be/mde-backend/compare/v4.2.1...v4.2.2) (2025-10-31)
 
 
