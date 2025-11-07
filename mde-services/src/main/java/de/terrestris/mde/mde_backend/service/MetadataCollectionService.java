@@ -228,28 +228,38 @@ public class MetadataCollectionService
       return;
     }
     for (var service : data.getServices()) {
-      try {
-        if (service.getLegendImage() != null && service.getLegendImage().getUrl() != null) {
+      if (service.getLegendImage() != null && service.getLegendImage().getUrl() != null) {
+        try {
           URI uri = new URI(replaceValues(service.getLegendImage().getUrl()));
 
-          try (var iis = ImageIO.createImageInputStream(uri.toURL().openStream())) {
-            var readers = ImageIO.getImageReaders(iis);
-            if (readers.hasNext()) {
-              var reader = readers.next();
-              String formatName = reader.getFormatName();
+          // Single connection for both content-type and image data
+          var connection = uri.toURL().openConnection();
+          connection.setRequestProperty("User-Agent", "Mozilla/5.0 (compatible; MDE-Backend)");
+          String contentType = connection.getContentType();
 
-              reader.setInput(iis);
-              var img = reader.read(0);
+          var iis = ImageIO.createImageInputStream(connection.getInputStream());
+          var readers = ImageIO.getImageReaders(iis);
+          if (readers.hasNext()) {
+            var reader = readers.next();
 
-              service.getLegendImage().setWidth(img.getWidth());
-              service.getLegendImage().setHeight(img.getHeight());
-              service.getLegendImage().setFormat(formatName.toLowerCase());
+            reader.setInput(iis);
+            var img = reader.read(0);
+
+            service.getLegendImage().setWidth(img.getWidth());
+            service.getLegendImage().setHeight(img.getHeight());
+
+            // Use content-type as format instead of reader format
+            if (contentType != null) {
+              service.getLegendImage().setFormat(contentType.toLowerCase());
             }
           }
+        } catch (IOException | URISyntaxException | IllegalArgumentException e) {
+          log.warn(
+              "Unable to determine size or content-type of legend for URL {}: {}",
+              service.getLegendImage().getUrl(),
+              e.getMessage());
+          log.trace("Stack trace:", e);
         }
-      } catch (IOException | URISyntaxException | IllegalArgumentException e) {
-        log.warn("Unable to determine size of legend: {}", e.getMessage());
-        log.trace("Stack trace:", e);
       }
     }
   }
