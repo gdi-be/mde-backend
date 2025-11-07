@@ -1,3 +1,10 @@
+## [4.2.4](https://github.com/gdi-be/mde-backend/compare/v4.2.3...v4.2.4) (2025-11-07)
+
+
+### Bug Fixes
+
+* use content-type as format ([609e538](https://github.com/gdi-be/mde-backend/commit/609e538a4c120883937b19162470fc2dce3ddbc3))
+
 ## [4.2.3](https://github.com/gdi-be/mde-backend/compare/v4.2.2...v4.2.3) (2025-11-07)
 
 
