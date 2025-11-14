@@ -554,11 +554,18 @@ public class DatasetIsoGenerator {
             switch (s.getServiceType()) {
               case WFS -> "Downloaddienst - " + s.getTitle() + " (WFS)";
               case WMS -> "Darstellungsdienst - " + s.getTitle() + " (WMS)";
-              case ATOM -> "INSPIRE Atom";
+              case ATOM -> "Downloaddienst - " + s.getTitle() + " (ATOM)";
               case WMTS -> "Darstellungsdienst - " + s.getTitle() + " (WMTS)";
             };
+        var protocol =
+            switch (s.getServiceType()) {
+              case WFS -> "WFS";
+              case WMS -> "WMS";
+              case ATOM -> "INSPIRE ATOM";
+              case WMTS -> "WMTS";
+            };
         if (s.getServiceType() == ATOM) {
-          writeSimpleElement(writer, GCO, "CharacterString", text);
+          writeSimpleElement(writer, GCO, "CharacterString", protocol);
         } else {
           writer.writeStartElement(GMX, "Anchor");
           writer.writeAttribute(XLINK, "href", type);
