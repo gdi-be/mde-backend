@@ -283,7 +283,6 @@ public class PublicationService {
     var isoMetadata = metadata.getIsoMetadata();
     if (!force) {
       isoMetadata.setDateTime(Instant.now());
-      isoMetadata.setPublished(Instant.now());
     }
     var uuids = new ArrayList<String>();
     var insertIsoMetadata = isoMetadata.getFileIdentifier() == null || force;
