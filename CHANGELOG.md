@@ -1,3 +1,10 @@
+# [4.3.0](https://github.com/gdi-be/mde-backend/compare/v4.2.4...v4.3.0) (2025-11-17)
+
+
+### Features
+
+* remove automated update of "published" date ([7cc4607](https://github.com/gdi-be/mde-backend/commit/7cc4607f493e40378c22589b66cf13f2d59c3318))
+
 ## [4.2.4](https://github.com/gdi-be/mde-backend/compare/v4.2.3...v4.2.4) (2025-11-07)
 
 
