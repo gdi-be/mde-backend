@@ -10,7 +10,7 @@
 
   <groupId>de.terrestris.mde</groupId>
   <artifactId>mde-backend</artifactId>
-  <version>4.3.1-SNAPSHOT</version>
+  <version>4.3.2-SNAPSHOT</version>
   <name>mde-backend</name>
   <description>Backend for metadata editor</description>
   <packaging>pom</packaging>
