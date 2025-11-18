@@ -1,3 +1,10 @@
+## [4.3.1](https://github.com/gdi-be/mde-backend/compare/v4.3.0...v4.3.1) (2025-11-18)
+
+
+### Bug Fixes
+
+* fix texts for protocol and description ([313b421](https://github.com/gdi-be/mde-backend/commit/313b4210a9910e73de56b2317ac97f39c289d5b7))
+
 # [4.3.0](https://github.com/gdi-be/mde-backend/compare/v4.2.4...v4.3.0) (2025-11-17)
 
 
