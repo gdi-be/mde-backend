@@ -542,7 +542,7 @@ public class GeneratorUtils {
         writer.writeStartElement(GMD, "title");
         writer.writeStartElement(GMX, "Anchor");
         writer.writeAttribute(XLINK, "href", "http://data.europa.eu/bna/asd487ae75");
-        writer.writeCharacters("High value dataset categories");
+        writer.writeCharacters("HVD-Kategorien");
         writer.writeEndElement(); // Anchor
         writer.writeEndElement(); // title
         writer.writeStartElement(GMD, "date");
