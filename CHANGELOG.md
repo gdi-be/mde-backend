@@ -1,3 +1,10 @@
+## [4.3.2](https://github.com/gdi-be/mde-backend/compare/v4.3.1...v4.3.2) (2025-12-02)
+
+
+### Bug Fixes
+
+* change title text ([504e46e](https://github.com/gdi-be/mde-backend/commit/504e46e3ace5df67e6d02195d98d0070100fdb40))
+
 ## [4.3.1](https://github.com/gdi-be/mde-backend/compare/v4.3.0...v4.3.1) (2025-11-18)
 
 
