@@ -105,18 +105,9 @@ public class ServiceIsoGenerator {
         "CharacterString",
         service.getTitle() == null ? metadata.getTitle() : service.getTitle());
     writer.writeEndElement(); // title
-    writeDate(
-        writer,
-        service.getCreated() == null ? metadata.getCreated() : service.getCreated(),
-        creation);
-    writeDate(
-        writer,
-        service.getPublished() == null ? metadata.getPublished() : service.getPublished(),
-        publication);
-    writeDate(
-        writer,
-        service.getUpdated() == null ? metadata.getModified() : service.getUpdated(),
-        revision);
+    writeDate(writer, metadata.getCreated(), creation);
+    writeDate(writer, metadata.getPublished(), publication);
+    writeDate(writer, metadata.getModified(), revision);
     writer.writeStartElement(GMD, "identifier");
     writer.writeStartElement(GMD, "MD_Identifier");
     writer.writeStartElement(GMD, "code");
