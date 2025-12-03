@@ -45,6 +45,16 @@ public class GeneratorUtils {
 
   public static final MetadataVariables METADATA_VARIABLES;
 
+  private static final Map<String, String> HVD_MAP =
+      Map.of(
+          "Georaum", "http://data.europa.eu/bna/c_ac64a52d",
+          "Erdbeobachtung und Umwelt", "http://data.europa.eu/bna/c_dd313021",
+          "Meteorologie", "http://data.europa.eu/bna/c_164e0bf5",
+          "Statistik", "http://data.europa.eu/bna/c_e1da4e07",
+          "Unternehmen und Eigentümerschaft von Unternehmen",
+              "http://data.europa.eu/bna/c_a9135398",
+          "Mobilität", "http://data.europa.eu/bna/c_b79e35eb");
+
   static {
     INSPIRE_THEME_MAP = new HashMap<>();
     INSPIRE_THEME_MAP.put("Atmosphärische Bedingungen", JsonIsoMetadata.InspireTheme.AC);
@@ -533,7 +543,7 @@ public class GeneratorUtils {
         writer.writeStartElement(GMD, "MD_Keywords");
         writer.writeStartElement(GMD, "keyword");
         writer.writeStartElement(GMX, "Anchor");
-        writer.writeAttribute(XLINK, "href", "http://data.europa.eu/bna/c_ac64a52d");
+        writer.writeAttribute(XLINK, "href", HVD_MAP.get(category));
         writer.writeCharacters(category);
         writer.writeEndElement(); // Anchor
         writer.writeEndElement(); // keyword
