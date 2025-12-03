@@ -1,3 +1,10 @@
+## [4.3.4](https://github.com/gdi-be/mde-backend/compare/v4.3.3...v4.3.4) (2025-12-03)
+
+
+### Bug Fixes
+
+* fix HVD category urls ([46b1a07](https://github.com/gdi-be/mde-backend/commit/46b1a0762b3e47a96991a1a4ff9f4d2f9a1a7e6a))
+
 ## [4.3.3](https://github.com/gdi-be/mde-backend/compare/v4.3.2...v4.3.3) (2025-12-02)
 
 
