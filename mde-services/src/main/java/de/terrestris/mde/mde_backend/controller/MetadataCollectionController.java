@@ -340,6 +340,17 @@ public class MetadataCollectionController
     try {
       service.assignUser(metadataId, userId);
       return new ResponseEntity<Void>(OK);
+    } catch (IllegalStateException e) {
+      log.error(
+          "Illegal State Error while assigning user to metadata with id {}: \n {}",
+          metadataId,
+          e.getMessage());
+      log.trace("Full stack trace: ", e);
+      throw new ResponseStatusException(
+          HttpStatus.CONFLICT,
+          messageSource.getMessage(
+              "BASE_CONTROLLER.CONFLICT", null, LocaleContextHolder.getLocale()),
+          e);
     } catch (Exception e) {
       log.error(
           "Error while assigning user to metadata with id {}: \n {}", metadataId, e.getMessage());
