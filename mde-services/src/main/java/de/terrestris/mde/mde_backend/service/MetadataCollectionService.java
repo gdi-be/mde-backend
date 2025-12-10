@@ -390,9 +390,6 @@ public class MetadataCollectionService
     return repository.save(metadataCollection);
   }
 
-  // TODO: we should add permission checks that reflect the frontend behavior
-  // (compare showAssignAction in MetadataCard.svelte).
-  // We may also want to ensure that MdeDataOwner can only assign themselves
   @PreAuthorize("isAuthenticated()")
   @Transactional(isolation = Isolation.SERIALIZABLE)
   public void assignUser(String metadataId, String userId) {
@@ -403,6 +400,16 @@ public class MetadataCollectionService
                 () ->
                     new NoSuchElementException(
                         "MetadataCollection not found for metadataId: " + metadataId));
+
+    if (metadataCollection.getAssignedUserId() != null) {
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+      Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+      List<String> roleNames = authorities.stream().map(GrantedAuthority::getAuthority).toList();
+      if (!roleNames.contains("ROLE_MDEADMINISTRATOR")) {
+        throw new IllegalStateException("MetadataCollection is already assigned to a user.");
+      }
+    }
+
     metadataCollection.setAssignedUserId(userId);
 
     // everyone who is assigned to the metadata collection should be added to the
