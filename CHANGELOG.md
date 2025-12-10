@@ -1,3 +1,10 @@
+## [4.3.5](https://github.com/gdi-be/mde-backend/compare/v4.3.4...v4.3.5) (2025-12-10)
+
+
+### Bug Fixes
+
+* prevent assigning an already assigned MetadataCollection ([f9a09f7](https://github.com/gdi-be/mde-backend/commit/f9a09f7cbe58842f335d58658218a516e5edcbdb))
+
 ## [4.3.4](https://github.com/gdi-be/mde-backend/compare/v4.3.3...v4.3.4) (2025-12-03)
 
 
