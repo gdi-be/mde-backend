@@ -405,7 +405,12 @@ public class MetadataCollectionService
       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
       Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
       List<String> roleNames = authorities.stream().map(GrantedAuthority::getAuthority).toList();
-      if (!roleNames.contains("ROLE_MDEADMINISTRATOR")) {
+
+      // the metadata is currently assigned to me so i can reassign it to someone else
+      boolean isSelfAssigned =
+          metadataCollection.getAssignedUserId().equals(authentication.getName());
+
+      if (!isSelfAssigned && !roleNames.contains("ROLE_MDEADMINISTRATOR")) {
         throw new IllegalStateException("MetadataCollection is already assigned to a user.");
       }
     }
