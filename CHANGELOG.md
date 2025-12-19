@@ -1,3 +1,11 @@
+# [4.4.0](https://github.com/gdi-be/mde-backend/compare/v4.3.5...v4.4.0) (2025-12-19)
+
+
+### Features
+
+* reindex records after publication ([0ff6f23](https://github.com/gdi-be/mde-backend/commit/0ff6f2376b24d375c228508fb44994859f97441b))
+* user can assign metadata to other users if self assigned ([12d9be8](https://github.com/gdi-be/mde-backend/commit/12d9be8ffff4c7d973153274eacab7f9ad0602ea))
+
 ## [4.3.5](https://github.com/gdi-be/mde-backend/compare/v4.3.4...v4.3.5) (2025-12-10)
 
 
