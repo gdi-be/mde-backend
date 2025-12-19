@@ -36,6 +36,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.IOUtils;
+import org.apache.hc.core5.net.URIBuilder;
 import org.codehaus.stax2.XMLInputFactory2;
 import org.codehaus.stax2.XMLOutputFactory2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -183,9 +184,28 @@ public class PublicationService {
     }
   }
 
+  private void reindexRecords(List<String> uuids, String authorization, String token)
+      throws URISyntaxException, IOException, InterruptedException {
+    try (var client = HttpClient.newHttpClient()) {
+      for (var id : uuids) {
+        var indexBuilder = new URIBuilder(publicationUrl + "/index");
+        indexBuilder.addParameter("uuids", id);
+        log.debug("Reindexing {}", indexBuilder.build());
+        var reindex =
+            HttpRequest.newBuilder(indexBuilder.build())
+                .header("Authorization", "Basic " + authorization)
+                .header("X-XSRF-TOKEN", token)
+                .header("Accept", "application/json")
+                .build();
+        var reindexResponse = client.send(reindex, HttpResponse.BodyHandlers.ofString());
+        log.debug("Status code: {}", reindexResponse.statusCode());
+        log.debug("Response: {}", reindexResponse.body());
+      }
+    }
+  }
+
   private ArrayList<String> publishRecords(List<String> uuids)
       throws URISyntaxException, IOException, InterruptedException {
-
     var successfullyPublishedUuids = new ArrayList<String>();
 
     try (var client = HttpClient.newHttpClient()) {
@@ -206,12 +226,12 @@ public class PublicationService {
       var csrf = csrfCandidate.get().split("=")[1];
 
       var cookies = String.join("; ", cookiesList.stream().map(s -> s.split(";")[0]).toList());
+      var encoded = Base64.encode(String.format("%s:%s", cswUser, cswPassword)).toString();
 
       for (var uuid : uuids) {
         var url = String.format("%s/%s/publish?publicationType=", publicationUrl, uuid);
         builder = HttpRequest.newBuilder(new URI(url));
         req = builder.PUT(HttpRequest.BodyPublishers.ofString(""));
-        var encoded = Base64.encode(String.format("%s:%s", cswUser, cswPassword)).toString();
         req.header("Authorization", "Basic " + encoded)
             .header("X-XSRF-TOKEN", csrf)
             .header("Cookie", cookies);
@@ -229,6 +249,7 @@ public class PublicationService {
 
         successfullyPublishedUuids.add(uuid);
       }
+      reindexRecords(successfullyPublishedUuids, encoded, csrf);
     }
 
     return successfullyPublishedUuids;
