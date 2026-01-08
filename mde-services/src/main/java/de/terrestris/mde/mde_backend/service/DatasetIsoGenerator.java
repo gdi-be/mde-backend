@@ -536,6 +536,10 @@ public class DatasetIsoGenerator {
         if (s == null) {
           continue;
         }
+        if (s.getServiceType() == null) {
+          log.warn("Not writing service without service type: {}", s.getServiceIdentification());
+          continue;
+        }
         writer.writeStartElement(GMD, "transferOptions");
         writer.writeStartElement(GMD, "MD_DigitalTransferOptions");
         writer.writeStartElement(GMD, "onLine");
@@ -610,7 +614,9 @@ public class DatasetIsoGenerator {
         writer.writeEndElement(); // transferOptions
       }
     }
-    if (service != null && service.getServiceType().equals(WMS)) {
+    if (service != null
+        && service.getServiceType() != null
+        && service.getServiceType().equals(WMS)) {
       writeDescription(
           writer,
           METADATA_VARIABLES.getPortalUrl() + service.getWorkspace(),
