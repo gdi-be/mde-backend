@@ -1,3 +1,10 @@
+## [4.4.2](https://github.com/gdi-be/mde-backend/compare/v4.4.1...v4.4.2) (2026-01-08)
+
+
+### Bug Fixes
+
+* prevent export of services without service type ([c2e3be7](https://github.com/gdi-be/mde-backend/commit/c2e3be769862cd515572a07313e8121cab586197))
+
 ## [4.4.1](https://github.com/gdi-be/mde-backend/compare/v4.4.0...v4.4.1) (2026-01-08)
 
 
