@@ -158,7 +158,8 @@ public class ServiceIsoGenerator {
       writeResourceConstraints(
           writer,
           TERMS_OF_USE_BY_ID.get(metadata.getTermsOfUseId().intValue()),
-          metadata.getTermsOfUseSource());
+          metadata.getTermsOfUseSource(),
+          metadata.getTitle());
     }
     writer.writeStartElement(SRV, "serviceType");
     writer.writeStartElement(GCO, "LocalName");
