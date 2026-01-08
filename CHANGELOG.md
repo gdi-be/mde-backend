@@ -1,3 +1,10 @@
+## [4.4.1](https://github.com/gdi-be/mde-backend/compare/v4.4.0...v4.4.1) (2026-01-08)
+
+
+### Bug Fixes
+
+* fix resource constraints ([76662fd](https://github.com/gdi-be/mde-backend/commit/76662fd033d0f5ad563b4164daf3749969940ba9))
+
 # [4.4.0](https://github.com/gdi-be/mde-backend/compare/v4.3.5...v4.4.0) (2025-12-19)
 
 
