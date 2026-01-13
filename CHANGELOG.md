@@ -1,3 +1,10 @@
+## [4.4.3](https://github.com/gdi-be/mde-backend/compare/v4.4.2...v4.4.3) (2026-01-13)
+
+
+### Bug Fixes
+
+* fix role assignment in clone function ([77d23fb](https://github.com/gdi-be/mde-backend/commit/77d23fb30917c3529eb0550164031f6e0d1c9a1d))
+
 ## [4.4.2](https://github.com/gdi-be/mde-backend/compare/v4.4.1...v4.4.2) (2026-01-08)
 
 
