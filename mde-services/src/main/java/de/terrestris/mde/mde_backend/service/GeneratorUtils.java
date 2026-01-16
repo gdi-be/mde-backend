@@ -543,7 +543,9 @@ public class GeneratorUtils {
         writer.writeStartElement(GMD, "MD_Keywords");
         writer.writeStartElement(GMD, "keyword");
         writer.writeStartElement(GMX, "Anchor");
-        writer.writeAttribute(XLINK, "href", HVD_MAP.get(category));
+        if (HVD_MAP.get(category) != null) {
+          writer.writeAttribute(XLINK, "href", HVD_MAP.get(category));
+        }
         writer.writeCharacters(category);
         writer.writeEndElement(); // Anchor
         writer.writeEndElement(); // keyword
