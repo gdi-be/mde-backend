@@ -1,3 +1,10 @@
+## [4.4.4](https://github.com/gdi-be/mde-backend/compare/v4.4.3...v4.4.4) (2026-01-16)
+
+
+### Bug Fixes
+
+* fix null pointer ([109e5b7](https://github.com/gdi-be/mde-backend/commit/109e5b7954a6b5dae24e62f84ff1174fe8ce39c2))
+
 ## [4.4.3](https://github.com/gdi-be/mde-backend/compare/v4.4.2...v4.4.3) (2026-01-13)
 
 
