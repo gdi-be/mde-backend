@@ -1,6 +1,6 @@
 package de.terrestris.mde.mde_importer.importer;
 
-import static de.terrestris.mde.mde_backend.model.json.ColumnInfo.ColumnType.*;
+import static de.terrestris.mde.mde_backend.model.json.ColumnInfo.ColumnType;
 import static de.terrestris.mde.mde_backend.model.json.codelists.MD_MaintenanceFrequencyCode.notPlanned;
 import static de.terrestris.mde.mde_backend.service.GeneratorUtils.IMPORT_SCHEMA_MAP;
 import static de.terrestris.mde.mde_backend.service.IsoGenerator.TERMS_OF_USE_MAP;
@@ -79,25 +79,26 @@ public class ImportService {
   static {
     FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
     TYPE_MAP = new HashMap<>();
-    TYPE_MAP.put("xsd:int", Integer);
-    TYPE_MAP.put("xsd:decimal", BigDecimal);
-    TYPE_MAP.put("xsd:date", Date);
-    TYPE_MAP.put("xsd:double", Double);
-    TYPE_MAP.put("xsd:float", Float);
-    TYPE_MAP.put("gml:MultiSurfacePropertyType", Geometry);
-    TYPE_MAP.put("gml:MultiPointPropertyType", Geometry);
-    TYPE_MAP.put("gml:MultiCurvePropertyType", Geometry);
-    TYPE_MAP.put("gml:GeometryPropertyType", Geometry);
-    TYPE_MAP.put("gml:SurfacePropertyType", Geometry);
-    TYPE_MAP.put("gml:CurvePropertyType", Geometry);
-    TYPE_MAP.put("gml:PointPropertyType", Geometry);
-    TYPE_MAP.put("xsd:integer", Integer);
-    TYPE_MAP.put("xsd:anyURI", Link);
-    TYPE_MAP.put("xsd:long", Long);
-    TYPE_MAP.put("xsd:string", Text);
-    TYPE_MAP.put("xsd:short", Short);
-    TYPE_MAP.put("xsd:dateTime", Timestamp);
-    TYPE_MAP.put("xsd:time", Timestamp);
+    TYPE_MAP.put("xsd:int", ColumnType.Integer);
+    TYPE_MAP.put("xsd:decimal", ColumnType.BigDecimal);
+    TYPE_MAP.put("xsd:date", ColumnType.Date);
+    TYPE_MAP.put("xsd:double", ColumnType.Double);
+    TYPE_MAP.put("xsd:float", ColumnType.Float);
+    TYPE_MAP.put("xsd:boolean", ColumnType.Boolean);
+    TYPE_MAP.put("gml:MultiSurfacePropertyType", ColumnType.Geometry);
+    TYPE_MAP.put("gml:MultiPointPropertyType", ColumnType.Geometry);
+    TYPE_MAP.put("gml:MultiCurvePropertyType", ColumnType.Geometry);
+    TYPE_MAP.put("gml:GeometryPropertyType", ColumnType.Geometry);
+    TYPE_MAP.put("gml:SurfacePropertyType", ColumnType.Geometry);
+    TYPE_MAP.put("gml:CurvePropertyType", ColumnType.Geometry);
+    TYPE_MAP.put("gml:PointPropertyType", ColumnType.Geometry);
+    TYPE_MAP.put("xsd:integer", ColumnType.Integer);
+    TYPE_MAP.put("xsd:anyURI", ColumnType.Link);
+    TYPE_MAP.put("xsd:long", ColumnType.Long);
+    TYPE_MAP.put("xsd:string", ColumnType.Text);
+    TYPE_MAP.put("xsd:short", ColumnType.Short);
+    TYPE_MAP.put("xsd:dateTime", ColumnType.Timestamp);
+    TYPE_MAP.put("xsd:time", ColumnType.Timestamp);
   }
 
   @Autowired private MetadataCollectionRepository metadataCollectionRepository;
