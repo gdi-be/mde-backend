@@ -1,3 +1,11 @@
+## [4.4.5](https://github.com/gdi-be/mde-backend/compare/v4.4.4...v4.4.5) (2026-01-26)
+
+
+### Bug Fixes
+
+* add Boolean to ColumnInfo.ColumnType enum ([39d844d](https://github.com/gdi-be/mde-backend/commit/39d844d60c8b504c0f6367cc8b9055553d77fb30))
+* escape special characters in terms of use metadata ([031cc2a](https://github.com/gdi-be/mde-backend/commit/031cc2a30121646967706519cbd134e34c3e8c67))
+
 ## [4.4.4](https://github.com/gdi-be/mde-backend/compare/v4.4.3...v4.4.4) (2026-01-16)
 
 
