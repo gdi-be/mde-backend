@@ -16,6 +16,7 @@ public class ColumnInfo {
 
   public enum ColumnType {
     BigDecimal,
+    Boolean,
     Date,
     Double,
     Float,
@@ -23,8 +24,8 @@ public class ColumnInfo {
     Integer,
     Link,
     Long,
-    Text,
     Short,
+    Text,
     Timestamp
   }
 
