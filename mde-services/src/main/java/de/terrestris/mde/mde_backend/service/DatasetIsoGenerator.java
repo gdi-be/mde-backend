@@ -78,9 +78,11 @@ public class DatasetIsoGenerator {
       throws XMLStreamException, JsonProcessingException {
     var val = MAPPER.writeValueAsString(terms);
     if (source != null) {
-      val = val.replace("[Quelle]", source);
+      String escapedSource = MAPPER.writeValueAsString(source);
+      val = val.replace("[Quelle]", escapedSource);
     }
-    val = val.replace("[Titel des Datensatzes]", title);
+    String escapedTitle = MAPPER.writeValueAsString(title);
+    val = val.replace("[Titel des Datensatzes]", escapedTitle);
     terms = MAPPER.readValue(val, TermsOfUse.class);
     writer.writeStartElement(GMD, "resourceConstraints");
     writer.writeStartElement(GMD, "MD_LegalConstraints");
