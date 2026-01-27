@@ -79,9 +79,11 @@ public class DatasetIsoGenerator {
     var val = MAPPER.writeValueAsString(terms);
     if (source != null) {
       String escapedSource = MAPPER.writeValueAsString(source);
+      escapedSource = escapedSource.substring(1, escapedSource.length() - 1);
       val = val.replace("[Quelle]", escapedSource);
     }
     String escapedTitle = MAPPER.writeValueAsString(title);
+    escapedTitle = escapedTitle.substring(1, escapedTitle.length() - 1);
     val = val.replace("[Titel des Datensatzes]", escapedTitle);
     terms = MAPPER.readValue(val, TermsOfUse.class);
     writer.writeStartElement(GMD, "resourceConstraints");

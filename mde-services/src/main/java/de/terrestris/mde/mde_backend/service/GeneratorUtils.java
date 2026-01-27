@@ -47,13 +47,18 @@ public class GeneratorUtils {
 
   private static final Map<String, String> HVD_MAP =
       Map.of(
-          "Georaum", "http://data.europa.eu/bna/c_ac64a52d",
-          "Erdbeobachtung und Umwelt", "http://data.europa.eu/bna/c_dd313021",
-          "Meteorologie", "http://data.europa.eu/bna/c_164e0bf5",
-          "Statistik", "http://data.europa.eu/bna/c_e1da4e07",
+          "Georaum",
+          "http://data.europa.eu/bna/c_ac64a52d",
+          "Erdbeobachtung und Umwelt",
+          "http://data.europa.eu/bna/c_dd313021",
+          "Meteorologie",
+          "http://data.europa.eu/bna/c_164e0bf5",
+          "Statistik",
+          "http://data.europa.eu/bna/c_e1da4e07",
           "Unternehmen und Eigentümerschaft von Unternehmen",
-              "http://data.europa.eu/bna/c_a9135398",
-          "Mobilität", "http://data.europa.eu/bna/c_b79e35eb");
+          "http://data.europa.eu/bna/c_a9135398",
+          "Mobilität",
+          "http://data.europa.eu/bna/c_b79e35eb");
 
   static {
     INSPIRE_THEME_MAP = new HashMap<>();
@@ -267,12 +272,18 @@ public class GeneratorUtils {
 
     try {
       var mapper = new ObjectMapper(new YAMLFactory());
-      DEFAULT_CONTACT =
-          mapper.readValue(new File(System.getenv("CODELISTS_DIR"), "contact.yaml"), Contact.class);
+      // Check environment variable first (production), then System property (tests)
+      String codelistsDir = System.getenv("CODELISTS_DIR");
+      if (codelistsDir == null) {
+        codelistsDir = System.getProperty("CODELISTS_DIR");
+      }
+      if (codelistsDir == null) {
+        throw new IOException("CODELISTS_DIR is not set");
+      }
+      DEFAULT_CONTACT = mapper.readValue(new File(codelistsDir, "contact.yaml"), Contact.class);
       METADATA_VARIABLES =
           mapper.readValue(
-              new File(System.getenv("CODELISTS_DIR"), "metadatavariables.yaml"),
-              MetadataVariables.class);
+              new File(codelistsDir, "metadatavariables.yaml"), MetadataVariables.class);
     } catch (IOException e) {
       log.error("Error when loading the default contact: {}", e.getMessage());
       log.trace("Stack trace:", e);
