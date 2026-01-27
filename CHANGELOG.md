@@ -1,3 +1,10 @@
+## [4.4.6](https://github.com/gdi-be/mde-backend/compare/v4.4.5...v4.4.6) (2026-01-27)
+
+
+### Bug Fixes
+
+* update handling of special characters in terms ([996ccc4](https://github.com/gdi-be/mde-backend/commit/996ccc45f3ca3e215aafc4a0cb38cec99618f9e5))
+
 ## [4.4.5](https://github.com/gdi-be/mde-backend/compare/v4.4.4...v4.4.5) (2026-01-26)
 
 
