@@ -40,12 +40,25 @@ public class IsoGenerator {
 
   static {
     try {
-      VALUES_MAP =
-          new ObjectMapper().readValue(new File(System.getenv("VARIABLE_FILE")), Map.class);
+      String variableFile = System.getenv("VARIABLE_FILE");
+      if (variableFile == null) {
+        variableFile = System.getProperty("VARIABLE_FILE");
+      }
+      if (variableFile == null) {
+        throw new IOException("VARIABLE_FILE is not set.");
+      }
+      VALUES_MAP = new ObjectMapper().readValue(new File(variableFile), Map.class);
       var mapper = new ObjectMapper(new YAMLFactory());
       var type =
           TypeFactory.defaultInstance().constructCollectionType(List.class, TermsOfUse.class);
-      var dir = new File(System.getenv("CODELISTS_DIR"));
+      String codelistsDir = System.getenv("CODELISTS_DIR");
+      if (codelistsDir == null) {
+        codelistsDir = System.getProperty("CODELISTS_DIR");
+      }
+      if (codelistsDir == null) {
+        throw new IOException("CODELISTS_DIR is not set.");
+      }
+      var dir = new File(codelistsDir);
       TERMS_OF_USES = mapper.readValue(new File(dir, "terms_of_use.yaml"), type);
       TERMS_OF_USES.forEach(
           t -> {

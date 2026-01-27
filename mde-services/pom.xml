@@ -203,6 +203,16 @@
           </to>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <systemPropertyVariables>
+            <CODELISTS_DIR>${project.basedir}/src/test/resources/codelists</CODELISTS_DIR>
+            <VARIABLE_FILE>${project.basedir}/src/test/resources/variables.json</VARIABLE_FILE>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
