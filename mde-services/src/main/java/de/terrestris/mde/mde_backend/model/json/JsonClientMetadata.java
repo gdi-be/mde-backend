@@ -16,16 +16,7 @@ import org.springframework.lang.Nullable;
 @AllArgsConstructor
 public class JsonClientMetadata {
 
-  public enum Privacy {
-    NONE,
-    CRITICAL_INFRASTRUCTURE,
-    PERSONAL_DATA,
-    INTERNAL_USE_ONLY
-  }
-
   @Nullable private List<Comment> comments;
-
-  @Nullable private Privacy privacy = Privacy.NONE;
 
   @Nullable private Extent initialExtent;
 

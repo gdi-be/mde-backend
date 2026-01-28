@@ -29,6 +29,13 @@ import org.springframework.lang.Nullable;
 @AllArgsConstructor
 public class JsonIsoMetadata implements CommonFields {
 
+  public enum Privacy {
+    NONE,
+    CRITICAL_INFRASTRUCTURE,
+    PERSONAL_DATA,
+    INTERNAL_USE_ONLY
+  }
+
   public enum InspireTheme {
     AC,
     AD,
@@ -154,6 +161,8 @@ public class JsonIsoMetadata implements CommonFields {
   private boolean valid = false;
 
   @Nullable private List<String> topicCategory;
+
+  @Nullable private Privacy privacy = Privacy.NONE;
 
   @Nullable private BigInteger termsOfUseId;
 
