@@ -8,6 +8,7 @@ import static de.terrestris.mde.mde_backend.model.json.codelists.CI_DateTypeCode
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode.download;
 import static de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode.information;
 import static de.terrestris.mde.mde_backend.model.json.codelists.MD_RestrictionCode.otherRestrictions;
+import static de.terrestris.mde.mde_backend.model.json.codelists.MD_RestrictionCode.restricted;
 import static de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode.dataset;
 import static de.terrestris.mde.mde_backend.service.GeneratorUtils.*;
 import static de.terrestris.mde.mde_backend.service.IsoGenerator.TERMS_OF_USE_BY_ID;
@@ -17,10 +18,7 @@ import static de.terrestris.utils.xml.XmlUtils.writeSimpleElement;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.terrestris.mde.mde_backend.model.json.Extent;
-import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
-import de.terrestris.mde.mde_backend.model.json.Lineage;
-import de.terrestris.mde.mde_backend.model.json.Service;
+import de.terrestris.mde.mde_backend.model.json.*;
 import de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode;
 import de.terrestris.mde.mde_backend.model.json.termsofuse.TermsOfUse;
 import java.io.IOException;
@@ -74,9 +72,14 @@ public class DatasetIsoGenerator {
   }
 
   protected static void writeResourceConstraints(
-      XMLStreamWriter writer, TermsOfUse terms, String source, String title)
+      XMLStreamWriter writer,
+      TermsOfUse terms,
+      String source,
+      String title,
+      JsonIsoMetadata.Privacy privacy)
       throws XMLStreamException, JsonProcessingException {
     var val = MAPPER.writeValueAsString(terms);
+    boolean hasPrivacyRestrictions = privacy != null && privacy != JsonIsoMetadata.Privacy.NONE;
     if (source != null) {
       String escapedSource = MAPPER.writeValueAsString(source);
       escapedSource = escapedSource.substring(1, escapedSource.length() - 1);
@@ -89,7 +92,7 @@ public class DatasetIsoGenerator {
     writer.writeStartElement(GMD, "resourceConstraints");
     writer.writeStartElement(GMD, "MD_LegalConstraints");
     writer.writeStartElement(GMD, "accessConstraints");
-    writeCodelistValue(writer, otherRestrictions);
+    writeCodelistValue(writer, hasPrivacyRestrictions ? restricted : otherRestrictions);
     writer.writeEndElement(); // accessConstraints
     writer.writeStartElement(GMD, "otherConstraints");
     writer.writeStartElement(GMX, "Anchor");
@@ -97,7 +100,10 @@ public class DatasetIsoGenerator {
         XLINK,
         "href",
         "http://inspire.ec.europa.eu/metadata-codelist/LimitationsOnPublicAccess/noLimitations");
-    writer.writeCharacters("Es gelten keine Zugriffsbeschränkungen");
+    writer.writeCharacters(
+        hasPrivacyRestrictions
+            ? "Der Zugriff auf die Daten ist beschränkt."
+            : "Es gelten keine Zugriffsbeschränkungen");
     writer.writeEndElement(); // Anchor
     writer.writeEndElement(); // otherConstraints
     writer.writeEndElement(); // MD_LegalConstraints
@@ -110,9 +116,13 @@ public class DatasetIsoGenerator {
     writer.writeStartElement(GMD, "otherConstraints");
     writeSimpleElement(writer, GCO, "CharacterString", terms.getDescription());
     writer.writeEndElement(); // otherConstraints
-    writer.writeStartElement(GMD, "otherConstraints");
-    writeSimpleElement(writer, GCO, "CharacterString", MAPPER.writeValueAsString(terms.getJson()));
-    writer.writeEndElement(); // otherConstraints
+    // opendata-json only required for open data
+    if (!hasPrivacyRestrictions && terms.getJson() != null) {
+      writer.writeStartElement(GMD, "otherConstraints");
+      writeSimpleElement(
+          writer, GCO, "CharacterString", MAPPER.writeValueAsString(terms.getJson()));
+      writer.writeEndElement(); // otherConstraints
+    }
     writer.writeEndElement(); // MD_LegalConstraints
     writer.writeEndElement(); // resourceConstraints
   }
@@ -282,7 +292,8 @@ public class DatasetIsoGenerator {
           writer,
           TERMS_OF_USE_BY_ID.get(metadata.getTermsOfUseId().intValue()),
           metadata.getTermsOfUseSource(),
-          metadata.getTitle());
+          metadata.getTitle(),
+          metadata.getPrivacy());
     }
     writeSpatialRepresentationType(writer, metadata);
     writeSpatialResolution(writer, metadata);

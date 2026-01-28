@@ -159,7 +159,8 @@ public class ServiceIsoGenerator {
           writer,
           TERMS_OF_USE_BY_ID.get(metadata.getTermsOfUseId().intValue()),
           metadata.getTermsOfUseSource(),
-          metadata.getTitle());
+          metadata.getTitle(),
+          metadata.getPrivacy());
     }
     writer.writeStartElement(SRV, "serviceType");
     writer.writeStartElement(GCO, "LocalName");

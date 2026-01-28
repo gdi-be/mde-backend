@@ -59,6 +59,11 @@ public class KeycloakService {
     var user = userResource.toRepresentation();
     var attributes = user.getAttributes();
     var details = new UserDetails();
+
+    if (attributes == null) {
+      attributes = java.util.Collections.emptyMap();
+    }
+
     details.setStreet(attributes.getOrDefault("streetAddress", List.of("")).getFirst());
     details.setCity(attributes.getOrDefault("city", List.of("")).getFirst());
     details.setPhone(attributes.getOrDefault("telephoneNumber", List.of("")).getFirst());
