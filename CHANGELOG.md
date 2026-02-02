@@ -1,3 +1,16 @@
+# [4.5.0](https://github.com/gdi-be/mde-backend/compare/v4.4.6...v4.5.0) (2026-02-02)
+
+
+### Bug Fixes
+
+* add null check for user attributes ([3ce2ee5](https://github.com/gdi-be/mde-backend/commit/3ce2ee593248388841e0b29202b7663467dab05c))
+* **deps:** update deps to fix some CVEs ([7bf3084](https://github.com/gdi-be/mde-backend/commit/7bf3084a87b06b8bc7fb77549c8aa5edd61911a3))
+
+
+### Features
+
+* handle privacy property in ISO generation ([d521ef9](https://github.com/gdi-be/mde-backend/commit/d521ef998092d0c3a70180e7899dcccc2033d46b))
+
 ## [4.4.6](https://github.com/gdi-be/mde-backend/compare/v4.4.5...v4.4.6) (2026-01-27)
 
 
