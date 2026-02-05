@@ -7,15 +7,14 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.springframework.lang.Nullable;
 
 @Data
 @JsonDeserialize(as = Service.class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@NoArgsConstructor(force = true)
 @AllArgsConstructor
 public class Service implements CommonFields {
 
@@ -25,6 +24,9 @@ public class Service implements CommonFields {
     ATOM,
     WMTS
   }
+
+  // mde-client related id
+  private UUID id;
 
   @Nullable private String workspace;
 
@@ -38,6 +40,7 @@ public class Service implements CommonFields {
 
   @Nullable private String fileIdentifier;
 
+  // used as unique identifier in client
   @Nullable private String serviceIdentification;
 
   @Nullable private ServiceType serviceType;
@@ -71,4 +74,8 @@ public class Service implements CommonFields {
   @Nullable private List<FeatureType> featureTypes;
 
   @Nullable private List<DownloadInfo> downloads;
+
+  public Service() {
+    this.id = UUID.randomUUID();
+  }
 }
