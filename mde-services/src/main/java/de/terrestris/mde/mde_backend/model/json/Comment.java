@@ -7,15 +7,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
 @JsonDeserialize(as = Comment.class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@NoArgsConstructor(force = true)
 @AllArgsConstructor
 public class Comment {
 
+  // mde-client related id
   private UUID id;
 
   private String text;
@@ -25,6 +24,10 @@ public class Comment {
   private String userId;
 
   private String userName;
+
+  public Comment() {
+    this.id = UUID.randomUUID();
+  }
 
   public Comment(String text, String userId, String userName) {
     this.id = UUID.randomUUID();
