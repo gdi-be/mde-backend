@@ -735,7 +735,9 @@ public class DatasetIsoGenerator {
 
     var lineages = metadata.getLineage();
     if (lineages == null || lineages.isEmpty()) {
-      lineages = List.of(new Lineage(null, METADATA_VARIABLES.getLineage(), null));
+      Lineage newLineage = new Lineage();
+      newLineage.setTitle(METADATA_VARIABLES.getLineage());
+      lineages = List.of(newLineage);
     }
     var texts = String.join(", ", lineages.stream().map(Lineage::getTitle).toList());
 

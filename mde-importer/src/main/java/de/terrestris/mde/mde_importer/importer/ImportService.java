@@ -1174,7 +1174,13 @@ public class ImportService {
           break;
         case "Datengrundlage":
           skipToElement(reader, "Inhalt");
-          metadata.getLineage().add(new Lineage(null, reader.getElementText(), null));
+          Lineage newLineage = new Lineage();
+          newLineage.setTitle(reader.getElementText());
+          if (metadata.getLineage() != null) {
+            metadata.getLineage().add(newLineage);
+          } else {
+            metadata.setLineage(List.of(newLineage));
+          }
           break;
         case "Veroeffentlichung":
           var publication = new ContentDescription();
