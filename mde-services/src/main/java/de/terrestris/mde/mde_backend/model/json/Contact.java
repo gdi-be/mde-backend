@@ -4,17 +4,19 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode;
 import de.terrestris.mde.mde_backend.model.json.codelists.CI_RoleCode;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.springframework.lang.Nullable;
 
 @Data
 @JsonDeserialize(as = Contact.class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@NoArgsConstructor(force = true)
 @AllArgsConstructor
 public class Contact {
+
+  // mde-client related id
+  private UUID id;
 
   @Nullable private String name;
 
@@ -31,4 +33,8 @@ public class Contact {
   @Nullable private String url;
 
   @Nullable private CI_RoleCode roleCode;
+
+  public Contact() {
+    this.id = UUID.randomUUID();
+  }
 }
