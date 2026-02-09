@@ -1,8 +1,8 @@
 const Configuration = {
   extends: ["@commitlint/config-conventional"],
   rules: {
-    'header-case': [2, 'always', ['lower-case', 'sentence-case', 'start-case']],
-    'subject-case': [2, 'always', ['lower-case', 'sentence-case', 'start-case']]
+    'header-case': [0],
+    'subject-case': [0]
   }
 };
 
