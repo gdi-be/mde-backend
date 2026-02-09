@@ -1,3 +1,29 @@
+# [5.0.0](https://github.com/gdi-be/mde-backend/compare/v4.5.0...v5.0.0) (2026-02-09)
+
+
+### Bug Fixes
+
+* adds an uuid field to all list entities ([4d571be](https://github.com/gdi-be/mde-backend/commit/4d571be91cff8640aed7974e6e0384d06f1f6c17))
+* fix renovate config ([6cc7345](https://github.com/gdi-be/mde-backend/commit/6cc73458df0d64bc541c1f085a0a8dd001bd84fd))
+* fix renovate config ([a475622](https://github.com/gdi-be/mde-backend/commit/a4756229652f0925ae53f48365caa4e56bf60e2e))
+* fix renovate config ([39a4257](https://github.com/gdi-be/mde-backend/commit/39a4257784eaa3f3df8c78b534997a52976e0c86))
+* fix renovate config ([f14cf77](https://github.com/gdi-be/mde-backend/commit/f14cf777b23f905bc2d748852f272347b09ed648))
+* fix renovate config ([605d170](https://github.com/gdi-be/mde-backend/commit/605d170b7ddbc3083895040194038ee4e16191f3))
+* fix renovate config ([caf888b](https://github.com/gdi-be/mde-backend/commit/caf888b3f1839e34cbf65a67dd2e09272dc61cfd))
+* fix renovate config ([caa4a4c](https://github.com/gdi-be/mde-backend/commit/caa4a4c326b2d0d290940b780c7fd501439fee11))
+
+
+### Features
+
+* add renovate ([673f1ef](https://github.com/gdi-be/mde-backend/commit/673f1ef115204a3c8667d3481675666784f57273))
+
+
+### BREAKING CHANGES
+
+* adds a required field to several entities, a backup
+of the database is highly recommended before executing the contained migration.
+Beware that migrations run automatically on application startup.
+
 # [4.5.0](https://github.com/gdi-be/mde-backend/compare/v4.4.6...v4.5.0) (2026-02-02)
 
 
