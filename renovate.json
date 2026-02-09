@@ -1,5 +1,6 @@
 {
   "extends": ["config:recommended"],
   "commitMessagePrefix": "chore:",
-  "semanticCommits": "enabled"
+  "semanticCommits": "enabled",
+  "commitMessageLowerCase": "auto"
 }
