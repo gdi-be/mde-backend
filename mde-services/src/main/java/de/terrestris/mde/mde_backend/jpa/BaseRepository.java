@@ -40,4 +40,6 @@ public interface BaseRepository<T, ID>
   Iterable<T> findAllById(@NonNull Iterable<ID> ids);
 
   <S extends BaseMetadata> Optional<S> findByMetadataId(String metadataId);
+
+  <S extends BaseMetadata> List<S> findByClonedFromId(String metadataId);
 }

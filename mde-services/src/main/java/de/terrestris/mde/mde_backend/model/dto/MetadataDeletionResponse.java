@@ -11,4 +11,6 @@ public class MetadataDeletionResponse {
   private String deletedMetadataCollection;
 
   private List<String> deletedCatalogRecords;
+
+  private List<String> affectedClones;
 }
