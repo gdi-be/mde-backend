@@ -463,10 +463,22 @@ public class PublicationService {
           }
         });
 
+    // If the deleted metadata was source of a cloned dataset we need to remove the assignment on
+    // deletion
+    var affectedClones = new ArrayList<String>();
+    List<MetadataCollection> metadataClones =
+        metadataCollectionRepository.findByClonedFromId(metadataId);
+    for (MetadataCollection metadataClone : metadataClones) {
+      metadataClone.setClonedFromId(null);
+      metadataCollectionRepository.save(metadataClone);
+      affectedClones.add(metadataClone.getMetadataId());
+    }
+
     metadataCollectionRepository.delete(metadataCollection);
 
     response.setDeletedCatalogRecords(catalogRecords);
     response.setDeletedMetadataCollection(metadataId);
+    response.setAffectedClones(affectedClones);
 
     return response;
   }

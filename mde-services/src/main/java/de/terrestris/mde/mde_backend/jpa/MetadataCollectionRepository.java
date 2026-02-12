@@ -3,6 +3,7 @@ package de.terrestris.mde.mde_backend.jpa;
 import de.terrestris.mde.mde_backend.model.MetadataCollection;
 import jakarta.persistence.QueryHint;
 import java.math.BigInteger;
+import java.util.List;
 import java.util.Optional;
 import org.hibernate.jpa.AvailableHints;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -20,6 +21,9 @@ public interface MetadataCollectionRepository
 
   @QueryHints(@QueryHint(name = AvailableHints.HINT_CACHEABLE, value = "true"))
   Optional<MetadataCollection> findByMetadataId(String metadataId);
+
+  @QueryHints(@QueryHint(name = AvailableHints.HINT_CACHEABLE, value = "true"))
+  List<MetadataCollection> findByClonedFromId(String metadataId);
 
   @Query(
       value =
