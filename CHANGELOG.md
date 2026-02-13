@@ -1,3 +1,10 @@
+## [5.0.1](https://github.com/gdi-be/mde-backend/compare/v5.0.0...v5.0.1) (2026-02-13)
+
+
+### Bug Fixes
+
+* update clones on metadata deletion ([72d8c11](https://github.com/gdi-be/mde-backend/commit/72d8c1140c506113a1fe0bd0f024e17b1bebe3c9))
+
 # [5.0.0](https://github.com/gdi-be/mde-backend/compare/v4.5.0...v5.0.0) (2026-02-09)
 
 
