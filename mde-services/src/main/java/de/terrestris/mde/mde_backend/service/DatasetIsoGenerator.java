@@ -18,7 +18,10 @@ import static de.terrestris.utils.xml.XmlUtils.writeSimpleElement;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.terrestris.mde.mde_backend.model.json.*;
+import de.terrestris.mde.mde_backend.model.json.Extent;
+import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
+import de.terrestris.mde.mde_backend.model.json.Lineage;
+import de.terrestris.mde.mde_backend.model.json.Service;
 import de.terrestris.mde.mde_backend.model.json.codelists.MD_ScopeCode;
 import de.terrestris.mde.mde_backend.model.json.termsofuse.TermsOfUse;
 import java.io.IOException;
@@ -285,7 +288,9 @@ public class DatasetIsoGenerator {
       writePreview(writer, metadata.getPreview());
     }
     writeKeywords(writer, metadata);
-    writeInspireThemeKeywords(writer, metadata);
+    if (metadata.getMetadataProfile() != null && !metadata.getMetadataProfile().equals(ISO)) {
+      writeInspireThemeKeywords(writer, metadata);
+    }
     writeRegionalKeyword(writer);
     if (metadata.getTermsOfUseId() != null) {
       writeResourceConstraints(
