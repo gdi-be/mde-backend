@@ -148,7 +148,10 @@ public class ServiceIsoGenerator {
       writeLegend(writer, service.getLegendImage());
     }
     writeKeywords(writer, metadata);
-    writeInspireThemeKeywords(writer, metadata);
+    if (metadata.getMetadataProfile() != null
+        && !metadata.getMetadataProfile().equals(MetadataProfile.ISO)) {
+      writeInspireThemeKeywords(writer, metadata);
+    }
     writeRegionalKeyword(writer);
     switch (service.getServiceType()) {
       case WFS, ATOM -> writeServiceKeyword(writer, "infoFeatureAccessService");
