@@ -1,3 +1,11 @@
+## [5.0.2](https://github.com/gdi-be/mde-backend/compare/v5.0.1...v5.0.2) (2026-02-16)
+
+
+### Bug Fixes
+
+* only export INSPIRE keyword for INSPIRE datasets ([9571ef3](https://github.com/gdi-be/mde-backend/commit/9571ef310b901d25803f69451345a8b3a7be9954))
+* use character string for restricted data ([163e0c5](https://github.com/gdi-be/mde-backend/commit/163e0c56c8ca0491b27b8608317a2c209b29c335))
+
 ## [5.0.1](https://github.com/gdi-be/mde-backend/compare/v5.0.0...v5.0.1) (2026-02-13)
 
 
