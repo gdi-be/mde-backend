@@ -18,6 +18,7 @@ import static de.terrestris.utils.xml.XmlUtils.writeSimpleElement;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.terrestris.mde.mde_backend.model.json.*;
 import de.terrestris.mde.mde_backend.model.json.Extent;
 import de.terrestris.mde.mde_backend.model.json.JsonIsoMetadata;
 import de.terrestris.mde.mde_backend.model.json.Lineage;
@@ -98,16 +99,20 @@ public class DatasetIsoGenerator {
     writeCodelistValue(writer, hasPrivacyRestrictions ? restricted : otherRestrictions);
     writer.writeEndElement(); // accessConstraints
     writer.writeStartElement(GMD, "otherConstraints");
-    writer.writeStartElement(GMX, "Anchor");
-    writer.writeAttribute(
-        XLINK,
-        "href",
-        "http://inspire.ec.europa.eu/metadata-codelist/LimitationsOnPublicAccess/noLimitations");
+    if (hasPrivacyRestrictions) {
+      writer.writeStartElement(GCO, "CharacterString");
+    } else {
+      writer.writeStartElement(GMX, "Anchor");
+      writer.writeAttribute(
+          XLINK,
+          "href",
+          "http://inspire.ec.europa.eu/metadata-codelist/LimitationsOnPublicAccess/noLimitations");
+    }
     writer.writeCharacters(
         hasPrivacyRestrictions
             ? "Der Zugriff auf die Daten ist beschränkt."
             : "Es gelten keine Zugriffsbeschränkungen");
-    writer.writeEndElement(); // Anchor
+    writer.writeEndElement(); // Anchor/CharacterString
     writer.writeEndElement(); // otherConstraints
     writer.writeEndElement(); // MD_LegalConstraints
     writer.writeEndElement(); // resourceConstraints
