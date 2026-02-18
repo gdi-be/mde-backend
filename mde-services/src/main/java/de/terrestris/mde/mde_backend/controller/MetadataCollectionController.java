@@ -35,6 +35,7 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -188,6 +189,11 @@ public class MetadataCollectionController
             service.updateIsoJsonValue(metadataId, patch.getKey(), patch.getValue());
         default -> throw new IllegalArgumentException("Invalid metadata type: " + metadataType);
       };
+    } catch (CannotAcquireLockException e) {
+      log.error("Concurrent update for metadata with id {}: {}", metadataId, e.getMessage());
+      log.trace("Full stack trace: ", e);
+
+      throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage(), e);
     } catch (DuplicateTitleException | DuplicateServiceIdentificationException e) {
       log.error("Error while updating metadata with id {}: \n {}", metadataId, e.getMessage());
       log.trace("Full stack trace: ", e);
