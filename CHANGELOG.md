@@ -1,3 +1,10 @@
+## [5.0.3](https://github.com/gdi-be/mde-backend/compare/v5.0.2...v5.0.3) (2026-02-23)
+
+
+### Bug Fixes
+
+* fix exception on conflicting updates ([e034573](https://github.com/gdi-be/mde-backend/commit/e034573c4995afc9e6b3c2bc3cc0a1a1f509539e))
+
 ## [5.0.2](https://github.com/gdi-be/mde-backend/compare/v5.0.1...v5.0.2) (2026-02-16)
 
 
