@@ -3,7 +3,6 @@ package de.terrestris.mde.mde_backend.service;
 import static de.terrestris.bkgtestsuite.core.model.TestResult.MessageType.TEXT;
 import static de.terrestris.bkgtestsuite.core.model.TestResult.ResultStatus.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.terrestris.bkgtestsuite.core.model.TestParameters;
 import de.terrestris.bkgtestsuite.core.model.TestResult;
 import de.terrestris.bkgtestsuite.core.spi.TestRunner;
@@ -38,6 +37,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 @Log4j2

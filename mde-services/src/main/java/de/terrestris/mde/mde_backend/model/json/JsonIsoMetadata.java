@@ -20,7 +20,7 @@ import org.hibernate.search.engine.backend.types.Sortable;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.GenericField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @Data
 @JsonDeserialize(as = JsonIsoMetadata.class)
