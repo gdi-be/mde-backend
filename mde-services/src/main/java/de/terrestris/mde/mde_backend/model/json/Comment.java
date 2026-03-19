@@ -2,6 +2,7 @@ package de.terrestris.mde.mde_backend.model.json;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.io.Serializable;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
@@ -12,7 +13,7 @@ import lombok.Data;
 @JsonDeserialize(as = Comment.class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @AllArgsConstructor
-public class Comment {
+public class Comment implements Serializable {
 
   // mde-client related id
   private UUID id;
