@@ -1,3 +1,11 @@
+## [5.0.4](https://github.com/gdi-be/mde-backend/compare/v5.0.3...v5.0.4) (2026-03-25)
+
+
+### Bug Fixes
+
+* remove INSPIRE validator tests ([601bacc](https://github.com/gdi-be/mde-backend/commit/601bacccda41f262a45143380a8fbf435ec74216))
+* update log4j config ([9490556](https://github.com/gdi-be/mde-backend/commit/94905568bef8237248a84da39df185588c0cb292))
+
 ## [5.0.3](https://github.com/gdi-be/mde-backend/compare/v5.0.2...v5.0.3) (2026-02-23)
 
 
