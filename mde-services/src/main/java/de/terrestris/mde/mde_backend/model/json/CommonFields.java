@@ -1,6 +1,8 @@
 package de.terrestris.mde.mde_backend.model.json;
 
-public interface CommonFields {
+import java.io.Serializable;
+
+public interface CommonFields extends Serializable {
 
   void setFileIdentifier(String identifier);
 

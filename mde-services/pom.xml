@@ -67,6 +67,10 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-data-jpa</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.flywaydb</groupId>
@@ -92,7 +96,7 @@
 
     <dependency>
       <groupId>io.hypersistence</groupId>
-      <artifactId>hypersistence-utils-hibernate-63</artifactId>
+      <artifactId>hypersistence-utils-hibernate-71</artifactId>
     </dependency>
 
     <!-- Hibernate Search -->
@@ -104,7 +108,16 @@
       <groupId>org.hibernate.search</groupId>
       <artifactId>hibernate-search-backend-lucene</artifactId>
     </dependency>
-
+    <dependency>
+      <groupId>org.hibernate.orm</groupId>
+      <artifactId>hibernate-processor</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-backward-codecs</artifactId>
+      <scope>compile</scope>
+    </dependency>
     <!-- Swagger -->
     <dependency>
       <groupId>org.springdoc</groupId>
@@ -115,11 +128,6 @@
     <dependency>
       <groupId>org.keycloak</groupId>
       <artifactId>keycloak-admin-client</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>com.fasterxml.jackson.datatype</groupId>
-      <artifactId>jackson-datatype-jsr310</artifactId>
     </dependency>
 
     <dependency>
@@ -155,6 +163,11 @@
     <dependency>
       <groupId>de.terrestris</groupId>
       <artifactId>bkg-scripts</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jspecify</groupId>
+      <artifactId>jspecify</artifactId>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
 

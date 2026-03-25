@@ -4,16 +4,17 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import de.terrestris.mde.mde_backend.model.json.codelists.CI_OnLineFunctionCode;
 import de.terrestris.mde.mde_backend.model.json.codelists.CI_RoleCode;
+import java.io.Serializable;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @Data
 @JsonDeserialize(as = Contact.class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @AllArgsConstructor
-public class Contact {
+public class Contact implements Serializable {
 
   // mde-client related id
   private UUID id;
