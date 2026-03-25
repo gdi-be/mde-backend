@@ -1,5 +1,7 @@
 branches:
   - main
+  - name: 4.4.x
+    channel: 4.4.x
 
 plugins:
   - "@semantic-release/commit-analyzer"
