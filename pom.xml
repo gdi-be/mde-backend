@@ -426,11 +426,6 @@
       </dependency>
       <dependency>
         <groupId>de.terrestris</groupId>
-        <artifactId>bkg-testsuite-etf</artifactId>
-        <version>${testsuite.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>de.terrestris</groupId>
         <artifactId>bkg-scripts</artifactId>
         <version>${testsuite.version}</version>
       </dependency>
