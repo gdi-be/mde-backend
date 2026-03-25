@@ -1,3 +1,10 @@
+## [4.4.7](https://github.com/gdi-be/mde-backend/compare/v4.4.6...v4.4.7) (2026-03-25)
+
+
+### Bug Fixes
+
+* remove INSPIRE validator tests ([601bacc](https://github.com/gdi-be/mde-backend/commit/601bacccda41f262a45143380a8fbf435ec74216))
+
 ## [4.4.6](https://github.com/gdi-be/mde-backend/compare/v4.4.5...v4.4.6) (2026-01-27)
 
 
