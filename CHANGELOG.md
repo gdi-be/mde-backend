@@ -1,3 +1,10 @@
+## [5.0.5](https://github.com/gdi-be/mde-backend/compare/v5.0.4...v5.0.5) (2026-03-26)
+
+
+### Bug Fixes
+
+* fix saving of values ([9516b6a](https://github.com/gdi-be/mde-backend/commit/9516b6a59d574d3a58b65d09e610a498d03f768f))
+
 ## [5.0.4](https://github.com/gdi-be/mde-backend/compare/v5.0.3...v5.0.4) (2026-03-25)
 
 
