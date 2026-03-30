@@ -34,6 +34,9 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+          
+      - name: Install parent modules
+        run: mvn -B install -DskipTests
 
       - name: Run tests
         run: mvn -B test
