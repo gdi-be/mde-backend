@@ -7,7 +7,6 @@
     <groupId>de.terrestris.mde</groupId>
     <artifactId>mde-backend</artifactId>
     <version>5.0.4-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>mde-integration-tests</artifactId>
   <name>mde-integration-tests</name>
