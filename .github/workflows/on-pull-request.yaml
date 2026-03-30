@@ -35,20 +35,16 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Install parent modules
-        run: mvn -B clean install -DskipTests
-
       - name: Run tests
-        run: mvn -B test
+        run: mvn -B test -pl '!mde-integration-tests'
 
       - name: Build artifacts
-        run: mvn -B package
+        run: mvn -B package -pl '!mde-integration-tests'
 
   integration_tests:
     name: Run integration tests (Testcontainers)
     runs-on: ubuntu-latest
     needs: test_and_build
-
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
@@ -68,7 +64,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Install parent modules
-        run: mvn -B clean install -DskipTests
+        run: mvn -B clean install -DskipTests -pl '!mde-integration-tests'
 
       - name: Run integration tests
-        run: mvn -B verify -pl mde-integration-tests
+        run: mvn -B verify -pl mde-integration-tests -am
