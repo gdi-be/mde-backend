@@ -64,5 +64,8 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
+      - name: Install parent modules
+        run: mvn -B install -DskipTests
+
       - name: Run integration tests
-        run: mvn clean verify -pl mde-integration-tests -am
+        run: mvn -B verify -pl mde-integration-tests
