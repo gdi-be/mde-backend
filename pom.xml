@@ -429,6 +429,7 @@
   <modules>
     <module>mde-services</module>
     <module>mde-importer</module>
+    <module>mde-integration-tests</module>
   </modules>
 
 </project>
