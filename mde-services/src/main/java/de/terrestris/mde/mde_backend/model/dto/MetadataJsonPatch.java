@@ -1,8 +1,8 @@
 package de.terrestris.mde.mde_backend.model.dto;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import de.terrestris.mde.mde_backend.enumeration.MetadataType;
 import lombok.Data;
+import tools.jackson.databind.JsonNode;
 
 @Data
 public class MetadataJsonPatch {
