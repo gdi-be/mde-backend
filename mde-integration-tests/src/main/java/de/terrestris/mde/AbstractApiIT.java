@@ -1,8 +1,8 @@
 package de.terrestris.mde;
+import de.terrestris.mde.mde_backend.MdeBackendApplication;
+import de.terrestris.mde.mde_backend.service.SearchService;
 
 import dasniko.testcontainers.keycloak.KeycloakContainer;
-
-import de.terrestris.mde.mde_backend.MdeBackendApplication;
 
 import io.restassured.RestAssured;
 
@@ -10,31 +10,59 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.test.annotation.DirtiesContext;
+
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import org.testcontainers.postgresql.PostgreSQLContainer;
-
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import org.wiremock.integrations.testcontainers.WireMockContainer;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 
+import org.flywaydb.core.Flyway;
+
+import javax.sql.DataSource;
 import java.util.Base64;
 
+
+@SuppressWarnings("resource")
 @SpringBootTest(classes = MdeBackendApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-
 @Testcontainers
-
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@ActiveProfiles("it")
+@Import(AbstractApiIT.FlywayTestConfig.class)
 public abstract class AbstractApiIT {
+
+  @MockitoBean
+  SearchService searchService;
+
+  @TestConfiguration
+  static class FlywayTestConfig {
+    @Bean(initMethod = "migrate")
+    public Flyway flyway(DataSource dataSource) {
+      return Flyway.configure()
+          .dataSource(dataSource)
+          .locations("classpath:db/migration")
+          .baselineOnMigrate(true)
+          .load();
+    }
+  }
+
+  static PostgreSQLContainer postgres;
+  static KeycloakContainer keycloak;
+  static WireMockContainer wiremock;
 
   static {
 
@@ -78,23 +106,21 @@ public abstract class AbstractApiIT {
     } catch (Exception e) {
       throw new RuntimeException("Failed to load test resources", e);
     }
+
+    postgres = new PostgreSQLContainer("postgres:16")
+        .withDatabaseName("mde")
+        .withUsername("mde")
+        .withPassword("mde");
+
+    keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:26.0")
+        .withRealmImportFile("keycloak/test-realm.json");
+
+    wiremock = new WireMockContainer("wiremock/wiremock:3.3.1");
+
+    postgres.start();
+    keycloak.start();
+    wiremock.start();
   }
-
-  @SuppressWarnings("resource")
-  @Container
-  static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:16")
-      .withDatabaseName("mde")
-      .withUsername("mde")
-      .withPassword("mde");
-
-  @SuppressWarnings("resource")
-  @Container
-  public static KeycloakContainer keycloak = new KeycloakContainer("quay.io/keycloak/keycloak:26.0")
-      .withRealmImportFile("keycloak/test-realm.json");
-
-  @SuppressWarnings("resource")
-  @Container
-  static WireMockContainer wiremock = new WireMockContainer("wiremock/wiremock:3.3.1");
 
   @LocalServerPort
   int port;

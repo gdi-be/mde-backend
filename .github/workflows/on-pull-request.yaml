@@ -36,10 +36,10 @@ jobs:
           distribution: 'temurin'
 
       - name: Run tests
-        run: mvn -B -nsu test -pl '!mde-integration-tests'
+        run: mvn -B test -pl '!mde-integration-tests'
 
       - name: Build artifacts
-        run: mvn -B -nsu package -pl '!mde-integration-tests'
+        run: mvn -B package -pl '!mde-integration-tests'
 
   integration_tests:
     name: Run integration tests (Testcontainers)
@@ -64,7 +64,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Install parent modules
-        run: mvn -B -nsu clean install -DskipTests -pl '!mde-integration-tests'
+        run: mvn -B clean install -DskipTests -pl '!mde-integration-tests'
 
       - name: Run integration tests
         run: mvn -B verify -pl mde-integration-tests -am

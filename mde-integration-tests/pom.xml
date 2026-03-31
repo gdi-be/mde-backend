@@ -6,7 +6,7 @@
   <parent>
     <groupId>de.terrestris.mde</groupId>
     <artifactId>mde-backend</artifactId>
-    <version>5.0.4-SNAPSHOT</version>
+    <version>5.0.6-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>mde-integration-tests</artifactId>
@@ -52,6 +52,7 @@
     <dependency>
       <groupId>io.rest-assured</groupId>
       <artifactId>rest-assured</artifactId>
+      <version>6.0.0</version>
     </dependency>
     <!-- Wiremock -->
     <dependency>
@@ -70,7 +71,6 @@
       <artifactId>mde-services</artifactId>
       <version>${project.version}</version>
       <classifier>tests</classifier>
-      <scope>test</scope>
     </dependency>
   </dependencies>
   <build>
