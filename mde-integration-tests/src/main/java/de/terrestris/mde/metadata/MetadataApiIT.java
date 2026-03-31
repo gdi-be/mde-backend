@@ -30,6 +30,7 @@ class MetadataApiIT extends AbstractApiIT {
   }
 
   @Test
+  @DisplayName("Can not delete metadata without authentication")
   void unauthenticatedRequestIsRejected() {
     given()
         .delete("/metadata/" + metadataId)
@@ -38,6 +39,7 @@ class MetadataApiIT extends AbstractApiIT {
   }
 
   @Test
+  @DisplayName("Non-editor cannot publish metadata")
   void nonEditorCannotPublish() {
     String token = getTokenForUser("qa-user", "password");
     given()
@@ -48,6 +50,7 @@ class MetadataApiIT extends AbstractApiIT {
   }
 
   @Test
+  @DisplayName("Editor can publish metadata")
   void editorCanPublish() {
     String token = getTokenForUser("editor-user", "password");
     given()
@@ -59,6 +62,7 @@ class MetadataApiIT extends AbstractApiIT {
   }
 
   @Test
+  @DisplayName("Admin can publish metadata")
   void adminCanPublish() {
     String token = getTokenForUser("admin-user", "password");
     given()
@@ -70,6 +74,7 @@ class MetadataApiIT extends AbstractApiIT {
   }
 
   @Test
+  @DisplayName("Unapproved metadata cannot be published")
   void unapprovedMetadataCannotBePublished() {
     jdbcTemplate.execute(
         "UPDATE metadata_collection SET approved = false WHERE metadata_id = 'test-metadata-uuid-1234'");
@@ -82,6 +87,7 @@ class MetadataApiIT extends AbstractApiIT {
   }
 
   @Test
+  @DisplayName("Metadata without editor role cannot be published")
   void metadataWithoutEditorRoleCannotBePublished() {
     jdbcTemplate.execute(
         "UPDATE metadata_collection SET responsible_role = null WHERE metadata_id = 'test-metadata-uuid-1234'");
@@ -94,6 +100,7 @@ class MetadataApiIT extends AbstractApiIT {
   }
 
   @Test
+  @DisplayName("Fetching metadata by ID works")
   void canFetchMetadataById() {
     String token = getTokenForUser("editor-user", "password");
     given()
@@ -105,6 +112,7 @@ class MetadataApiIT extends AbstractApiIT {
   }
 
   @Test
+  @DisplayName("Fetching unknown metadata ID returns 404")
   void fetchingUnknownIdReturns404() {
     String token = getTokenForUser("editor-user", "password");
     given()
@@ -115,6 +123,7 @@ class MetadataApiIT extends AbstractApiIT {
   }
 
   @Test
+  @DisplayName("QA user can approve metadata")
   void canApproveMetadata() {
     String token = getTokenForUser("qa-user", "password");
     given()
@@ -125,6 +134,7 @@ class MetadataApiIT extends AbstractApiIT {
   }
 
   @Test
+  @DisplayName("QA user can disapprove metadata")
   void canDisapproveMetadata() {
     String token = getTokenForUser("qa-user", "password");
     given()

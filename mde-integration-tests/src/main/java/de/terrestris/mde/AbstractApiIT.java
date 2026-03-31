@@ -5,6 +5,7 @@ import de.terrestris.mde.mde_backend.service.SearchService;
 import dasniko.testcontainers.keycloak.KeycloakContainer;
 
 import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,8 +36,12 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import org.flywaydb.core.Flyway;
 
 import javax.sql.DataSource;
-import java.util.Base64;
 
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
+
+import static io.restassured.RestAssured.given;
 
 @SuppressWarnings("resource")
 @SpringBootTest(classes = MdeBackendApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -219,5 +224,35 @@ public abstract class AbstractApiIT {
     byte[] decoded = Base64.getUrlDecoder().decode(payload);
     String json = new String(decoded);
     return json.replaceAll(".*\"sub\":\"([^\"]+)\".*", "$1");
+  }
+
+   protected String createMetadata(String token) {
+    return given()
+        .header("Authorization", "Bearer " + token)
+        .contentType(ContentType.JSON)
+        .body("""
+            {
+              "title": "Test Metadata"
+            }
+            """)
+        .post("/metadata/")
+        .then()
+        .statusCode(200)
+        .extract()
+        .path("metadataId");
+  }
+
+  protected void patchIso(String key, Object value, String token, String metadataId) {
+
+    Map<String, Object> body = new HashMap<>();
+    body.put("type", "ISO");
+    body.put("key", key);
+    body.put("value", value);
+
+    given()
+        .header("Authorization", "Bearer " + token)
+        .contentType(ContentType.JSON)
+        .body(body)
+        .patch("/metadata/" + metadataId);
   }
 }

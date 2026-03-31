@@ -36,6 +36,7 @@ class MetadataWorkflowIT extends AbstractApiIT {
   }
 
   @Test
+  @DisplayName("Data owner can create metadata")
   void dataOwnerCanCreateMetadata() {
     metadataId = given()
         .header("Authorization", "Bearer " + ownerToken)
@@ -49,6 +50,7 @@ class MetadataWorkflowIT extends AbstractApiIT {
   }
 
   @Test
+  @DisplayName("Full workflow: create -> assign -> approve -> publish")
   void fullWorkflow_createAssignApprovePublish() {
     // Step 1: Create
     String title = "Workflow Test " + System.currentTimeMillis();
@@ -108,6 +110,7 @@ class MetadataWorkflowIT extends AbstractApiIT {
   }
 
   @Test
+  @DisplayName("Unapproved metadata cannot be published")
   void publishFailsIfNotApproved() {
     metadataId = given()
         .header("Authorization", "Bearer " + adminToken)
@@ -135,6 +138,7 @@ class MetadataWorkflowIT extends AbstractApiIT {
   }
 
   @Test
+  @DisplayName("Metadata without assigned role cannot be published")
   void publishFailsIfRoleNotAssigned() {
     metadataId = given()
         .header("Authorization", "Bearer " + adminToken)
@@ -159,6 +163,7 @@ class MetadataWorkflowIT extends AbstractApiIT {
   }
 
   @Test
+  @DisplayName("Editor cannot delete metadata assigned to other user")
   void editorCannotDeleteMetadataAssignedToOtherUser() {
     metadataId = given()
         .header("Authorization", "Bearer " + adminToken)
