@@ -26,12 +26,14 @@ class MetadataContentIT extends AbstractApiIT {
   @AfterEach
   void cleanup() {
     if (metadataId != null) {
-      given()
-          .header("Authorization", "Bearer " + adminToken)
-          .delete("/metadata/" + metadataId)
-          .then()
-          .statusCode(anyOf(is(200), is(404)));
-      metadataId = null;
+      if (metadataId != null) {
+        given()
+            .header("Authorization", "Bearer " + adminToken)
+            .delete("/metadata/" + metadataId)
+            .then()
+            .statusCode(anyOf(is(200), is(404)));
+        metadataId = null;
+      }
     }
   }
 
@@ -508,7 +510,7 @@ class MetadataContentIT extends AbstractApiIT {
     void canDownloadMetadataAsZip() {
 
       metadataId = createMetadata(editorToken);
-     
+
       given()
           .header("Authorization", "Bearer " + editorToken)
           .contentType(ContentType.JSON)

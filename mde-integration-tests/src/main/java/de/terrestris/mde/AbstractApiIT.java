@@ -1,11 +1,14 @@
 package de.terrestris.mde;
-import de.terrestris.mde.mde_backend.MdeBackendApplication;
-import de.terrestris.mde.mde_backend.service.SearchService;
 
+import de.terrestris.mde.mde_backend.MdeBackendApplication;
+import de.terrestris.mde.mde_backend.jpa.MetadataCollectionRepository;
+import de.terrestris.mde.mde_backend.service.SearchService;
+import de.terrestris.mde.mde_backend.thread.TrackingExecutorService;
 import dasniko.testcontainers.keycloak.KeycloakContainer;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import jakarta.persistence.EntityManager;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -133,6 +136,14 @@ public abstract class AbstractApiIT {
   @Autowired
   protected JdbcTemplate jdbcTemplate;
 
+  @Autowired
+  protected TrackingExecutorService executor;
+
+  @Autowired
+  protected EntityManager entityManager;
+
+   @Autowired protected MetadataCollectionRepository metadataCollectionRepository;
+
   @BeforeAll
   static void setupContainers() {
     RestAssured.baseURI = "http://localhost";
@@ -226,7 +237,7 @@ public abstract class AbstractApiIT {
     return json.replaceAll(".*\"sub\":\"([^\"]+)\".*", "$1");
   }
 
-   protected String createMetadata(String token) {
+  protected String createMetadata(String token) {
     return given()
         .header("Authorization", "Bearer " + token)
         .contentType(ContentType.JSON)
