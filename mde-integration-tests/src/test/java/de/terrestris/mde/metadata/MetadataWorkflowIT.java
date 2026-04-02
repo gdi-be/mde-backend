@@ -129,7 +129,6 @@ class MetadataWorkflowIT extends AbstractApiIT {
         .then()
         .statusCode(200);
 
-    // No approval step — publish should be rejected
     given()
         .header("Authorization", "Bearer " + editorToken)
         .post("/metadata/" + metadataId + "/publish")
@@ -150,10 +149,24 @@ class MetadataWorkflowIT extends AbstractApiIT {
         .extract().path("metadataId");
 
     given()
-        .header("Authorization", "Bearer " + qaToken)
-        .post("/metadata/" + metadataId + "/approved")
+        .header("Authorization", "Bearer " + editorToken)
+        .post("/metadata/" + metadataId + "/publish")
         .then()
-        .statusCode(200);
+        .statusCode(409);
+  }
+
+  @Test
+  @DisplayName("Already published metadata cannot be published again")
+  void publishFailsIfStatusIsAlreadyPublished() {
+    metadataId = given()
+        .header("Authorization", "Bearer " + adminToken)
+        .contentType(ContentType.JSON)
+        .body("{\"title\": \"Already Published Test " + System.currentTimeMillis() + "\", \"status\": \"PUBLISHED\"}")
+        .post("/metadata/")
+        .then()
+        .statusCode(200)
+        .extract().path("metadataId");
+
 
     given()
         .header("Authorization", "Bearer " + editorToken)

@@ -503,7 +503,7 @@ class MetadataContentIT extends AbstractApiIT {
 
   @Nested
   @DisplayName("Download Operations")
-  class DownloadAndCloneTests {
+  class DownloadTests {
 
     @Test
     @DisplayName("Can download metadata as ZIP")
@@ -519,18 +519,6 @@ class MetadataContentIT extends AbstractApiIT {
                 "type": "ISO",
                 "key": "metadataProfile",
                 "value": "ISO"
-              }
-              """)
-          .patch("/metadata/" + metadataId);
-
-      given()
-          .header("Authorization", "Bearer " + editorToken)
-          .contentType(ContentType.JSON)
-          .body("""
-              {
-                "type": "ISO",
-                "key": "description",
-                "value": "Test description"
               }
               """)
           .patch("/metadata/" + metadataId);
