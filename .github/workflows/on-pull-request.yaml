@@ -73,5 +73,5 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
-          files: mde-integration-tests/target/failsafe-reports/*.xml
-          
+          files: mde-integration-tests/target/failsafe-reports/TEST-*.xml
+
