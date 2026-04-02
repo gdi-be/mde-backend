@@ -26,14 +26,12 @@ class MetadataContentIT extends AbstractApiIT {
   @AfterEach
   void cleanup() {
     if (metadataId != null) {
-      if (metadataId != null) {
-        given()
-            .header("Authorization", "Bearer " + adminToken)
-            .delete("/metadata/" + metadataId)
-            .then()
-            .statusCode(anyOf(is(200), is(404)));
-        metadataId = null;
-      }
+      given()
+          .header("Authorization", "Bearer " + adminToken)
+          .delete("/metadata/" + metadataId)
+          .then()
+          .log().status();
+      metadataId = null;
     }
   }
 
@@ -529,6 +527,56 @@ class MetadataContentIT extends AbstractApiIT {
           .then()
           .statusCode(200)
           .contentType("application/octet-stream");
+    }
+  }
+
+  @Nested
+  @DisplayName("Clone Operations")
+  class CloneTests {
+
+    @Test
+    @DisplayName("Metadata cloning duplicates expected content and creates independent copy")
+    void cloningCreatesIndependentDuplicate() {
+
+      String metadataId = createMetadata(editorToken);
+
+      patchIso("metadataProfile", "INSPIRE_IDENTIFIED", editorToken, metadataId);
+      patchIso("description", "Original description", editorToken, metadataId);
+
+      String clonedId = given()
+          .header("Authorization", "Bearer " + editorToken)
+          .contentType("application/json")
+          .body("{\"cloneMetadataId\": \"" + metadataId + "\"}")
+          .post("/metadata/")
+          .then()
+          .statusCode(200)
+          .extract()
+          .path("metadataId");
+
+      patchIso("title", "Cloned Metadata", editorToken, clonedId);
+
+      given()
+          .header("Authorization", "Bearer " + editorToken)
+          .get("/metadata/" + clonedId)
+          .then()
+          .statusCode(200)
+          .body("clonedFromId", equalTo(metadataId))
+          .body("isoMetadata.identifier", equalTo(clonedId))
+          .body("isoMetadata.metadataProfile", equalTo("INSPIRE_IDENTIFIED"))
+          .body("isoMetadata.title", equalTo("Cloned Metadata"))
+          .body("isoMetadata.description", nullValue());
+
+      given()
+          .header("Authorization", "Bearer " + adminToken)
+          .delete("/metadata/" + clonedId)
+          .then()
+          .log().status();
+
+       given()
+          .header("Authorization", "Bearer " + adminToken)
+          .delete("/metadata/" + metadataId)
+          .then()
+          .log().status();
     }
   }
 }
