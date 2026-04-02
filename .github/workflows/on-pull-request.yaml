@@ -32,8 +32,8 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          java-version: "21"
+          distribution: "temurin"
 
       - name: Run tests
         run: mvn -B test -pl '!mde-integration-tests'
@@ -60,11 +60,18 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          java-version: "21"
+          distribution: "temurin"
 
       - name: Install parent modules
         run: mvn -B clean install -DskipTests -pl '!mde-integration-tests'
 
       - name: Run integration tests
         run: mvn -B verify -pl mde-integration-tests -am
+
+      - name: Publish test results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: mde-integration-tests/target/failsafe-reports/*.xml
+          

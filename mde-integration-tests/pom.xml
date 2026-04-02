@@ -111,6 +111,8 @@
           <includes>
             <include>**/*IT.java</include>
           </includes>
+          <reportFormat>plain</reportFormat>
+          <useFile>false</useFile>
         </configuration>
       </plugin>
     </plugins>
