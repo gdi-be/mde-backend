@@ -59,6 +59,12 @@ class MetadataApiIT extends AbstractApiIT {
         .then()
         .statusCode(200)
         .body("publishedCatalogRecords", hasSize(greaterThanOrEqualTo(1)));
+
+    given()
+        .header("Authorization", "Bearer " + token)
+        .get("/metadata/" + metadataId)
+        .then()
+        .body("status", equalTo("PUBLISHED"));
   }
 
   @Test
@@ -71,6 +77,12 @@ class MetadataApiIT extends AbstractApiIT {
         .then()
         .statusCode(200)
         .body("publishedCatalogRecords", hasSize(greaterThanOrEqualTo(1)));
+
+    given()
+        .header("Authorization", "Bearer " + token)
+        .get("/metadata/" + metadataId)
+        .then()
+        .body("status", equalTo("PUBLISHED"));
   }
 
   @Test

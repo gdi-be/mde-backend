@@ -22,10 +22,12 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-testcontainers</artifactId>
+      <scope>test</scope>
     </dependency>
     <!-- Testcontainers -->
     <dependency>
@@ -53,17 +55,20 @@
       <groupId>io.rest-assured</groupId>
       <artifactId>rest-assured</artifactId>
       <version>6.0.0</version>
+      <scope>test</scope>
     </dependency>
     <!-- Wiremock -->
     <dependency>
       <groupId>org.wiremock.integrations.testcontainers</groupId>
       <artifactId>wiremock-testcontainers-module</artifactId>
       <version>1.0-alpha-13</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.wiremock</groupId>
       <artifactId>wiremock</artifactId>
       <version>3.13.2</version>
+      <scope>test</scope>
     </dependency>
     <!-- Test JAR -->
     <dependency>
@@ -71,10 +76,12 @@
       <artifactId>mde-services</artifactId>
       <version>${project.version}</version>
       <classifier>tests</classifier>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-test</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
   <build>
@@ -92,9 +99,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
-        <configuration>
-          <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
-        </configuration>
         <executions>
           <execution>
             <goals>
@@ -103,6 +107,11 @@
             </goals>
           </execution>
         </executions>
+        <configuration>
+          <includes>
+            <include>**/*IT.java</include>
+          </includes>
+        </configuration>
       </plugin>
     </plugins>
   </build>
