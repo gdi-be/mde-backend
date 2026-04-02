@@ -12,7 +12,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
-@DisplayName("Codelist API")
+@DisplayName("Codelist API Integration Tests")
 class CodelistIT extends AbstractApiIT {
 
   private String token;

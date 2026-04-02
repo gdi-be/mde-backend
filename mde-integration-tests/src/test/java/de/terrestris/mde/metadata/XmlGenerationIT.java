@@ -12,7 +12,7 @@ import java.util.zip.ZipInputStream;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DisplayName("XML Generation")
+@DisplayName("XML Generation Integration Tests")
 class XmlGenerationIT extends AbstractApiIT {
 
   private String token;

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.*;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
+@DisplayName("Metadata API Integration Tests")
 class MetadataApiIT extends AbstractApiIT {
 
   private String metadataId;

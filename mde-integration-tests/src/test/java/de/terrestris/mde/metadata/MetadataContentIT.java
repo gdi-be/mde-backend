@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+@DisplayName("Metadata Content Integration Tests")
 class MetadataContentIT extends AbstractApiIT {
 
   private String metadataId;
@@ -311,7 +312,7 @@ class MetadataContentIT extends AbstractApiIT {
   class TecchnicalMetadataTests {
 
     @Test
-    @DisplayName("06 Update technical metadata")
+    @DisplayName("Technical metadata fields can be updated")
     void updateTechnicalMetadata() {
 
       metadataId = createMetadata(editorToken);
@@ -379,7 +380,7 @@ class MetadataContentIT extends AbstractApiIT {
   }
 
   @Nested
-  @DisplayName("Form Validation and Error Handling")
+  @DisplayName("Form Error Handling")
   class FormValidationTests {
 
     @Test
@@ -423,79 +424,48 @@ class MetadataContentIT extends AbstractApiIT {
     }
   }
 
-  @Nested
-  @DisplayName("Codelist endpoint")
-  class CodelistTests {
+  @Test
+  @DisplayName("Duplicate title update is rejected with CONFLICT")
+  void duplicateTitleIsRejected() {
+    String title1 = "Unique Title - " + System.currentTimeMillis();
+    metadataId = given()
+        .header("Authorization", "Bearer " + editorToken)
+        .contentType(ContentType.JSON)
+        .body("{\"title\": \"" + title1 + "\"}")
+        .post("/metadata/")
+        .then()
+        .statusCode(200)
+        .extract().path("metadataId");
 
-    @Test
-    @DisplayName("Codelist endpoint returns expected values")
-    void codelistReturnsInspireSchemas() {
+    String metadataId2 = given()
+        .header("Authorization", "Bearer " + editorToken)
+        .contentType(ContentType.JSON)
+        .body("{\"title\": \"Second Metadata\"}")
+        .post("/metadata/")
+        .then()
+        .statusCode(200)
+        .extract().path("metadataId");
+
+    try {
       given()
           .header("Authorization", "Bearer " + editorToken)
-          .get("/codelists/inspire/schema/AD")
+          .contentType(ContentType.JSON)
+          .body(String.format("""
+              {
+                "type": "ISO",
+                "key": "title",
+                "value": "%s"
+              }
+              """, title1))
+          .patch("/metadata/" + metadataId2)
           .then()
-          .statusCode(200)
-          .body("$", hasItem("Addresses"));
-    }
-
-    @Test
-    @DisplayName("Codelist endpoint returns 404 for invalid theme")
-    void codelistReturnsNotFoundForInvalidTheme() {
+          .statusCode(409);
+    } finally {
       given()
-          .header("Authorization", "Bearer " + editorToken)
-          .get("/codelists/inspire/schema/INVALID")
+          .header("Authorization", "Bearer " + adminToken)
+          .delete("/metadata/" + metadataId2)
           .then()
-          .statusCode(404);
-    }
-  }
-
-  @Nested
-  @DisplayName("Form Update Conflicts")
-  class FormUpdateConflicts {
-
-    @Test
-    @DisplayName("Duplicate title update is rejected with CONFLICT")
-    void duplicateTitleIsRejected() {
-      String title1 = "Unique Title - " + System.currentTimeMillis();
-      metadataId = given()
-          .header("Authorization", "Bearer " + editorToken)
-          .contentType(ContentType.JSON)
-          .body("{\"title\": \"" + title1 + "\"}")
-          .post("/metadata/")
-          .then()
-          .statusCode(200)
-          .extract().path("metadataId");
-
-      String metadataId2 = given()
-          .header("Authorization", "Bearer " + editorToken)
-          .contentType(ContentType.JSON)
-          .body("{\"title\": \"Second Metadata\"}")
-          .post("/metadata/")
-          .then()
-          .statusCode(200)
-          .extract().path("metadataId");
-
-      try {
-        given()
-            .header("Authorization", "Bearer " + editorToken)
-            .contentType(ContentType.JSON)
-            .body(String.format("""
-                {
-                  "type": "ISO",
-                  "key": "title",
-                  "value": "%s"
-                }
-                """, title1))
-            .patch("/metadata/" + metadataId2)
-            .then()
-            .statusCode(409);
-      } finally {
-        given()
-            .header("Authorization", "Bearer " + adminToken)
-            .delete("/metadata/" + metadataId2)
-            .then()
-            .log().status();
-      }
+          .log().status();
     }
   }
 
@@ -572,7 +542,7 @@ class MetadataContentIT extends AbstractApiIT {
           .then()
           .log().status();
 
-       given()
+      given()
           .header("Authorization", "Bearer " + adminToken)
           .delete("/metadata/" + metadataId)
           .then()
