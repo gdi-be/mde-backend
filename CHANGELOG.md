@@ -1,3 +1,25 @@
+# [5.1.0](https://github.com/gdi-be/mde-backend/compare/v5.0.5...v5.1.0) (2026-06-02)
+
+
+### Bug Fixes
+
+* add -nsu flag for tests ([42b9733](https://github.com/gdi-be/mde-backend/commit/42b973385180b2efd4ee21a7fe44b0ca14623ca3))
+* add relative path ([23fbf43](https://github.com/gdi-be/mde-backend/commit/23fbf43d8871f1d2e13e19e0e2b54097f6a790cc))
+* add relative path for pom.xml ([f18ae99](https://github.com/gdi-be/mde-backend/commit/f18ae99159741c3086d1f420985a7f12a2e4baca))
+* exclude mde-integration-tests from regular build ([73b54d6](https://github.com/gdi-be/mde-backend/commit/73b54d69180cf0df41f577d1761c056ade1c6f33))
+* fix migrations ([6146f73](https://github.com/gdi-be/mde-backend/commit/6146f73f7ad854a10aaebbfc77518055f131dff7))
+* improve display names for tests ([d69a4f0](https://github.com/gdi-be/mde-backend/commit/d69a4f0987a60b1e27f69a59d6aa546e28726e66))
+* install parent modules in workflow ([d0421a6](https://github.com/gdi-be/mde-backend/commit/d0421a686bc4df2a78de0465565baa9f6a04979b))
+* install parent modules in workflow ([84839a3](https://github.com/gdi-be/mde-backend/commit/84839a3e65afe7e990669cda4699d1cec362ad82))
+* move integrationtests to test ([4ca1da6](https://github.com/gdi-be/mde-backend/commit/4ca1da67ded9ef4f430e3d3e0b647502e00d730e))
+* remove relative path ([43d4b8f](https://github.com/gdi-be/mde-backend/commit/43d4b8f833d9804c94aa437dc655cce007c685e2))
+* update mde-integration-tests and fix hibernate issues ([b02088f](https://github.com/gdi-be/mde-backend/commit/b02088fc41c19669771bf439bee894e96dc3f2e5))
+
+
+### Features
+
+* publish test report ([919f8cc](https://github.com/gdi-be/mde-backend/commit/919f8cc575a407e11f4eab79ee4a36a270732b9e))
+
 ## [5.0.5](https://github.com/gdi-be/mde-backend/compare/v5.0.4...v5.0.5) (2026-03-26)
 
 
