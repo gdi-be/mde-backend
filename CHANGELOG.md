@@ -1,3 +1,15 @@
+# [5.2.0](https://github.com/gdi-be/mde-backend/compare/v5.1.0...v5.2.0) (2026-07-20)
+
+
+### Bug Fixes
+
+* reset approved status when changing metadata collection to IN_EDIT ([4036497](https://github.com/gdi-be/mde-backend/commit/40364971b984ee06ff7dd981ad708c8e394d5e69))
+
+
+### Features
+
+* init user deletion scheduler ([95f73bd](https://github.com/gdi-be/mde-backend/commit/95f73bdc7d477ea9ec7324a1f5aeb5144863d96d))
+
 # [5.1.0](https://github.com/gdi-be/mde-backend/compare/v5.0.5...v5.1.0) (2026-06-02)
 
 
