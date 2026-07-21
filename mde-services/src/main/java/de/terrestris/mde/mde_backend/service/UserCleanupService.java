@@ -52,6 +52,7 @@ public class UserCleanupService {
    * during one cleanup run.
    *
    * @param collectionId the database id of the affected {@link MetadataCollection}
+   * @param metadataUuid the metadata uuid of the affected {@link MetadataCollection}
    * @param removedOwnerId the owner id that was removed, or {@code null} if the owner was still
    *     present in Keycloak
    * @param removedAssignedUserId the assigned-user id that was removed, or {@code null} if the
@@ -61,6 +62,7 @@ public class UserCleanupService {
    */
   record CollectionCleanupRecord(
       BigInteger collectionId,
+      String metadataUuid,
       String removedOwnerId,
       String removedAssignedUserId,
       List<String> removedTeamMemberIds) {
@@ -180,7 +182,12 @@ public class UserCleanupService {
       log.info("Modified collections:");
       for (CollectionCleanupRecord record : changed) {
         StringBuilder sb = new StringBuilder();
-        sb.append("  Collection ID ").append(record.collectionId()).append(":");
+        sb.append("  MetadataCollection ID ")
+            .append(record.collectionId())
+            .append(" (")
+            .append(record.metadataUuid())
+            .append(")")
+            .append(":");
         if (record.removedOwnerId() != null) {
           sb.append("\n    - owner removed          : ").append(record.removedOwnerId());
         }
@@ -220,7 +227,10 @@ public class UserCleanupService {
   private Optional<CollectionCleanupRecord> removeUser(
       MetadataCollection metadataCollection, List<UserDetails> keycloakUsers) {
 
-    log.trace("Checking MetadataCollection ID {}", metadataCollection.getId());
+    log.trace(
+        "Checking MetadataCollection ID {} ({})",
+        metadataCollection.getId(),
+        metadataCollection.getMetadataId());
 
     String ownerId = metadataCollection.getOwnerId();
     String assignedUserId = metadataCollection.getAssignedUserId();
@@ -257,6 +267,7 @@ public class UserCleanupService {
     CollectionCleanupRecord record =
         new CollectionCleanupRecord(
             metadataCollection.getId(),
+            metadataCollection.getMetadataId(),
             removedOwnerId,
             removedAssignedUserId,
             removedTeamMemberIds);

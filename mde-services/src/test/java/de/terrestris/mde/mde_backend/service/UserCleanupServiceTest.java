@@ -46,7 +46,10 @@ class UserCleanupServiceTest {
   void testRemoveUserNoChanges() {
     MetadataCollection mc =
         createMetadataCollection(
-            "valid-user-1", "valid-user-2", Set.of("valid-user-1", "valid-user-2"));
+            "6d7b8f3b-09f0-4ad6-be07-f327031d6358",
+            "valid-user-1",
+            "valid-user-2",
+            Set.of("valid-user-1", "valid-user-2"));
 
     Optional<UserCleanupService.CollectionCleanupRecord> result = invokeRemoveUser(mc, validUsers);
 
@@ -57,7 +60,11 @@ class UserCleanupServiceTest {
   @Test
   void testRemoveUserOwnerRemoved() {
     MetadataCollection mc =
-        createMetadataCollection("stale-owner", "valid-user-2", Set.of("valid-user-1"));
+        createMetadataCollection(
+            "7583fc0a-b943-47eb-bdf4-756f84477af8",
+            "stale-owner",
+            "valid-user-2",
+            Set.of("valid-user-1"));
 
     Optional<UserCleanupService.CollectionCleanupRecord> result = invokeRemoveUser(mc, validUsers);
 
@@ -73,7 +80,11 @@ class UserCleanupServiceTest {
   @Test
   void testRemoveUserAssignedUserRemoved() {
     MetadataCollection mc =
-        createMetadataCollection("valid-user-1", "stale-assigned", Set.of("valid-user-1"));
+        createMetadataCollection(
+            "b0fb3ed0-7638-4b0a-9338-f5b7238d276c",
+            "valid-user-1",
+            "stale-assigned",
+            Set.of("valid-user-1"));
 
     Optional<UserCleanupService.CollectionCleanupRecord> result = invokeRemoveUser(mc, validUsers);
 
@@ -90,6 +101,7 @@ class UserCleanupServiceTest {
   void testRemoveUserTeamMembersRemoved() {
     MetadataCollection mc =
         createMetadataCollection(
+            "fc3612c1-bf16-4d7b-b0fc-a653d1c14bdb",
             "valid-user-1",
             "valid-user-2",
             Set.of("valid-user-1", "stale-member-1", "stale-member-2"));
@@ -112,6 +124,7 @@ class UserCleanupServiceTest {
   void testRemoveUserMultipleChanges() {
     MetadataCollection mc =
         createMetadataCollection(
+            "ac06147c-0043-426b-9dcf-0651496d4df6",
             "stale-owner",
             "stale-assigned",
             Set.of("stale-team-1", "valid-user-1", "stale-team-2"));
@@ -148,8 +161,9 @@ class UserCleanupServiceTest {
   }
 
   private MetadataCollection createMetadataCollection(
-      String ownerId, String assignedUserId, Set<String> teamMemberIds) {
+      String metadataUuid, String ownerId, String assignedUserId, Set<String> teamMemberIds) {
     MetadataCollection mc = new MetadataCollection();
+    mc.setMetadataId(metadataUuid);
     mc.setOwnerId(ownerId);
     mc.setAssignedUserId(assignedUserId);
     mc.setTeamMemberIds(new HashSet<>(teamMemberIds));
