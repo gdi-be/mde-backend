@@ -184,9 +184,13 @@ public class MetadataCollectionService
     clonedIsoData.setLineage(null);
     clonedIsoData.setValid(false);
     clonedIsoData.setServices(null);
+
     clonedClientData.setRelatedTopics(null);
     clonedClientData.setComments(null);
+    clonedClientData.setLayers(null);
+
     clonedTechnicalData.setDeliveredCrs(null);
+    clonedTechnicalData.setLayerInfos(null);
 
     // default values
     metadataCollection.getIsoMetadata().setMetadataProfile(MetadataProfile.ISO);
