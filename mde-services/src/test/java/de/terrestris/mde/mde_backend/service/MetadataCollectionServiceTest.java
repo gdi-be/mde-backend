@@ -96,9 +96,9 @@ class MetadataCollectionServiceTest {
     assertNull(clone.getClientMetadata().getComments());
     assertNull(clone.getTechnicalMetadata().getLayerInfos());
     assertNull(clone.getTechnicalMetadata().getDeliveredCrs());
+    assertNull(clone.getTechnicalMetadata().getCategories());
     assertEquals(initialExtent, clone.getClientMetadata().getInitialExtent());
     assertEquals(databaseInfo, clone.getTechnicalMetadata().getDatabaseInfo());
-    assertEquals(categories, clone.getTechnicalMetadata().getCategories());
     assertEquals(descriptions, clone.getTechnicalMetadata().getDescriptions());
   }
 }

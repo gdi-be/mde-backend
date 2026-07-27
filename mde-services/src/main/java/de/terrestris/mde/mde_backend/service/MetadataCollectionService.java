@@ -191,6 +191,7 @@ public class MetadataCollectionService
 
     clonedTechnicalData.setDeliveredCrs(null);
     clonedTechnicalData.setLayerInfos(null);
+    clonedTechnicalData.setCategories(null);
 
     // default values
     metadataCollection.getIsoMetadata().setMetadataProfile(MetadataProfile.ISO);
