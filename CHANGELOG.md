@@ -1,3 +1,12 @@
+## [5.2.1](https://github.com/gdi-be/mde-backend/compare/v5.2.0...v5.2.1) (2026-07-28)
+
+
+### Bug Fixes
+
+* add metadata uuid to log ([63119f0](https://github.com/gdi-be/mde-backend/commit/63119f03323f1eb96597cc440b39b0ec5e0e6857))
+* **metadata:** clear categories when cloning records ([6317b1e](https://github.com/gdi-be/mde-backend/commit/6317b1ef7ec678a09fefa8f669cf6d45e0f1eaea))
+* **metadata:** clear layer data when cloning records ([68293c9](https://github.com/gdi-be/mde-backend/commit/68293c9767dba852fd183b488f5426a53e7960c6))
+
 # [5.2.0](https://github.com/gdi-be/mde-backend/compare/v5.1.0...v5.2.0) (2026-07-20)
 
 
