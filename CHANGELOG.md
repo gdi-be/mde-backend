@@ -1,3 +1,15 @@
+# [6.0.0](https://github.com/gdi-be/mde-backend/compare/v5.2.1...v6.0.0) (2026-10-13)
+
+
+### Bug Fixes
+
+* use unprivileged user ([eecff9c](https://github.com/gdi-be/mde-backend/commit/eecff9caae4d367ad66a20b681477bc881b5d07c))
+
+
+### BREAKING CHANGES
+
+* uses an unprivileged user with id 10001. mount permissions have to be updated.
+
 ## [5.2.1](https://github.com/gdi-be/mde-backend/compare/v5.2.0...v5.2.1) (2026-07-28)
 
 
