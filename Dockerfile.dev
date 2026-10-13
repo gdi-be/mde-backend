@@ -1,5 +1,18 @@
 FROM maven:3-eclipse-temurin-21
 
+ARG UID=10001
+ARG GID=10001
+
+RUN groupadd --gid ${GID} app \
+  && useradd --uid ${UID} --gid ${GID} --create-home --home-dir /home/app --shell /usr/sbin/nologin app \
+  && mkdir -p /app /home/app/.m2 \
+  && chown -R app:app /app /home/app
+
+ENV HOME=/home/app
+ENV MAVEN_CONFIG=/home/app/.m2
+
+USER app
+
 WORKDIR /app/
 
 ENTRYPOINT ["mvn", "spring-boot:run", "-Dspring-boot.run.jvmArguments=--add-opens java.base/java.lang=ALL-UNNAMED -Xdebug -Dserver.servlet.session.cookie.path=/ -Dserver.servlet.context-path=/ -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:4711 -Dcom.sun.management.jmxremote.port=3336 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Djava.security.egd=file:/dev/./urandom -Xmx1g"]
