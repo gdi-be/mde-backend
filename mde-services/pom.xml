@@ -204,6 +204,7 @@
         <configuration>
           <container>
             <mainClass>de.terrestris.mde.mde_backend.MdeBackendApplication</mainClass>
+            <user>10001:10001</user>
             <jvmFlags>
               <jvmFlag>--add-opens</jvmFlag>
               <jvmFlag>java.base/java.lang=ALL-UNNAMED</jvmFlag>
