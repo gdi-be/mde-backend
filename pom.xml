@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>4.0.3</version>
+    <version>4.2.0</version>
   </parent>
 
   <groupId>de.terrestris.mde</groupId>
@@ -23,11 +23,11 @@
   </scm>
 
   <properties>
-    <java.version>21</java.version>
+    <java.version>25</java.version>
     <flyway.version>10.22.0</flyway.version>
-    <spring-boot.version>4.0.3</spring-boot.version>
+    <spring-boot.version>4.2.0</spring-boot.version>
     <log4j.version>2.25.4</log4j.version>
-    <hibernate-search.version>8.2.2.Final</hibernate-search.version>
+    <hibernate-search.version>8.4.1.Final</hibernate-search.version>
     <testsuite.version>1.1.40</testsuite.version>
   </properties>
 
@@ -176,10 +176,7 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.15.0</version>
           <configuration>
-            <source>21</source>
-            <target>21</target>
-            <testSource>21</testSource>
-            <testTarget>21</testTarget>
+            <release>${java.version}</release>
             <proc>full</proc>
           </configuration>
         </plugin>
@@ -231,7 +228,7 @@
         <plugin>
           <groupId>com.diffplug.spotless</groupId>
           <artifactId>spotless-maven-plugin</artifactId>
-          <version>2.46.1</version>
+          <version>3.10.4</version>
           <executions>
             <execution>
               <id>check-formatting</id>
@@ -243,7 +240,9 @@
           </executions>
           <configuration>
             <java>
-              <googleJavaFormat/>
+              <googleJavaFormat>
+                <version>1.36.1</version>
+              </googleJavaFormat>
             </java>
           </configuration>
         </plugin>
@@ -264,7 +263,9 @@
         </executions>
         <configuration>
           <java>
-            <googleJavaFormat/>
+            <googleJavaFormat>
+              <version>1.36.1</version>
+            </googleJavaFormat>
           </java>
         </configuration>
       </plugin>

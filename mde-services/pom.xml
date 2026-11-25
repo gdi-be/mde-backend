@@ -211,7 +211,7 @@
             </jvmFlags>
           </container>
           <from>
-            <image>eclipse-temurin:21-jdk</image>
+            <image>eclipse-temurin:25.0.5.1_2-jdk</image>
           </from>
           <to>
             <image>${docker.registry}/${docker.imageName}:${docker.releaseTag}</image>
